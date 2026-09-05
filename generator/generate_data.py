@@ -2,7 +2,7 @@
 EPE-CD Attribution Agent — 데이터 생성기
 
 계측 정합성 실습(3-way CD split)에서 구한 회귀 결과를 앵커로,
-현업 계측 구조(성긴 샘플링 / ADI-ACI 비대칭 / golden wafer 감시)를 본뜬 합성 데이터를 만든다.
+현업 계측 구조(성긴 샘플링 / ADI-ACI 비대칭 / monitor wafer 감시)를 본뜬 합성 데이터를 만든다.
 
 CD는 난수가 아니라 성분의 합으로 만든다. 각 성분이 서로 다른 좌표계에 살기 때문에
 분해가 가능하고, 그래야 원인 귀속이 성립한다.
@@ -255,9 +255,9 @@ def build_measurements():
 
 
 def build_monitor():
-    """golden wafer 재측정 — 현업에서 계측 장비 drift를 잡는 실제 방법."""
+    """monitor wafer 재측정 — 현업에서 계측 장비 drift를 잡는 실제 방법."""
     rows = []
-    true_cd = MET["golden_wafer_true"]["value"]
+    true_cd = MET["monitor_wafer_true"]["value"]
     sigma = MET["cdsem_precision_3s"]["value"] / S3
     s5 = CFG["scenarios"][4]
     for d in range(SMP["weeks"] * 5):

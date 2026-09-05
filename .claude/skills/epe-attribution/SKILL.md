@@ -17,7 +17,7 @@ ACI CD가 관리 한계를 벗어났거나 ΔCD(=ACI−ADI)가 흐를 때, 조�
 python engine/tools.py list --abnormal            # 이상 판정 로트 목록
 python engine/tools.py lot <LOT>                  # 로트 컨텍스트 + 지표
 python engine/tools.py decompose <LOT>            # 좌표계별 성분 분해와 관리 한계
-python engine/tools.py metrology --tool <TOOL> --day <D>   # golden wafer drift 추이
+python engine/tools.py metrology --tool <TOOL> --day <D>   # monitor wafer drift 추이
 python engine/tools.py chambers --day <D>         # 챔버별 ΔCD 비교
 python engine/tools.py rules --signature <SIG>    # 걸린 signature에 해당하는 규칙만
 python engine/tools.py verify <LOT>               # 게이트 통과 여부
@@ -35,7 +35,7 @@ python engine/tools.py verify <LOT>               # 게이트 통과 여부
 
 ## 판정 순서
 되돌릴 수 있는 시점을 먼저 본다 — ADI 계열(레티클 → 트랙 반경 → dose)을 먼저 검사하고,
-그다음 ΔCD 계열을 본다. ΔCD 이상에서는 **golden wafer가 움직였는지를 가장 먼저** 확인한다.
+그다음 ΔCD 계열을 본다. ΔCD 이상에서는 **monitor wafer가 움직였는지를 가장 먼저** 확인한다.
 자가 틀린 상태에서 공정을 조치하면 정상 설비를 건드리게 된다.
 
 ## 하지 않는 것

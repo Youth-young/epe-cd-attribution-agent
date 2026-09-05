@@ -12,7 +12,7 @@ metrics:
   adi_reticle:   slit 성분 제거 후 site에 고정되어 반복되는 잔차 (nm). 레티클 좌표계.
   delta_bias:    (ACI − ADI) 평균 − 기준 etch bias (nm).
   delta_radial:  ΔCD를 (r/R)²로 회귀한 계수 (nm).
-  tool_drift:    golden wafer 재측정 기준선 대비 이동량 (nm).
+  tool_drift:    monitor wafer 재측정 기준선 대비 이동량 (nm).
   chamber_dev:   해당 챔버의 window ΔCD 평균 − 타 챔버 평균 (nm).
   taper_dev:     단면 taper(BCD−TCD) 기준선 대비 변화 (nm).
 
@@ -86,12 +86,12 @@ rules:
     coordinate: 없음(측정 장비에 종속)
     when: [delta_bias_exceeds]
     require:
-      - tool_drift_exceeds          # golden wafer가 같은 방향으로 이동했는지
-      # not_chamber_specific 는 보조 증거로만 본다. golden wafer가 움직였다면
+      - tool_drift_exceeds          # monitor wafer가 같은 방향으로 이동했는지
+      # not_chamber_specific 는 보조 증거로만 본다. monitor wafer가 움직였다면
       # 챔버 편중 여부와 무관하게 '자'를 먼저 바로잡고 재판정하는 것이 맞다.
     cause: >
       ΔCD가 이동했지만 특정 챔버에 몰리지 않고, 특정 계측 장비로 측정한 로트에서만 나타난다.
-      공정이 건드리지 않은 golden wafer의 재측정값이 같은 방향으로 이동했으므로
+      공정이 건드리지 않은 monitor wafer의 재측정값이 같은 방향으로 이동했으므로
       공정 변화가 아니라 계측 장비의 offset drift다.
     action: >
       공정 조치 보류. 해당 CD-SEM 재캘리브레이션 후 영향 기간 로트를 재판정.
@@ -108,7 +108,7 @@ rules:
       이상은 탐지되었으나 원인을 특정할 증거가 부족하다.
       챔버 편중과 계측 drift가 모두 기준에 못 미치거나, 근거 데이터가 없는 경우다.
     action: >
-      추가 측정 요청 — 해당 챔버 매칭 웨이퍼, golden wafer 임시 재측정, 단면 taper 확인.
+      추가 측정 요청 — 해당 챔버 매칭 웨이퍼, monitor wafer 임시 재측정, 단면 taper 확인.
       근거 없이 조치 대상을 지정하지 않는다.
     risk: 주의
 

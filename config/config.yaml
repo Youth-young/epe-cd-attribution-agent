@@ -41,7 +41,7 @@ metrology:
   cdsem_precision_3s: {value: 0.9, unit: nm, basis: literature}
   xsem_precision_3s:  {value: 1.5, unit: nm, basis: literature}
   tool_offset:        {CDSEM-A: 0.0, CDSEM-B: 0.3, unit: nm, basis: assumed}
-  golden_wafer_true:  {value: 111.4, unit: nm, basis: assumed}
+  monitor_wafer_true:  {value: 111.4, unit: nm, basis: assumed}
 
 sampling:
   weeks: 8
@@ -54,7 +54,7 @@ sampling:
   sites_per_field: 5
   wafer_radius_mm: 150
   field_size_mm: [26, 33]
-  monitor_per_week: 2           # golden wafer 재측정 횟수
+  monitor_per_week: 2           # monitor wafer 재측정 횟수
   xsem_per_week: 1              # 단면 기준 측정
 
 fleet:

@@ -135,14 +135,14 @@ LIM = {
     "chamber_dev": 3 * base.delta_bias.dropna().std() * 0.8,
 }
 
-# 계측 장비 감시 — golden wafer 일별 평균과 기준선 대비 이동량
+# 계측 장비 감시 — monitor wafer 일별 평균과 기준선 대비 이동량
 mon_d = mon.groupby(["day_index", "meas_tool"]).cd_nm.mean().reset_index()
 mon_base = mon_d[mon_d.day_index < BASELINE_DAYS].groupby("meas_tool").cd_nm.mean()
 mon_d["drift"] = mon_d.apply(lambda r: r.cd_nm - mon_base[r.meas_tool], axis=1)
 
 
 def tool_drift(tool, day):
-    """가장 최근 golden wafer 재측정값과, 그 측정이 며칠 전 것인지를 함께 돌려준다.
+    """가장 최근 monitor wafer 재측정값과, 그 측정이 며칠 전 것인지를 함께 돌려준다.
     감시 데이터가 오래됐으면 '계측 정상'이라고 단정할 수 없다."""
     w = mon_d[(mon_d.meas_tool == tool) & (mon_d.day_index <= day)]
     if not len(w):
@@ -211,7 +211,7 @@ def attribute(r):
         checks["not_chamber_specific"] = cdev is None or abs(cdev) <= LIM["chamber_dev"]
         ev.append(dict(k="ΔCD(etch bias) 편차", v=f"{dbias:+.2f} nm",
                        lim=f"±{LIM['delta_bias']:.2f}", hit=bool(checks["delta_bias_exceeds"])))
-        ev.append(dict(k=f"{r.aci_meas_tool} golden wafer drift", v=f"{td:+.2f} nm ({td_age}일 전 측정)",
+        ev.append(dict(k=f"{r.aci_meas_tool} monitor wafer drift", v=f"{td:+.2f} nm ({td_age}일 전 측정)",
                        lim=f"±{LIM['tool_drift']:.2f}", hit=bool(checks["tool_drift_exceeds"])))
         ev.append(dict(k=f"{r.etch_chamber} 챔버 편중", v=("N/A" if cdev is None else f"{cdev:+.2f} nm"),
                        lim=f"±{LIM['chamber_dev']:.2f}", hit=bool(checks["chamber_specific"])))
@@ -230,7 +230,7 @@ def attribute(r):
     if checks["adi_offset_exceeds"]:
         order.append("PHOTO_DOSE")
     if has_aci and checks["delta_bias_exceeds"]:
-        # golden wafer가 움직였다면 그것부터 바로잡는다.
+        # monitor wafer가 움직였다면 그것부터 바로잡는다.
         # 자를 먼저 확인하지 않고 공정을 조치하면 정상 챔버를 건드리게 된다.
         if checks["tool_drift_exceeds"]:
             order.append("METROLOGY_TOOL_DRIFT")
