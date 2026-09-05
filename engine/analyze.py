@@ -18,7 +18,9 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 CFG = yaml.safe_load(open(ROOT / "config" / "config.yaml", encoding="utf-8"))
-KB = yaml.safe_load(open(ROOT / "skills/epe-attribution/reference/attribution_rules.yaml", encoding="utf-8"))
+_KB_PATH = next(p for p in [ROOT / ".claude/skills/epe-attribution/reference/attribution_rules.yaml",
+                            ROOT / "skills/epe-attribution/reference/attribution_rules.yaml"] if p.exists())
+KB = yaml.safe_load(open(_KB_PATH, encoding="utf-8"))
 RULES = {r["id"]: r for r in KB["rules"]}
 
 ADI_T = CFG["anchors"]["adi_cd_target"]["value"]
@@ -280,8 +282,10 @@ for r in M.itertuples():
         truth=r.scenario_id,
     ))
 
-sites = plan.merge(pd.read_csv(ROOT / "data/sampling_plan.csv")[["site_id", "wafer_x_mm", "wafer_y_mm"]],
-                   on="site_id")[["site_id", "wafer_x_mm", "wafer_y_mm"]].to_dict("records")
+# 웹 뷰어가 측정점 하나하나를 설명할 수 있도록 좌표 정보를 함께 내보낸다
+_plan_full = pd.read_csv(ROOT / "data/sampling_plan.csv")
+sites = _plan_full[["site_id", "field_x", "field_y", "site_in_field",
+                    "wafer_x_mm", "wafer_y_mm", "r_norm", "pattern_density"]].to_dict("records")
 
 payload = dict(
     centers={k: round(v, 3) for k, v in CEN.items()},
@@ -299,6 +303,10 @@ payload = dict(
     monitor=[dict(day=int(r.day_index), tool=r.meas_tool, drift=round(r.drift, 3))
              for r in mon_d.itertuples()],
     confusion=conf,
+    chamberSeries=[dict(day=int(d), chamber=c, dbias=round(float(v), 3), n=int(n))
+                   for (d, c), (v, n) in
+                   M.dropna(subset=["delta_bias"]).groupby(["day_index", "etch_chamber"])
+                    .delta_bias.agg(["mean", "size"]).iterrows()],
     rules=[dict(id=r["id"], label=r["label"], module=r["module"], coord=r["coordinate"],
                 risk=r["risk"], cause=r["cause"].strip(), action=r["action"].strip())
            for r in KB["rules"]],

@@ -4,271 +4,850 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>EPE-CD 원인 귀속 콘솔</title>
+<meta name="description" content="반도체 공정에서 선폭이 틀어졌을 때, 원인이 노광인지 식각인지 계측인지를 가려내는 AI 에이전트의 판정 결과 뷰어.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --page:#e9edef; --panel:#fff; --ink:#12171b; --muted:#5d6b76; --line:#ccd5db;
-  --photo:#a86200; --etch:#8c2f6b; --metro:#0e6a72; --normal:#54646f; --hold:#5f52a0;
-  --cold:#2e6fa8; --hot:#c2472f;
+  --page:#edf0f2; --panel:#fff; --sunk:#f5f7f8;
+  --ink:#10161b; --ink2:#33424c; --muted:#57676f; --line:#c8d2d8; --line2:#e2e9ec;
+  --photo:#a05c00; --etch:#8a2e68; --metro:#0b6a72; --normal:#4e5f6a; --hold:#5a4e9c;
+  --cold:#2c6da6; --hot:#bf4630; --ok:#1c6b3a; --bad:#a2321f;
+  --w:1080px;
 }
 *{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--page);color:var(--ink);
-  font-family:"IBM Plex Sans KR",-apple-system,"Segoe UI",sans-serif;font-weight:350;
-  font-size:14px;line-height:1.6}
+  font-family:"IBM Plex Sans KR",-apple-system,"Segoe UI",sans-serif;
+  font-weight:350;font-size:15px;line-height:1.75;overflow-wrap:break-word}
 .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
-a{color:inherit}
-header{padding:26px 24px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
-header h1{margin:0;font-size:20px;font-weight:600;letter-spacing:-.01em}
-header p{margin:6px 0 0;color:var(--muted);max-width:74ch}
-.anchor{margin-top:14px;display:flex;flex-wrap:wrap;gap:0 22px;font-size:12.5px;color:var(--muted)}
-.anchor b{color:var(--ink);font-weight:500}
+h1,h2,h3,h4{line-height:1.35;margin:0;font-weight:600;letter-spacing:-.012em}
+p{margin:0 0 .85em}
+p:last-child{margin-bottom:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2.5px solid var(--metro);outline-offset:2px}
 
-.wrap{display:grid;grid-template-columns:262px 1fr;gap:16px;padding:16px;align-items:start}
-@media(max-width:900px){.wrap{grid-template-columns:1fr}}
-.panel{background:var(--panel);border:1px solid var(--line);padding:16px 18px}
-.panel h2{margin:0 0 10px;font-size:13px;font-weight:600;color:var(--muted)}
+/* 머리말과 이동 */
+.top{background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+.top .in{max-width:var(--w);margin:0 auto;padding:14px 20px 0}
+.brand{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.brand h1{font-size:17px}
+.brand span{color:var(--muted);font-size:13px}
+nav{display:flex;gap:2px;margin-top:12px;overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{background:none;border:0;border-bottom:2.5px solid transparent;
+  padding:8px 13px 10px;cursor:pointer;color:var(--muted);white-space:nowrap;font-size:14px}
+nav button[aria-current=page]{color:var(--ink);border-bottom-color:var(--ink);font-weight:500}
+nav button:hover{color:var(--ink2)}
 
-/* 좌측 로트 목록 */
-#filters{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
-#filters button{border:1px solid var(--line);background:#fff;padding:4px 9px;font:inherit;
-  font-size:12px;cursor:pointer;color:var(--muted)}
-#filters button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
-#lots{max-height:62vh;overflow:auto;border-top:1px solid var(--line)}
-.lot{display:grid;grid-template-columns:12px 1fr auto;gap:8px;align-items:center;
-  padding:7px 4px;border-bottom:1px solid #eef2f4;cursor:pointer}
-.lot:hover{background:#f4f7f8}
-.lot[aria-selected=true]{background:#e6edf1;box-shadow:inset 3px 0 0 var(--ink)}
-.dot{width:9px;height:9px;border-radius:50%}
-.lot small{color:var(--muted);font-size:11.5px}
+main{max-width:var(--w);margin:0 auto;padding:22px 20px 72px}
+.view[hidden]{display:none}
+.card{background:var(--panel);border:1px solid var(--line);padding:22px 24px;margin-bottom:16px}
+.card>h2{font-size:16px;margin-bottom:4px}
+.card>.lede{color:var(--muted);font-size:13.5px;margin-bottom:16px}
+@media(max-width:640px){
+  body{font-size:14.5px}
+  main{padding:16px 12px 60px}
+  .card{padding:18px 15px}
+  .top .in{padding:12px 14px 0}
+}
 
-/* 판정 */
-.verdict{border-left:5px solid var(--normal);padding:2px 0 2px 14px;margin-bottom:14px}
-.verdict h3{margin:0;font-size:19px;font-weight:600}
-.verdict .sub{color:var(--muted);font-size:12.5px;margin-top:3px}
-.badge{display:inline-block;padding:1px 7px;border:1px solid currentColor;font-size:11.5px;
-  margin-left:8px;vertical-align:2px}
-.prose{margin:12px 0 0;max-width:76ch}
-.prose dt{font-size:12px;color:var(--muted);margin-top:10px}
-.prose dd{margin:2px 0 0}
+/* 개요 */
+.hero{background:var(--panel);border:1px solid var(--line);padding:34px 30px;margin-bottom:16px}
+.hero .q{font-size:clamp(19px,4.6vw,29px);font-weight:600;line-height:1.45;max-width:22ch;
+  letter-spacing:-.02em;margin-bottom:16px}
+.hero .q em{font-style:normal;border-bottom:3px solid var(--metro);padding-bottom:1px}
+.hero p{max-width:60ch;color:var(--ink2)}
+.flow{margin:26px 0 18px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+  background:var(--line2);border:1px solid var(--line2);margin-top:24px}
+.facts div{background:var(--panel);padding:13px 15px}
+.facts b{display:block;font-size:19px;font-weight:600}
+.facts small{color:var(--muted);font-size:12.5px}
+.steps{counter-reset:s;margin:0;padding:0;list-style:none}
+.steps li{position:relative;padding-left:38px;margin-bottom:15px}
+.steps li:last-child{margin-bottom:0}
+.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:1px;
+  width:25px;height:25px;border:1.5px solid var(--line);border-radius:50%;
+  display:grid;place-items:center;font-size:12.5px;color:var(--muted);
+  font-family:"IBM Plex Mono",monospace}
+.steps b{display:block;font-weight:600}
 
-table{border-collapse:collapse;width:100%;font-size:13px}
-th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #eef2f4}
-th{color:var(--muted);font-weight:500;font-size:12px}
+/* 용어 */
+.term{border-bottom:1.5px dotted var(--metro);cursor:help;font-weight:500;
+  text-underline-offset:3px;padding:0 1px}
+.term:hover{background:#e2eff0}
+.glossary{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:1px;
+  background:var(--line2);border:1px solid var(--line2)}
+.gitem{background:var(--panel);padding:16px 17px}
+.gitem h3{font-size:14.5px}
+.gitem .en{color:var(--muted);font-weight:400;font-size:12px;margin-left:5px}
+.gitem p{font-size:13.5px;color:var(--ink2);margin-top:6px;line-height:1.7}
+.gitem svg{margin-top:10px;width:100%;height:auto;max-width:230px;display:block}
+
+#pop{position:absolute;z-index:60;max-width:330px;background:var(--panel);
+  border:1px solid var(--ink);box-shadow:0 10px 34px rgba(16,22,27,.18);
+  padding:14px 16px;font-size:13.5px;line-height:1.7;display:none}
+#pop h4{font-size:14px;margin-bottom:5px}
+#pop .en{color:var(--muted);font-weight:400;font-size:12px;margin-left:5px}
+#pop p{color:var(--ink2)}
+#pop svg{margin-top:9px;width:100%;height:auto}
+
+/* 로트 목록 / 상세 */
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.tools input{border:1px solid var(--line);padding:8px 11px;font:inherit;font-size:14px;
+  width:170px;background:var(--panel)}
+.chip{border:1px solid var(--line);background:var(--panel);padding:6px 12px;cursor:pointer;
+  color:var(--muted);font-size:13.5px}
+.chip[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.count{color:var(--muted);font-size:13px;margin-left:auto}
+#lotlist{border-top:1px solid var(--line2);max-height:62vh;overflow:auto}
+.lot{display:grid;grid-template-columns:11px 1fr auto;gap:11px;align-items:center;
+  padding:11px 6px;border-bottom:1px solid var(--line2);cursor:pointer;background:none;
+  border-left:0;border-right:0;border-top:0;width:100%;text-align:left}
+.lot:hover{background:var(--sunk)}
+.dot{width:10px;height:10px;border-radius:50%}
+.lot small{display:block;color:var(--muted);font-size:12px;line-height:1.5}
+.lot .tag{font-size:12.5px;color:var(--muted);text-align:right}
+.empty{padding:30px 4px;color:var(--muted)}
+
+.back{background:none;border:1px solid var(--line);padding:7px 13px;cursor:pointer;
+  font-size:13.5px;color:var(--ink2)}
+.back:hover{background:var(--sunk)}
+.detailbar{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.detailbar .navs{margin-left:auto;display:flex;gap:6px}
+.verdict{border-left:6px solid var(--normal);padding:4px 0 4px 16px}
+.verdict h2{font-size:clamp(19px,4.4vw,25px)}
+.verdict .meta{color:var(--muted);font-size:12.5px;margin-top:5px;line-height:1.65}
+.risk{display:inline-block;padding:1px 9px;border:1.5px solid currentColor;font-size:12px;
+  margin-left:9px;vertical-align:3px;font-weight:500}
+.plain{background:var(--sunk);border:1px solid var(--line2);padding:16px 18px;margin-top:16px}
+.plain h3{font-size:13.5px;color:var(--muted);font-weight:500;margin-bottom:6px}
+.plain p{font-size:14.5px}
+.act{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+
+.acc{border:1px solid var(--line);background:var(--panel);margin-top:-1px}
+.acc>button{width:100%;display:flex;align-items:center;gap:10px;background:none;border:0;
+  padding:15px 18px;cursor:pointer;text-align:left;font-size:15px;font-weight:500}
+.acc>button:hover{background:var(--sunk)}
+.acc>button .mark{margin-left:auto;color:var(--muted);font-size:19px;line-height:1;
+  transition:transform .18s}
+.acc[open] .mark{transform:rotate(45deg)}
+.acc summary{display:none}
+.acc .body{padding:2px 18px 20px;border-top:1px solid var(--line2)}
+.acc:not([open]) .body{display:none}
+@media(prefers-reduced-motion:reduce){.acc>button .mark{transition:none}}
+
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--line2)}
+th{color:var(--muted);font-weight:500;font-size:12.5px}
 td.num{text-align:right}
-tr.hit td{background:#fdf3ee}
-.ok{color:#1c6b3a}.no{color:#a2321f}
+tr.hit td{background:#fdf2ec}
+.ok{color:var(--ok);font-weight:500}.bad{color:var(--bad);font-weight:600}
+.scroller{overflow-x:auto;-webkit-overflow-scrolling:touch}
 
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+.maps{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:720px){.maps{grid-template-columns:1fr}}
 figure{margin:0}
-figcaption{font-size:12px;color:var(--muted);margin-bottom:6px}
-svg{display:block;width:100%;height:auto}
-.legend{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);margin-top:6px}
-.bar{height:9px;flex:1;background:linear-gradient(90deg,var(--cold),#f0f3f5,var(--hot))}
-footer{padding:8px 24px 40px;color:var(--muted);font-size:12px}
-.note{font-size:12px;color:var(--muted);margin-top:8px;max-width:78ch}
+figcaption{font-size:13px;margin-bottom:2px;font-weight:500}
+figcaption span{display:block;color:var(--muted);font-weight:400;font-size:12.5px}
+.wafer{width:100%;height:auto;max-width:400px;margin:8px auto 0;display:block;touch-action:manipulation}
+.wafer circle.spot{cursor:pointer}
+.wafer circle.spot:hover,.wafer circle.spot:focus{stroke:var(--ink);stroke-width:2.5}
+.scale{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--muted);
+  margin:10px auto 0;max-width:400px}
+.scale .bar{height:11px;flex:1;background:linear-gradient(90deg,var(--cold),#f2f5f6,var(--hot));
+  border:1px solid var(--line)}
+.howto{font-size:13px;color:var(--muted);margin-top:12px;line-height:1.7}
+
+.chartbox{background:var(--panel)}
+.chart{width:100%;height:auto;display:block;overflow:visible}
+.chart text{font-family:"IBM Plex Mono",monospace;font-size:11px;fill:var(--muted)}
+.chart .axt{font-family:"IBM Plex Sans KR",sans-serif;font-size:11.5px;fill:var(--ink2)}
+.chart .grid{stroke:var(--line2);stroke-width:1}
+.chart .axis{stroke:var(--line);stroke-width:1.2}
+.chart .pt{cursor:pointer}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink2);margin-top:12px}
+.legend i{display:inline-block;width:14px;height:14px;vertical-align:-2px;margin-right:6px;
+  border-radius:50%}
+.legend .ln{width:22px;height:0;border-top-width:3px;border-top-style:solid;border-radius:0;
+  vertical-align:4px}
+.metricpick{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.small{font-size:13px;color:var(--muted);line-height:1.75}
+.small b{color:var(--ink2)}
+.mini{display:grid;grid-template-columns:82px 1fr;align-items:center;gap:10px;
+  padding:7px 0;border-bottom:1px solid var(--line2)}
+.mini:last-child{border-bottom:0}
+.mini .nm{font-size:13px;font-weight:500}
+.mini .nm small{display:block;color:var(--muted);font-weight:400;font-size:11.5px}
+footer{max-width:var(--w);margin:0 auto;padding:0 20px 44px;color:var(--muted);font-size:12.5px}
 </style>
 </head>
 <body>
-<header>
-  <h1>EPE-CD 원인 귀속 콘솔</h1>
-  <p>ACI CD가 흔들렸을 때 그 원인이 노광인지, 식각인지, 아니면 계측 자체인지를 판정합니다.
-     CD 잔차를 좌표계별 성분으로 분해하고, 규칙 기반 게이트로 근거를 재검증합니다.</p>
-  <div class="anchor" id="anchor"></div>
+
+<header class="top">
+  <div class="in">
+    <div class="brand">
+      <h1>EPE-CD 원인 귀속 콘솔</h1>
+      <span>반도체 선폭 이상의 원인을 가려내는 AI 에이전트</span>
+    </div>
+    <nav id="nav" aria-label="화면 이동">
+      <button data-v="overview" aria-current="page">개요</button>
+      <button data-v="terms">용어</button>
+      <button data-v="lots">로트 판정</button>
+      <button data-v="charts">추이와 감시</button>
+      <button data-v="eval">검증 결과</button>
+    </nav>
+  </div>
 </header>
 
-<div class="wrap">
-  <aside class="panel">
-    <h2>로트</h2>
-    <div id="filters">
-      <button data-f="all" aria-pressed="true">전체</button>
-      <button data-f="abn" aria-pressed="false">이상만</button>
-      <button data-f="aci" aria-pressed="false">ACI 측정</button>
+<main>
+
+<section class="view" id="v-overview">
+  <div class="hero">
+    <p class="q">선이 굵게 그려졌다.<br>범인은 <em>빛</em>인가, <em>깎기</em>인가,<br>아니면 <em>자(尺)</em>인가.</p>
+    <p>반도체는 웨이퍼 위에 빛으로 그림을 그리고(<b class="term" data-t="photo">노광</b>),
+       그 그림대로 깎아냅니다(<b class="term" data-t="etch">식각</b>).
+       이때 선의 굵기(<b class="term" data-t="cd">CD</b>)가 목표에서 벗어나면 칩이 불량이 됩니다.</p>
+    <p>문제는 <b>원인을 아는 것</b>입니다. 굵어진 선을 보고 빛을 조절할지, 깎는 조건을 바꿀지
+       정해야 하는데, 잘못 짚으면 멀쩡한 설비를 건드려 오히려 망가뜨립니다.
+       이 에이전트는 측정 데이터를 성분별로 쪼개서 <b>어느 공정이 범인인지</b> 짚어냅니다.</p>
+    <div class="flow" id="flowdiagram"></div>
+    <p>그리고 대부분이 놓치는 세 번째 답이 있습니다. <b>자가 틀렸을 가능성</b>입니다.
+       길이를 재는 장비 자체가 조금씩 어긋나면, 공정은 멀쩡한데 숫자만 이상해집니다.
+       이걸 공정 문제로 착각하면 정상 설비의 설정을 건드리게 됩니다 —
+       가장 비싼 실수입니다. 이 에이전트는 그 가능성을 항상 후보에 올려둡니다.</p>
+    <div class="facts" id="facts"></div>
+  </div>
+
+  <div class="card">
+    <h2>에이전트는 이렇게 판단합니다</h2>
+    <p class="lede">사람이 원인을 찾는 순서를 그대로 코드로 옮겼습니다.</p>
+    <ol class="steps">
+      <li><b>측정값을 성분으로 쪼갠다</b>
+        웨이퍼 전체가 똑같이 굵어졌는지, 가장자리만 굵어졌는지, 특정 위치에서만 반복되는지 —
+        <b>어긋남이 어떤 모양으로 나타나는가</b>가 곧 범인의 지문입니다.</li>
+      <li><b>지문과 원인을 대조한다</b>
+        웨이퍼 전체가 균일하게 이동하면 빛의 세기, 가장자리 중심의 변화면 열처리,
+        특정 <b class="term" data-t="chamber">챔버</b>에서만 나타나면 식각 설비를 의심합니다.</li>
+      <li><b>증거가 충분한지 코드가 다시 확인한다</b>
+        AI가 내린 결론이 규칙이 요구하는 조건을 모두 만족하는지 검사합니다.
+        하나라도 어긋나면 원인을 지목하지 않습니다.</li>
+      <li><b>모르면 모른다고 말한다</b>
+        근거가 부족하면 <b>판정 보류</b>를 내고 어떤 추가 측정이 필요한지 알려줍니다.
+        틀린 답보다 보류가 나은 분야이기 때문입니다.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>이 데이터에 대해</h2>
+    <p class="lede">정직하게 밝혀둘 부분입니다.</p>
+    <p>실제 반도체 공장의 데이터가 아니라, <b>공장의 측정 방식을 그대로 본떠 만든 모의 데이터</b>입니다.
+      학교 실습에서 직접 측정해 얻은 회귀식(선폭이 공정 단계마다 어떻게 변하는지의 관계)을 기준점으로 삼고,
+      거기에 물리적으로 타당한 변동 성분을 쌓아 올려 생성했습니다.</p>
+    <p>실제 공장에서 웨이퍼 전면을 다 재는 일은 없습니다. 시간과 비용 때문에 아주 성기게 잽니다.
+      그래서 이 데이터도 웨이퍼 한 장당 41개 지점만 측정하고, 식각 이후 측정은 절반의
+      로트에서만 이뤄집니다. <b>측정이 없으면 에이전트도 판정하지 않습니다.</b></p>
+  </div>
+</section>
+
+<section class="view" id="v-terms" hidden>
+  <div class="card">
+    <h2>용어 사전</h2>
+    <p class="lede">본문 곳곳의 <span class="term" data-t="cd">점선 밑줄</span> 위에 마우스를 올리거나
+      모바일에서는 눌러서, 같은 설명을 그 자리에서 바로 볼 수 있습니다.</p>
+    <div class="glossary" id="glossary"></div>
+  </div>
+</section>
+
+<section class="view" id="v-lots" hidden>
+  <div class="card" id="lotlistcard">
+    <h2>로트를 하나 고르세요</h2>
+    <p class="lede"><b class="term" data-t="lot">로트</b> 하나를 고르면 그 로트의 판정만 따로 보여드립니다.
+      전체를 한 번에 늘어놓지 않습니다.</p>
+    <div class="tools">
+      <input id="q" type="search" placeholder="로트 번호 검색" aria-label="로트 번호 검색">
+      <button class="chip" data-f="all" aria-pressed="true">전체</button>
+      <button class="chip" data-f="abn" aria-pressed="false">이상만</button>
+      <button class="chip" data-f="aci" aria-pressed="false">식각 후 측정된 것만</button>
+      <span class="count" id="count"></span>
     </div>
-    <div id="lots" role="listbox" aria-label="로트 목록"></div>
-  </aside>
+    <div id="lotlist" role="listbox" aria-label="로트 목록"></div>
+  </div>
 
-  <main style="display:grid;gap:16px">
-    <section class="panel">
+  <div id="lotdetail" hidden>
+    <div class="detailbar">
+      <button class="back" id="backBtn">← 목록으로</button>
+      <span class="navs">
+        <button class="back" id="prevBtn">이전 로트</button>
+        <button class="back" id="nextBtn">다음 로트</button>
+      </span>
+    </div>
+    <div class="card">
       <div class="verdict" id="verdict"></div>
-      <dl class="prose" id="prose"></dl>
-    </section>
+      <div class="plain" id="plain"></div>
+    </div>
 
-    <section class="panel">
-      <h2>웨이퍼 맵 (slot 13)</h2>
-      <div class="grid2">
-        <figure><figcaption id="cap1"></figcaption><svg id="map1" viewBox="-165 -165 330 330"></svg></figure>
-        <figure><figcaption id="cap2"></figcaption><svg id="map2" viewBox="-165 -165 330 330"></svg></figure>
+    <details class="acc" id="accMap">
+      <summary hidden></summary>
+      <button type="button" data-acc="accMap">웨이퍼 지도로 보기<span class="mark">＋</span></button>
+      <div class="body">
+        <div class="maps">
+          <figure>
+            <figcaption>현상 후 선폭 — 목표와의 차이<span id="cap1s"></span></figcaption>
+            <svg class="wafer" id="map1" viewBox="-178 -178 356 356" role="img"
+                 aria-label="현상 후 선폭의 웨이퍼 분포"></svg>
+          </figure>
+          <figure>
+            <figcaption>식각으로 깎인 양<span id="cap2s"></span></figcaption>
+            <svg class="wafer" id="map2" viewBox="-178 -178 356 356" role="img"
+                 aria-label="식각으로 깎인 양의 웨이퍼 분포"></svg>
+          </figure>
+        </div>
+        <div class="scale"><span class="mono" id="lo"></span><span class="bar"></span><span class="mono" id="hi"></span></div>
+        <p class="howto">동그라미 하나가 실제로 길이를 잰 지점입니다. 웨이퍼 한 장에 41군데.
+          <b>점 위에 마우스를 올리면</b> 그 자리의 측정값이 나옵니다.
+          연한 회색 사각형은 한 번의 노광으로 찍히는 영역(<b class="term" data-t="field">field</b>)이고,
+          아래쪽 홈은 웨이퍼 방향을 맞추는 표식입니다.
+          <b>파란색은 목표보다 가늘고, 붉은색은 굵다</b>는 뜻입니다.</p>
       </div>
-      <div class="legend"><span class="mono" id="lo"></span><span class="bar"></span><span class="mono" id="hi"></span></div>
-      <p class="note">41점 샘플링(9 field × 5 site). 현업과 같이 ADI와 ACI가 동일 좌표를 공유합니다.</p>
-    </section>
+    </details>
 
-    <section class="panel">
-      <h2>증거</h2>
-      <table id="ev"></table>
-      <h2 style="margin-top:18px">Verification Gate</h2>
-      <table id="gate"></table>
-      <p class="note">게이트는 규칙이 요구하는 조건을 코드가 다시 확인합니다. 하나라도 불충족이면 판정을 내리지 않고 보류합니다.</p>
-    </section>
+    <details class="acc" id="accEv">
+      <summary hidden></summary>
+      <button type="button" data-acc="accEv">판정 근거 숫자 보기<span class="mark">＋</span></button>
+      <div class="body">
+        <p class="small" style="margin:14px 0 10px">각 지표가 정상 범위(<b class="term" data-t="limit">관리 한계</b>) 안에 있는지 확인합니다.
+          한계는 사람이 정한 값이 아니라, 이상이 주입되기 전 초기 10일 데이터의 평균 ± 3σ로
+          엔진이 스스로 계산한 값입니다.</p>
+        <div class="scroller"><table id="ev"></table></div>
+      </div>
+    </details>
 
-    <section class="panel">
-      <h2>공정 흐름</h2>
-      <svg id="timeline" viewBox="0 0 1000 90" preserveAspectRatio="none" style="height:90px"></svg>
-      <h2 style="margin-top:16px">golden wafer 감시</h2>
-      <svg id="monitor" viewBox="0 0 1000 150" style="height:150px"></svg>
-      <p class="note">공정이 건드리지 않은 웨이퍼를 반복 측정해 계측 장비의 offset 이동을 추적합니다. 계측 drift를 공정 이상과 가르는 직접 증거입니다.</p>
-    </section>
+    <details class="acc" id="accGate">
+      <summary hidden></summary>
+      <button type="button" data-acc="accGate">검증 게이트 통과 여부<span class="mark">＋</span></button>
+      <div class="body">
+        <p class="small" style="margin:14px 0 10px">AI가 원인을 지목하면, 코드가 그 원인이 요구하는
+          조건을 하나씩 다시 확인합니다. 하나라도 어긋나면 판정을 취소하고 보류합니다.</p>
+        <div class="scroller"><table id="gate"></table></div>
+      </div>
+    </details>
+  </div>
+</section>
 
-    <section class="panel">
-      <h2>블라인드 평가</h2>
-      <table id="conf"></table>
-      <p class="note">엔진은 정답 파일을 읽지 않습니다. 판정이 끝난 뒤에만 대조했습니다.</p>
-    </section>
-  </main>
-</div>
-<footer>합성 데이터입니다. 계측 정합성 실습의 회귀 결과를 앵커로, 현업 계측 구조를 본떠 생성했습니다.</footer>
+<section class="view" id="v-charts" hidden>
+  <div class="card">
+    <h2>생산일별 추이</h2>
+    <p class="lede">8주(생산일 40일) 동안 지표가 어떻게 움직였는지 봅니다. 점 하나가 로트 하나입니다.</p>
+    <div class="metricpick" id="metricpick"></div>
+    <div class="chartbox"><svg class="chart" id="trend" viewBox="0 0 780 330" role="img"
+      aria-label="생산일별 지표 추이"></svg></div>
+    <div class="legend" id="trendLegend"></div>
+    <p class="small" style="margin-top:12px">회색 띠가 정상 범위입니다. 띠를 벗어난 점이 이상 판정을 받은 로트이고,
+      <b>점을 누르면 그 로트의 판정 화면으로 넘어갑니다.</b>
+      점의 색은 에이전트가 지목한 원인을 뜻합니다.</p>
+  </div>
+
+  <div class="card">
+    <h2>측정 장비 감시</h2>
+    <p class="lede">공정이 건드리지 않은 <b class="term" data-t="golden">기준 웨이퍼</b>를 주 2회 다시 재서,
+      측정 장비 자체가 어긋나고 있지 않은지 추적합니다.</p>
+    <div class="chartbox"><svg class="chart" id="monitor" viewBox="0 0 780 300" role="img"
+      aria-label="측정 장비별 기준 웨이퍼 값의 이동량"></svg></div>
+    <div class="legend" id="monLegend"></div>
+    <p class="small" style="margin-top:12px">같은 웨이퍼를 계속 재는 것이므로 값은 변하지 않아야 정상입니다.
+      선이 회색 띠를 벗어나 한쪽으로 흐르면 공정이 아니라 <b>장비가 어긋난 것</b>입니다.
+      공정 문제와 계측 문제를 가르는 유일한 직접 증거이고, 이 프로젝트의 핵심 근거입니다.</p>
+  </div>
+
+  <div class="card">
+    <h2>식각 챔버별 비교</h2>
+    <p class="lede">식각은 4개의 <b class="term" data-t="chamber">챔버</b>가 번갈아 처리합니다.
+      특정 챔버에서만 값이 흐르면 그 챔버의 문제입니다.</p>
+    <div id="chambers"></div>
+    <p class="small" style="margin-top:14px"><b>한 챔버만 흐르면 식각 문제, 네 챔버가 함께 흐르면 계측 문제</b>입니다.
+      챔버는 서로 독립적이라 동시에 같은 방향으로 어긋날 이유가 없기 때문입니다.</p>
+  </div>
+</section>
+
+<section class="view" id="v-eval" hidden>
+  <div class="card">
+    <h2>정답을 보지 않고 맞혔는지</h2>
+    <p class="lede">데이터를 만들 때 어떤 이상을 어디에 넣었는지는 별도 파일에 기록해 두고,
+      판정 엔진은 그 파일을 읽지 못하게 막았습니다. 판정이 끝난 뒤에만 대조했습니다.</p>
+    <div class="scroller"><table id="conf"></table></div>
+    <p class="small" style="margin-top:14px">세로가 실제로 넣은 이상, 가로가 에이전트의 판정입니다.
+      대각선(굵은 글씨)이 정답입니다.</p>
+  </div>
+  <div class="card">
+    <h2>이 표에서 가장 중요한 칸</h2>
+    <p><b>계측 장비가 어긋난 경우를 식각 문제로 잘못 지목한 사례가 0건</b>이라는 점입니다.
+      이 실수를 하면 멀쩡한 챔버의 설정을 건드리게 되고, 정상이던 공정이 망가집니다.</p>
+    <p>대신 3건은 <b>판정 보류</b>로 처리했습니다. 기준 웨이퍼 재측정이 주 2회라서,
+      이상이 막 시작된 날에는 감시 데이터가 이틀 이상 묵어 있었습니다.
+      그때 엔진은 계측이 정상이라고 단정할 수 없다며 판정을 거부했습니다.
+      의도한 설계이지 실패가 아닙니다.</p>
+    <p>식각 챔버 이상 26건 중 13건이 정상으로 나온 것도 같은 이유입니다.
+      그 13건은 <b class="term" data-t="aci">식각 후 측정</b>이 없는 로트라 애초에 계산이 불가능합니다.
+      없는 데이터로 추측하지 않습니다.</p>
+  </div>
+</section>
+
+</main>
+<footer>모의 데이터로 만든 개념 검증 프로젝트입니다. 실제 공장 데이터로 검증되지 않았습니다.</footer>
+<div id="pop" role="tooltip" aria-live="polite"></div>
 
 <script src="data.js"></script>
 <script>
-const COLOR={NORMAL:'var(--normal)',PHOTO_DOSE:'var(--photo)',PHOTO_TRACK_RADIAL:'var(--photo)',
-  RETICLE_CD_ERROR:'var(--photo)',ETCH_CHAMBER:'var(--etch)',METROLOGY_TOOL_DRIFT:'var(--metro)',
-  INDETERMINATE:'var(--hold)'};
-const $=s=>document.querySelector(s);
-let filter='all', current=null;
+/* 1. 공통 상수와 도우미 ─────────────────────────── */
+const M = DATA.meta, LIM = DATA.limits;
+const COLOR = {NORMAL:'#4e5f6a', PHOTO_DOSE:'#a05c00', PHOTO_TRACK_RADIAL:'#a05c00',
+  RETICLE_CD_ERROR:'#a05c00', ETCH_CHAMBER:'#8a2e68', METROLOGY_TOOL_DRIFT:'#0b6a72',
+  INDETERMINATE:'#5a4e9c'};
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-// ---- 헤더 앵커
-const m=DATA.meta;
-$('#anchor').innerHTML=[
-  ['ADI Target',m.adiTarget+' nm'],['ACI Target',m.aciTarget+' nm'],
-  ['단면 BCD',m.vsemTarget+' nm'],['etch bias',m.etchBias+' nm'],
-  ['로트',m.lots+' (ACI '+m.aciLots+')'],['ADI 측정점',m.adiRows.toLocaleString()],
-  ['웨이퍼내 CDU 3σ',m.cdu3s+' nm']
-].map(([k,v])=>`<span>${k} <b class="mono">${v}</b></span>`).join('');
-
-// ---- 로트 목록
-function visible(){
-  return DATA.lots.filter(l=> filter==='all' ? true
-    : filter==='abn' ? l.verdict!=='NORMAL'
-    : l.m.dbias!==null);
-}
-function renderLots(){
-  $('#lots').innerHTML=visible().map(l=>`
-    <div class="lot" data-lot="${l.lot}" role="option" tabindex="0" aria-selected="${current===l.lot}">
-      <span class="dot" style="background:${COLOR[l.verdict]}"></span>
-      <span><span class="mono">${l.lot}</span><br><small>${l.date} · ${l.chamber}</small></span>
-      <small>${l.verdict==='NORMAL'?'':l.label}</small>
-    </div>`).join('');
-  $('#lots').querySelectorAll('.lot').forEach(e=>{
-    e.onclick=()=>select(e.dataset.lot);
-    e.onkeydown=ev=>{
-      if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();select(e.dataset.lot);}
-    };
-  });
-}
-$('#filters').onclick=e=>{
-  if(e.target.tagName!=='BUTTON')return;
-  filter=e.target.dataset.f;
-  [...$('#filters').children].forEach(b=>b.setAttribute('aria-pressed',b===e.target));
-  renderLots();
+/* 2. 용어 사전 — 말풍선과 용어 화면이 같은 자료를 씁니다 ─── */
+const TERMS = {
+  wafer:{k:'웨이퍼',e:'wafer',d:'반도체를 만드는 얇은 원판입니다. 지름 300mm짜리 실리콘 원판 하나에 칩 수백 개를 동시에 만듭니다. 이 원판 위에 회로를 층층이 쌓아 올립니다.',
+    s:'<svg viewBox="0 0 200 100"><circle cx="50" cy="50" r="34" fill="#e6ecee" stroke="#57676f"/><path d="M46 84h8l-4-6z" fill="#57676f"/><text x="96" y="42" font-size="11" fill="#33424c">지름 300mm 원판</text><text x="96" y="60" font-size="11" fill="#33424c">여기에 칩 수백 개</text></svg>'},
+  lot:{k:'로트',e:'lot',d:'웨이퍼 25장을 한 묶음으로 다니는 생산 단위입니다. 공장에서는 웨이퍼 한 장이 아니라 로트 단위로 공정을 거칩니다. 이 프로젝트는 320개 로트를 다룹니다.',
+    s:'<svg viewBox="0 0 200 100"><rect x="18" y="26" width="9" height="48" fill="#e6ecee" stroke="#57676f"/><rect x="31" y="26" width="9" height="48" fill="#e6ecee" stroke="#57676f"/><rect x="44" y="26" width="9" height="48" fill="#e6ecee" stroke="#57676f"/><rect x="57" y="26" width="9" height="48" fill="#e6ecee" stroke="#57676f"/><rect x="70" y="26" width="9" height="48" fill="#e6ecee" stroke="#57676f"/><text x="18" y="90" font-size="10" fill="#57676f">웨이퍼 25장</text><text x="100" y="52" font-size="11" fill="#33424c">= 로트 1개</text></svg>'},
+  photo:{k:'노광',e:'photolithography',d:'회로 모양이 새겨진 유리판(레티클)에 빛을 통과시켜, 웨이퍼 위 감광물질에 회로 그림을 인쇄하는 공정입니다. 사진 인화와 원리가 같습니다. 빛의 세기가 조금만 달라져도 선의 굵기가 바뀝니다.',
+    s:'<svg viewBox="0 0 200 100"><circle cx="40" cy="14" r="8" fill="#a05c00"/><path d="M40 24 L22 62 M40 24 L58 62" stroke="#a05c00" stroke-width="1.5"/><rect x="16" y="40" width="48" height="6" fill="none" stroke="#57676f"/><rect x="14" y="62" width="52" height="9" fill="#e6ecee" stroke="#57676f"/><text x="76" y="20" font-size="10" fill="#33424c">빛</text><text x="76" y="47" font-size="10" fill="#33424c">레티클(회로 원판)</text><text x="76" y="72" font-size="10" fill="#33424c">웨이퍼</text></svg>'},
+  etch:{k:'식각',e:'etch',d:'인쇄된 그림을 따라 실제로 재료를 깎아내는 공정입니다. 플라즈마(이온화된 기체)로 깎기 때문에 챔버 안 상태에 따라 깎이는 양이 달라집니다. 노광과 달리 한 번 깎으면 되돌릴 수 없습니다.',
+    s:'<svg viewBox="0 0 200 100"><rect x="16" y="30" width="54" height="10" fill="#e6ecee" stroke="#57676f"/><rect x="16" y="56" width="54" height="14" fill="#e6ecee" stroke="#57676f"/><path d="M26 44v8M43 44v8M60 44v8" stroke="#8a2e68" stroke-width="2"/><text x="80" y="38" font-size="10" fill="#33424c">감광막(마스크)</text><text x="80" y="66" font-size="10" fill="#33424c">깎여 나가는 층</text></svg>'},
+  cd:{k:'선폭 (CD)',e:'Critical Dimension',d:'회로에서 가장 중요한 선의 굵기입니다. 이 프로젝트의 최종 목표값은 90나노미터로, 머리카락 굵기의 약 1000분의 1입니다. 이 값이 목표에서 몇 나노미터만 벗어나도 칩이 제대로 동작하지 않습니다.',
+    s:'<svg viewBox="0 0 200 100"><rect x="30" y="34" width="26" height="40" fill="#e6ecee" stroke="#57676f"/><rect x="86" y="34" width="26" height="40" fill="#e6ecee" stroke="#57676f"/><path d="M30 26h26" stroke="#bf4630" stroke-width="2"/><path d="M30 22v8M56 22v8" stroke="#bf4630" stroke-width="2"/><text x="122" y="30" font-size="10" fill="#bf4630">이 굵기가 CD</text><text x="122" y="60" font-size="10" fill="#33424c">목표 90 nm</text></svg>'},
+  adi:{k:'현상 후 측정 (ADI)',e:'After Develop Inspection',d:'빛으로 그림을 인쇄한 직후, 아직 깎기 전에 재는 것입니다. 이 시점에 문제를 발견하면 감광막을 지우고 다시 인쇄할 수 있습니다. 되돌릴 수 있는 마지막 기회입니다.',
+    s:'<svg viewBox="0 0 200 100"><rect x="18" y="40" width="60" height="22" fill="#e6ecee" stroke="#57676f"/><text x="20" y="34" font-size="10" fill="#1c6b3a">되돌릴 수 있음</text><path d="M92 51h26" stroke="#57676f" stroke-width="1.5"/><path d="M112 46l7 5-7 5" fill="#57676f"/><text x="126" y="55" font-size="10" fill="#33424c">식각으로</text></svg>'},
+  aci:{k:'식각 후 측정 (ACI)',e:'After Clean Inspection',d:'깎아낸 다음에 재는 것입니다. 실제 회로 구조를 재므로 최종 결과에 가깝지만, 이미 깎인 뒤라 되돌릴 수 없습니다. 비용 때문에 모든 로트를 재지는 않습니다.',
+    s:'<svg viewBox="0 0 200 100"><rect x="18" y="40" width="60" height="22" fill="#f4dfd8" stroke="#8a2e68"/><text x="20" y="34" font-size="10" fill="#a2321f">되돌릴 수 없음</text><text x="92" y="55" font-size="10" fill="#33424c">최종 결과에 가까움</text></svg>'},
+  epe:{k:'EPE',e:'Edge Placement Error',d:'선이 있어야 할 자리에서 얼마나 벗어났는가를 나타내는 종합 지표입니다. 선의 굵기 오차와 층 간 정렬 오차를 합친 값입니다. 회로가 미세해질수록 허용치가 줄어, 조금만 벗어나도 불량이 됩니다. 이 프로젝트는 이 중 굵기 오차 쪽을 다룹니다.',
+    s:'<svg viewBox="0 0 200 100"><rect x="24" y="30" width="40" height="18" fill="#e6ecee" stroke="#57676f"/><rect x="34" y="56" width="40" height="18" fill="#e6ecee" stroke="#2c6da6" stroke-dasharray="3 2"/><path d="M24 52h10" stroke="#bf4630" stroke-width="2"/><text x="82" y="42" font-size="10" fill="#33424c">위층</text><text x="82" y="70" font-size="10" fill="#33424c">아래층 (어긋남)</text></svg>'},
+  overlay:{k:'오버레이',e:'overlay',d:'위층 회로와 아래층 회로가 얼마나 정확히 겹쳤는지입니다. 회로는 수십 층을 쌓아 만들기 때문에 층끼리 어긋나면 전기가 통하지 않습니다. 이 프로젝트에서는 참고 정보로만 씁니다.'},
+  reticle:{k:'레티클',e:'reticle',d:'회로 모양이 새겨진 유리 원판입니다. 사진의 필름에 해당합니다. 이 원판 자체에 오차가 있으면 모든 웨이퍼의 같은 위치에서 똑같은 오차가 반복되는데, 그것이 레티클 원인의 지문입니다.'},
+  field:{k:'노광 영역 (field)',e:'exposure field',d:'한 번의 노광으로 빛이 닿는 사각형 영역입니다. 웨이퍼 전체를 한 번에 찍을 수 없어서 이 영역을 격자처럼 옮겨가며 수십 번 찍습니다. 이 프로젝트는 웨이퍼 한 장에서 9개 영역을 골라 측정합니다.',
+    s:'<svg viewBox="0 0 200 100"><circle cx="60" cy="50" r="40" fill="#f5f7f8" stroke="#c8d2d8"/><rect x="28" y="15" width="20" height="22" fill="none" stroke="#57676f" stroke-width=".8"/><rect x="50" y="15" width="20" height="22" fill="none" stroke="#57676f" stroke-width=".8"/><rect x="72" y="15" width="20" height="22" fill="none" stroke="#57676f" stroke-width=".8"/><rect x="28" y="39" width="20" height="22" fill="none" stroke="#57676f" stroke-width=".8"/><rect x="50" y="39" width="20" height="22" fill="none" stroke="#57676f" stroke-width=".8"/><rect x="72" y="39" width="20" height="22" fill="none" stroke="#57676f" stroke-width=".8"/><rect x="28" y="63" width="20" height="22" fill="none" stroke="#57676f" stroke-width=".8"/><rect x="50" y="63" width="20" height="22" fill="none" stroke="#57676f" stroke-width=".8"/><rect x="72" y="63" width="20" height="22" fill="none" stroke="#57676f" stroke-width=".8"/><text x="112" y="46" font-size="10" fill="#33424c">한 칸 = 한 번 노광</text><text x="112" y="62" font-size="10" fill="#33424c">이 중 9칸 측정</text></svg>'},
+  chamber:{k:'식각 챔버',e:'etch chamber',d:'식각이 실제로 일어나는 진공 통입니다. 이 프로젝트에는 4개(CH-A~D)가 있고 로트마다 번갈아 배정됩니다. 특정 챔버에서 처리된 로트만 값이 흐르면 그 챔버의 문제로 좁힐 수 있습니다.'},
+  golden:{k:'기준 웨이퍼',e:'golden wafer',d:'공정을 전혀 거치지 않고, 오직 측정 장비를 점검하려고 반복해서 재는 웨이퍼입니다. 값이 변할 이유가 없으므로 이 값이 흐르면 원인은 하나뿐입니다. 측정 장비 자체가 어긋난 것입니다.',
+    s:'<svg viewBox="0 0 200 100"><circle cx="34" cy="50" r="22" fill="#e6ecee" stroke="#0b6a72"/><text x="62" y="40" font-size="10" fill="#33424c">같은 웨이퍼를</text><text x="62" y="56" font-size="10" fill="#33424c">주 2회 반복 측정</text><text x="62" y="72" font-size="10" fill="#0b6a72">값이 변하면 장비 문제</text></svg>'},
+  dose:{k:'노광량 (dose)',e:'dose',d:'웨이퍼에 쬐는 빛의 총량입니다. 이 값이 높으면 선이 가늘어지고 낮으면 굵어집니다. 웨이퍼 전체에 똑같이 작용하므로, 웨이퍼 전면이 균일하게 이동했다면 노광량을 의심합니다.'},
+  peb:{k:'열처리 (PEB)',e:'Post Exposure Bake',d:'노광 후 웨이퍼를 가열판 위에서 굽는 과정입니다. 가열판의 온도 분포가 고르지 않으면 웨이퍼 중심과 가장자리의 선폭이 달라집니다. 그래서 반경 방향 지문으로 나타납니다.'},
+  delta:{k:'식각량 (ΔCD)',e:'etch bias',d:'식각 후 선폭에서 식각 전 선폭을 뺀 값입니다. 깎기로 얼마나 가늘어졌는지를 뜻하며 이 프로젝트의 기준값은 −20나노미터입니다. 인쇄는 멀쩡한데 이 값만 흐른다면 원인은 식각 또는 계측 쪽입니다.'},
+  pm:{k:'정비 (PM)',e:'Preventive Maintenance',d:'설비를 정기적으로 열어 청소하고 부품을 교체하는 작업입니다. 정비 직후부터 시간이 지날수록 챔버 내부 상태가 서서히 변해 깎이는 양이 조금씩 달라집니다.'},
+  limit:{k:'관리 한계',e:'control limit',d:'정상으로 볼 수 있는 범위입니다. 이 프로젝트에서는 이상이 주입되기 전 초기 10일 데이터의 평균에서 표준편차의 3배(3σ)만큼 떨어진 지점으로, 엔진이 스스로 계산합니다. 사람이 임의로 정하지 않습니다.'},
+  rework:{k:'재작업',e:'rework',d:'감광막을 지우고 노광을 다시 하는 것입니다. 식각 전에만 가능합니다. 그래서 원인 판정이 빠를수록 살릴 수 있는 웨이퍼가 많아집니다.'},
+  metro:{k:'계측',e:'metrology',d:'만들어진 구조의 치수를 재는 일입니다. 이 프로젝트에는 측정 장비 2대(CDSEM-A, CDSEM-B)가 있고 로트마다 둘 중 하나가 측정을 맡습니다. 어느 장비가 쟀는지 기록해 두는 것이 계측 원인 판정의 열쇠입니다.'}
 };
 
-// ---- 웨이퍼 맵
-function color(v,s){
-  const t=Math.max(-1,Math.min(1,v/s));
-  const a=[46,111,168],b=[240,243,245],c=[194,71,47];
-  const mix=(x,y,k)=>x.map((n,i)=>Math.round(n+(y[i]-n)*k));
-  const rgb= t<0 ? mix(b,a,-t) : mix(b,c,t);
-  return `rgb(${rgb.join(',')})`;
+const pop = $('#pop');
+function popHTML(t){
+  const x = TERMS[t]; if (!x) return '';
+  return '<h4>' + esc(x.k) + '<span class="en">' + esc(x.e) + '</span></h4><p>' + esc(x.d) + '</p>' + (x.s || '');
 }
-function drawMap(id,vals,scale){
-  const el=$('#'+id);
-  if(!vals){el.innerHTML='<text x="0" y="0" text-anchor="middle" font-size="13" fill="#5d6b76">ACI 미측정</text>';return;}
-  let s='<circle cx="0" cy="0" r="150" fill="#f6f8f9" stroke="#ccd5db"/>'+
-        '<path d="M -9 150 L 9 150 L 0 138 Z" fill="#ccd5db"/>';
-  DATA.sites.forEach((p,i)=>{
-    s+=`<circle cx="${p.wafer_x_mm}" cy="${-p.wafer_y_mm}" r="11" fill="${color(vals[i],scale)}" stroke="#fff" stroke-width="1.2"><title>${p.site_id}: ${vals[i]} nm</title></circle>`;
-  });
-  el.innerHTML=s;
+function showPop(html, anchor){
+  pop.innerHTML = html; pop.style.display = 'block';
+  const r = anchor.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+  let left = r.left + scrollX + r.width / 2 - w / 2;
+  left = Math.max(10, Math.min(left, scrollX + innerWidth - w - 10));
+  let top = r.bottom + scrollY + 9;
+  if (r.bottom + h + 20 > innerHeight) top = r.top + scrollY - h - 9;
+  pop.style.left = left + 'px';
+  pop.style.top = Math.max(scrollY + 6, top) + 'px';
 }
+const hidePop = () => { pop.style.display = 'none'; };
+document.addEventListener('mouseover', e => {
+  const t = e.target.closest('.term'); if (t) showPop(popHTML(t.dataset.t), t);
+});
+document.addEventListener('mouseout', e => {
+  if (e.target.closest('.term') && !(e.relatedTarget && e.relatedTarget.closest('#pop'))) hidePop();
+});
+document.addEventListener('click', e => {
+  const t = e.target.closest('.term');
+  if (t) { e.preventDefault(); showPop(popHTML(t.dataset.t), t); }
+  else if (!e.target.closest('#pop')) hidePop();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hidePop(); });
+addEventListener('scroll', hidePop, {passive:true});
 
-// ---- 타임라인
-function drawTimeline(){
-  const n=DATA.lots.length, w=1000/n;
-  $('#timeline').innerHTML=DATA.lots.map((l,i)=>{
-    const h=Math.min(70,10+Math.abs(l.m.offset)*14+(l.m.dbias?Math.abs(l.m.dbias)*14:0));
-    return `<rect x="${i*w}" y="${80-h}" width="${Math.max(w-0.6,0.8)}" height="${h}"
-      fill="${COLOR[l.verdict]}" opacity="${l.verdict==='NORMAL'?0.28:0.95}"
-      style="cursor:pointer" data-lot="${l.lot}"><title>${l.lot} ${l.date} ${l.label}</title></rect>`;
-  }).join('')+`<line x1="0" y1="80" x2="1000" y2="80" stroke="#ccd5db"/>`;
-  $('#timeline').querySelectorAll('rect').forEach(e=>e.onclick=()=>select(e.dataset.lot));
-}
+/* 3. 개요 화면 ─────────────────────────────────── */
+$('#flowdiagram').innerHTML =
+'<svg viewBox="0 0 700 132" style="width:100%;height:auto" role="img" aria-label="노광에서 식각까지의 흐름과 각 단계의 측정 지점">' +
+'<rect x="8" y="34" width="150" height="52" fill="#fff" stroke="#a05c00" stroke-width="1.6"/>' +
+'<text x="83" y="58" text-anchor="middle" font-size="14" fill="#10161b" font-family="IBM Plex Sans KR">노광</text>' +
+'<text x="83" y="76" text-anchor="middle" font-size="11" fill="#57676f" font-family="IBM Plex Sans KR">빛으로 그림을 인쇄</text>' +
+'<path d="M166 60h44" stroke="#57676f" stroke-width="1.4"/><path d="M204 55l9 5-9 5" fill="#57676f"/>' +
+'<rect x="218" y="34" width="150" height="52" fill="#fff" stroke="#0b6a72" stroke-width="1.6"/>' +
+'<text x="293" y="58" text-anchor="middle" font-size="14" fill="#10161b" font-family="IBM Plex Sans KR">현상 후 측정</text>' +
+'<text x="293" y="76" text-anchor="middle" font-size="11" fill="#1c6b3a" font-family="IBM Plex Sans KR">여기까진 되돌릴 수 있다</text>' +
+'<path d="M376 60h44" stroke="#57676f" stroke-width="1.4"/><path d="M414 55l9 5-9 5" fill="#57676f"/>' +
+'<rect x="428" y="34" width="120" height="52" fill="#fff" stroke="#8a2e68" stroke-width="1.6"/>' +
+'<text x="488" y="58" text-anchor="middle" font-size="14" fill="#10161b" font-family="IBM Plex Sans KR">식각</text>' +
+'<text x="488" y="76" text-anchor="middle" font-size="11" fill="#57676f" font-family="IBM Plex Sans KR">그림대로 깎기</text>' +
+'<path d="M556 60h30" stroke="#57676f" stroke-width="1.4"/><path d="M580 55l9 5-9 5" fill="#57676f"/>' +
+'<rect x="594" y="34" width="98" height="52" fill="#fff" stroke="#0b6a72" stroke-width="1.6"/>' +
+'<text x="643" y="58" text-anchor="middle" font-size="13" fill="#10161b" font-family="IBM Plex Sans KR">식각 후 측정</text>' +
+'<text x="643" y="76" text-anchor="middle" font-size="11" fill="#a2321f" font-family="IBM Plex Sans KR">되돌릴 수 없다</text>' +
+'<text x="350" y="118" text-anchor="middle" font-size="12" fill="#33424c" font-family="IBM Plex Sans KR">두 측정값의 차이를 성분별로 쪼개면, 어느 공정이 흔들렸는지 보인다</text></svg>';
 
-// ---- golden wafer 감시
-function drawMonitor(){
-  const days=DATA.meta.days, ys=DATA.monitor.map(d=>d.drift);
-  const max=Math.max(1.2,...ys.map(Math.abs));
-  const X=d=>40+d/days*940, Y=v=>75-v/max*58;
-  let s=`<line x1="40" y1="${Y(0)}" x2="980" y2="${Y(0)}" stroke="#ccd5db"/>`;
-  s+=`<text x="4" y="${Y(max)+4}" font-size="10" fill="#5d6b76" class="mono">+${max.toFixed(1)}</text>`;
-  s+=`<text x="4" y="${Y(-max)+4}" font-size="10" fill="#5d6b76" class="mono">-${max.toFixed(1)}</text>`;
-  ['CDSEM-A','CDSEM-B'].forEach((t,k)=>{
-    const pts=DATA.monitor.filter(d=>d.tool===t).map(d=>`${X(d.day)},${Y(d.drift)}`).join(' ');
-    s+=`<polyline points="${pts}" fill="none" stroke="${k?'var(--metro)':'#8b98a3'}" stroke-width="1.8"/>`;
-    s+=`<text x="${X(days)-70}" y="${18+k*15}" font-size="11" fill="${k?'var(--metro)':'#8b98a3'}">${t}</text>`;
-  });
-  s+=`<text x="40" y="100" font-size="10" fill="#5d6b76">생산일 0</text><text x="930" y="100" font-size="10" fill="#5d6b76">${days}</text>`;
-  $('#monitor').innerHTML=s;
-}
+$('#facts').innerHTML = [
+  [M.lots + '개', '분석한 로트'],
+  [M.adiRows.toLocaleString(), '현상 후 측정점'],
+  [M.sites + '군데', '웨이퍼 한 장당 측정 지점'],
+  [M.days + '일', '생산 기간(8주)']
+].map(a => '<div><b class="mono">' + a[0] + '</b><small>' + a[1] + '</small></div>').join('');
 
-// ---- 혼동 행렬
-function drawConf(){
-  const c=DATA.confusion, preds=[...new Set(Object.values(c).flatMap(o=>Object.keys(o)))].sort();
-  const name={S0:'정상',S1:'노광 dose',S2:'트랙 반경',S3:'레티클',S4:'식각 챔버',S5:'계측 drift','??':'판정 보류'};
-  let s='<tr><th>실제 \\ 판정</th>'+preds.map(p=>`<th>${name[p]||p}</th>`).join('')+'</tr>';
-  Object.keys(c).sort().forEach(t=>{
-    s+=`<tr><th>${name[t]||t}</th>`+preds.map(p=>{
-      const v=c[t][p]||0;
-      return `<td class="num mono" style="${t===p?'font-weight:600':v?'color:#a2321f':'color:#b7c0c7'}">${v}</td>`;
-    }).join('')+'</tr>';
-  });
-  $('#conf').innerHTML=s;
-}
+/* 4. 용어 화면 ─────────────────────────────────── */
+$('#glossary').innerHTML = Object.keys(TERMS).map(k => {
+  const x = TERMS[k];
+  return '<div class="gitem"><h3>' + esc(x.k) + '<span class="en">' + esc(x.e) +
+    '</span></h3><p>' + esc(x.d) + '</p>' + (x.s || '') + '</div>';
+}).join('');
 
-// ---- 선택
-function select(id){
-  const l=DATA.lots.find(x=>x.lot===id); if(!l)return;
-  const hadFocus=document.activeElement?.closest('#lots');
-  current=id; renderLots();
-  if(hadFocus) $(`#lots [data-lot="${id}"]`)?.focus({preventScroll:true});
-  $('#verdict').style.borderLeftColor=COLOR[l.verdict];
-  $('#verdict').innerHTML=`<h3>${l.label}
-      <span class="badge" style="color:${COLOR[l.verdict]}">${l.risk}</span></h3>
-    <div class="sub mono">${l.lot} · ${l.date} · ${l.scanner} / ${l.reticle} / ${l.chamber}
-      · ADI ${l.adiTool}${l.aciMean?' · ACI '+l.aciTool:''}</div>
-    <div class="sub">담당 모듈 ${l.module} · 신호가 사는 좌표계 ${l.coord}</div>`;
-  $('#prose').innerHTML=`
-    <dt>무엇이 관측되었나</dt><dd>${l.cause}</dd>
-    <dt>무엇을 조치하나</dt><dd>${l.action}${l.extra?' <b class="mono">'+l.extra+'</b>':''}</dd>`;
-  $('#cap1').textContent=`ADI CD 잔차 (평균 ${l.adiMean} nm)`;
-  $('#cap2').textContent=l.aciMean?`ΔCD = ACI − ADI (ACI 평균 ${l.aciMean} nm)`:'ΔCD — 이 로트는 ACI 미측정';
-  drawMap('map1',l.adiMap,4); 
-  drawMap('map2',l.deltaMap?l.deltaMap.map(v=>v-DATA.meta.etchBias):null,3);
-  $('#lo').textContent='-4 nm'; $('#hi').textContent='+4 nm';
-  $('#ev').innerHTML='<tr><th>지표</th><th>값</th><th>관리 한계</th><th>상태</th></tr>'+
-    l.ev.map(e=>`<tr class="${e.hit?'hit':''}"><td>${e.k}</td><td class="num mono">${e.v}</td>
-      <td class="num mono">${e.lim}</td><td>${e.hit?'<b class="no">이탈</b>':'<span class="ok">정상</span>'}</td></tr>`).join('');
+/* 5. 로트 목록과 상세 ──────────────────────────── */
+let filter = 'all', query = '', current = null;
+
+function visible(){
+  return DATA.lots.filter(l =>
+    (filter === 'all' || (filter === 'abn' ? l.verdict !== 'NORMAL' : l.m.dbias !== null)) &&
+    (!query || l.lot.toLowerCase().indexOf(query) > -1));
+}
+function renderList(){
+  const rows = visible(), box = $('#lotlist');
+  $('#count').textContent = rows.length + '개';
+  if (!rows.length){
+    box.innerHTML = '<p class="empty">조건에 맞는 로트가 없습니다. 검색어나 필터를 바꿔보세요.</p>';
+    return;
+  }
+  box.innerHTML = rows.slice(0, 400).map(l =>
+    '<button class="lot" role="option" tabindex="0" aria-selected="false" data-lot="' + l.lot + '">' +
+    '<span class="dot" style="background:' + COLOR[l.verdict] + '"></span>' +
+    '<span><span class="mono">' + l.lot + '</span><small>' + l.date + ' · ' + l.chamber + ' · ' +
+    (l.m.dbias === null ? '식각 후 측정 없음' : '식각 후 측정 있음') + '</small></span>' +
+    '<span class="tag">' + (l.verdict === 'NORMAL' ? '정상' : esc(l.label)) + '</span></button>').join('');
+  box.querySelectorAll('.lot').forEach(b => b.onclick = () => openLot(b.dataset.lot));
+}
+$('#q').oninput = e => { query = e.target.value.trim().toLowerCase(); renderList(); };
+document.querySelectorAll('.tools .chip').forEach(c => c.onclick = () => {
+  filter = c.dataset.f;
+  document.querySelectorAll('.tools .chip').forEach(o => o.setAttribute('aria-pressed', o === c));
+  renderList();
+});
+
+const GATE_KO = {tool_drift_exceeds:'기준 웨이퍼 값이 함께 이동했는가',
+  chamber_specific:'특정 챔버에만 몰려 있는가', metrology_healthy:'측정 장비가 정상인가',
+  metrology_evidence_fresh:'장비 감시 데이터가 최근 것인가',
+  taper_not_contradicting:'단면 모양 변화가 모순되지 않는가',
+  adi_radial_within_limit:'가장자리 성분이 정상 범위인가',
+  adi_reticle_within_limit:'레티클 반복 성분이 정상 범위인가',
+  adi_reticle_repeats_across_fields:'모든 노광 영역에서 반복되는가',
+  delta_within_limit_or_absent:'식각량이 정상이거나 측정되지 않았는가'};
+
+function openLot(id){
+  const l = DATA.lots.find(x => x.lot === id); if (!l) return;
+  current = id;
+  $('#lotlistcard').hidden = true;
+  $('#lotdetail').hidden = false;
+  showView('lots');
+
+  $('#verdict').style.borderLeftColor = COLOR[l.verdict];
+  $('#verdict').innerHTML = '<h2>' + esc(l.label) +
+    '<span class="risk" style="color:' + COLOR[l.verdict] + '">' + esc(l.risk) + '</span></h2>' +
+    '<div class="meta mono">' + l.lot + ' · ' + l.date + ' · 스캐너 ' + l.scanner +
+    ' · 레티클 ' + l.reticle + ' · 챔버 ' + l.chamber + ' · 현상 후 측정 ' + l.adiTool +
+    (l.aciMean ? ' · 식각 후 측정 ' + l.aciTool : '') + '</div>' +
+    '<div class="meta">담당 모듈 ' + esc(l.module) + ' · 신호가 나타난 좌표계 ' + esc(l.coord) + '</div>';
+  $('#plain').innerHTML = '<h3>무엇이 관측되었나</h3><p>' + esc(l.cause) + '</p>' +
+    '<div class="act"><h3>무엇을 조치하나</h3><p>' + esc(l.action) +
+    (l.extra ? ' <b class="mono">' + esc(l.extra) + '</b>' : '') + '</p></div>';
+
+  $('#cap1s').textContent = '웨이퍼 평균 ' + l.adiMean + ' nm (목표 ' + M.adiTarget + ' nm)';
+  $('#cap2s').textContent = l.aciMean
+    ? '평균 ' + (l.deltaMap.reduce((a, b) => a + b, 0) / l.deltaMap.length).toFixed(2) +
+      ' nm (기준 ' + M.etchBias + ' nm)'
+    : '이 로트는 식각 후 측정을 하지 않았습니다';
+  drawWafer('map1', l.adiMap, 4,
+    v => '목표보다 ' + (v > 0 ? '+' : '') + v.toFixed(2) + ' nm',
+    v => (v + M.adiTarget).toFixed(2));
+  drawWafer('map2', l.deltaMap ? l.deltaMap.map(v => v - M.etchBias) : null, 3,
+    v => '기준보다 ' + (v > 0 ? '+' : '') + v.toFixed(2) + ' nm',
+    v => (v + M.etchBias).toFixed(2));
+  $('#lo').textContent = '−4 nm (가늘다)';
+  $('#hi').textContent = '+4 nm (굵다)';
+
+  $('#ev').innerHTML = '<tr><th>지표</th><th>측정값</th><th>정상 범위</th><th>상태</th></tr>' +
+    l.ev.map(e => '<tr class="' + (e.hit ? 'hit' : '') + '"><td>' + esc(e.k) +
+      '</td><td class="num mono">' + esc(e.v) + '</td><td class="num mono">' + esc(e.lim) +
+      '</td><td>' + (e.hit ? '<b class="bad">벗어남</b>' : '<span class="ok">정상</span>') +
+      '</td></tr>').join('');
   $('#gate').innerHTML = l.gate.length
-    ? '<tr><th>요구 조건</th><th>충족</th></tr>'+l.gate.map(g=>
-        `<tr><td class="mono">${g.c}</td><td>${g.ok?'<span class="ok">✓</span>':'<b class="no">✗</b>'}</td></tr>`).join('')
-    : '<tr><td>이 판정은 추가 요구 조건이 없습니다.</td></tr>';
-  window.scrollTo({top:0,behavior:'smooth'});
+    ? '<tr><th>요구 조건</th><th>충족</th></tr>' + l.gate.map(g =>
+        '<tr><td>' + esc(GATE_KO[g.c] || g.c) + '</td><td>' +
+        (g.ok ? '<span class="ok">✓ 충족</span>' : '<b class="bad">✗ 미충족</b>') +
+        '</td></tr>').join('')
+    : '<tr><td>이 판정에는 추가 요구 조건이 없습니다.</td></tr>';
+
+  document.querySelectorAll('#lotdetail details').forEach((d, i) => d.open = i === 0);
+  scrollTo({top:0, behavior:'smooth'});
+}
+$('#backBtn').onclick = () => {
+  $('#lotdetail').hidden = true; $('#lotlistcard').hidden = false; current = null;
+};
+function step(d){
+  const rows = visible();
+  let i = -1;
+  rows.forEach((x, k) => { if (x.lot === current) i = k; });
+  if (i > -1 && rows[i + d]) openLot(rows[i + d].lot);
+}
+$('#prevBtn').onclick = () => step(-1);
+$('#nextBtn').onclick = () => step(1);
+document.querySelectorAll('[data-acc]').forEach(b => b.onclick = () => {
+  const d = $('#' + b.dataset.acc), was = d.open;
+  document.querySelectorAll('#lotdetail details').forEach(x => x.open = false);
+  d.open = !was;
+});
+
+/* 6. 웨이퍼 지도 ───────────────────────────────── */
+function heat(v, s){
+  const t = Math.max(-1, Math.min(1, v / s));
+  const a = [44,109,166], b = [242,245,246], c = [191,70,48];
+  const mix = (x, y, k) => x.map((n, i) => Math.round(n + (y[i] - n) * k));
+  return 'rgb(' + (t < 0 ? mix(b, a, -t) : mix(b, c, t)).join(',') + ')';
+}
+function drawWafer(id, vals, scale, fmtDelta, fmtAbs){
+  const g = $('#' + id);
+  if (!vals){
+    g.innerHTML = '<circle r="150" fill="#f5f7f8" stroke="#c8d2d8" stroke-dasharray="5 4"/>' +
+      '<text y="4" text-anchor="middle" font-size="13" fill="#57676f" ' +
+      'font-family="IBM Plex Sans KR">식각 후 측정 없음</text>';
+    return;
+  }
+  const seen = {};
+  let s = '<circle r="150" fill="#fafbfb" stroke="#c8d2d8" stroke-width="1.4"/>' +
+    '<path d="M -10 150 L 10 150 L 0 136 Z" fill="#c8d2d8"/>' +
+    '<line x1="-150" y1="0" x2="150" y2="0" stroke="#e2e9ec"/>' +
+    '<line x1="0" y1="-150" x2="0" y2="150" stroke="#e2e9ec"/>';
+  DATA.sites.forEach(p => {
+    const key = p.field_x + ',' + p.field_y;
+    if (seen[key]) return;
+    seen[key] = 1;
+    s += '<rect x="' + (p.field_x * 26 - 13) + '" y="' + (-p.field_y * 33 - 16.5) +
+      '" width="26" height="33" fill="none" stroke="#dfe6ea" stroke-width="1"/>';
+  });
+  DATA.sites.forEach((p, i) => {
+    s += '<circle class="spot" cx="' + p.wafer_x_mm + '" cy="' + (-p.wafer_y_mm) +
+      '" r="11.5" fill="' + heat(vals[i], scale) + '" stroke="#fff" stroke-width="1.4" ' +
+      'tabindex="0" role="img" data-i="' + i + '" aria-label="' + p.site_id + ' ' +
+      esc(fmtDelta(vals[i])) + '"/>';
+  });
+  g.innerHTML = s;
+  g.querySelectorAll('.spot').forEach(c => {
+    const shw = () => {
+      const i = +c.dataset.i, p = DATA.sites[i], v = vals[i];
+      showPop('<h4>측정 지점 ' + p.site_id + '</h4><p>' +
+        '<b>실측 선폭</b> <span class="mono">' + fmtAbs(v) + ' nm</span><br>' +
+        '<b>목표 대비</b> <span class="mono">' + fmtDelta(v) + '</span><br>' +
+        '<b>노광 영역</b> <span class="mono">(' + p.field_x + ', ' + p.field_y + ')</span> 안의 ' +
+        (p.site_in_field + 1) + '번 점<br>' +
+        '<b>웨이퍼 좌표</b> <span class="mono">(' + p.wafer_x_mm + ', ' + p.wafer_y_mm + ') mm</span><br>' +
+        '<b>중심에서</b> <span class="mono">반지름의 ' + (p.r_norm * 100).toFixed(0) + '%</span> 지점</p>', c);
+    };
+    c.addEventListener('mouseenter', shw);
+    c.addEventListener('focus', shw);
+    c.addEventListener('click', e => { e.stopPropagation(); shw(); });
+  });
 }
 
-renderLots(); drawTimeline(); drawMonitor(); drawConf();
-select((DATA.lots.find(l=>l.verdict==='METROLOGY_TOOL_DRIFT')||DATA.lots[0]).lot);
+/* 7. 차트 ──────────────────────────────────────── */
+const METRICS = [
+  {k:'dbias', n:'식각량 편차', unit:'nm', lim:LIM.delta_bias, cen:DATA.centers.delta_bias,
+   help:'식각으로 깎인 양이 기준(−20 nm)에서 얼마나 벗어났는지를 봅니다.'},
+  {k:'offset', n:'현상 후 선폭 이동', unit:'nm', lim:LIM.adi_offset, cen:DATA.centers.adi_offset,
+   help:'웨이퍼 전체 평균 선폭이 목표에서 얼마나 이동했는지를 봅니다.'},
+  {k:'radial', n:'가장자리−중심 차이', unit:'nm', lim:LIM.adi_radial, cen:DATA.centers.adi_radial,
+   help:'웨이퍼 중심과 가장자리의 선폭 차이를 봅니다. 열처리 문제의 지문입니다.'}
+];
+let metric = METRICS[0];
+$('#metricpick').innerHTML = METRICS.map((m, i) =>
+  '<button class="chip" data-m="' + i + '" aria-pressed="' + (i === 0) + '">' + m.n + '</button>').join('');
+$('#metricpick').onclick = e => {
+  const b = e.target.closest('[data-m]'); if (!b) return;
+  metric = METRICS[+b.dataset.m];
+  Array.prototype.forEach.call($('#metricpick').children,
+    o => o.setAttribute('aria-pressed', o === b));
+  drawTrend();
+};
+
+function axes(o){
+  const X = v => o.x0 + (v - o.xmin) / (o.xmax - o.xmin) * (o.x1 - o.x0);
+  const Y = v => o.y1 - (v - o.ymin) / (o.ymax - o.ymin) * (o.y1 - o.y0);
+  const fmt = o.fmt || (v => v);
+  let s = '';
+  o.yt.forEach(v => {
+    s += '<line class="grid" x1="' + o.x0 + '" y1="' + Y(v) + '" x2="' + o.x1 + '" y2="' + Y(v) + '"/>' +
+      '<text x="' + (o.x0 - 8) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' + fmt(v) + '</text>';
+  });
+  o.xt.forEach(v => {
+    s += '<line class="grid" x1="' + X(v) + '" y1="' + o.y0 + '" x2="' + X(v) + '" y2="' + o.y1 + '"/>' +
+      '<text x="' + X(v) + '" y="' + (o.y1 + 18) + '" text-anchor="middle">' + v + '</text>';
+  });
+  s += '<line class="axis" x1="' + o.x0 + '" y1="' + o.y0 + '" x2="' + o.x0 + '" y2="' + o.y1 + '"/>' +
+    '<line class="axis" x1="' + o.x0 + '" y1="' + o.y1 + '" x2="' + o.x1 + '" y2="' + o.y1 + '"/>' +
+    '<text class="axt" x="' + ((o.x0 + o.x1) / 2) + '" y="' + (o.y1 + 42) + '" text-anchor="middle">' +
+    o.xlab + '</text>' +
+    '<text class="axt" x="' + (-(o.y0 + o.y1) / 2) + '" y="16" text-anchor="middle" ' +
+    'transform="rotate(-90)">' + o.ylab + '</text>';
+  return {X:X, Y:Y, s:s};
+}
+
+function drawTrend(){
+  const key = metric.k;
+  const pts = DATA.lots.map(l => ({d:l.day, v:l.m[key], lot:l.lot, ver:l.verdict, lab:l.label}))
+                       .filter(p => p.v !== null && p.v !== undefined);
+  const dev = pts.map(p => p.v - metric.cen);
+  const span = Math.max(metric.lim * 2.2, Math.max.apply(null, dev.map(Math.abs))) * 1.12;
+  const A = axes({x0:58, x1:748, y0:22, y1:268, xmin:0, xmax:M.days - 1, ymin:-span, ymax:span,
+    xt:[0,5,10,15,20,25,30,35,39],
+    yt:[-span, -metric.lim, 0, metric.lim, span].map(v => +v.toFixed(2)),
+    xlab:'생산일 (0일 = 첫 생산일, 총 ' + M.days + '일)',
+    ylab:metric.n + ' (' + metric.unit + ')', fmt:v => v.toFixed(1)});
+  let s = '<rect x="58" y="' + A.Y(metric.lim) + '" width="690" height="' +
+    (A.Y(-metric.lim) - A.Y(metric.lim)) + '" fill="#eef1f3"/>' + A.s;
+  s += '<line x1="58" y1="' + A.Y(0) + '" x2="748" y2="' + A.Y(0) +
+    '" stroke="#8ea0aa" stroke-dasharray="4 3"/>';
+  [metric.lim, -metric.lim].forEach(v => {
+    s += '<line x1="58" y1="' + A.Y(v) + '" x2="748" y2="' + A.Y(v) +
+      '" stroke="#9aa9b2" stroke-dasharray="2 3"/>';
+  });
+  s += '<text x="752" y="' + (A.Y(metric.lim) + 4) + '" font-size="10">한계</text>';
+  s += '<text x="752" y="' + (A.Y(-metric.lim) + 4) + '" font-size="10">한계</text>';
+  pts.forEach(p => {
+    const d = p.v - metric.cen, out = Math.abs(d) > metric.lim;
+    s += '<circle class="pt" cx="' + A.X(p.d) + '" cy="' + A.Y(d) + '" r="' + (out ? 4.6 : 3) +
+      '" fill="' + COLOR[p.ver] + '" fill-opacity="' + (p.ver === 'NORMAL' ? .32 : .95) +
+      '" stroke="' + (out ? '#fff' : 'none') + '" stroke-width="1.2" data-lot="' + p.lot +
+      '" data-d="' + d.toFixed(2) + '" data-day="' + p.d + '" data-lab="' + esc(p.lab) + '"/>';
+  });
+  const g = $('#trend'); g.innerHTML = s;
+  g.querySelectorAll('.pt').forEach(c => {
+    const shw = () => showPop('<h4>' + c.dataset.lot + '</h4><p>' +
+      '<b>' + esc(metric.n) + '</b> <span class="mono">' + c.dataset.d + ' ' + metric.unit + '</span><br>' +
+      '<b>정상 범위</b> <span class="mono">±' + metric.lim.toFixed(2) + '</span><br>' +
+      '<b>생산일</b> <span class="mono">' + c.dataset.day + '일차</span><br>' +
+      '<b>판정</b> ' + esc(c.dataset.lab) + '</p>' +
+      '<p style="margin-top:6px;color:#0b6a72">눌러서 이 로트의 판정 보기</p>', c);
+    c.addEventListener('mouseenter', shw);
+    c.addEventListener('click', e => { e.stopPropagation(); hidePop(); openLot(c.dataset.lot); });
+  });
+  $('#trendLegend').innerHTML = '<span class="small" style="width:100%">' + metric.help + '</span>' +
+    [['정상','NORMAL'],['노광·트랙·레티클','PHOTO_DOSE'],['식각 챔버','ETCH_CHAMBER'],
+     ['계측 장비','METROLOGY_TOOL_DRIFT'],['판정 보류','INDETERMINATE']]
+    .map(a => '<span><i style="background:' + COLOR[a[1]] + '"></i>' + a[0] + '</span>').join('');
+}
+
+function drawMonitor(){
+  const ys = DATA.monitor.map(d => d.drift);
+  const span = Math.max(1.4, Math.max.apply(null, ys.map(Math.abs))) * 1.2;
+  const A = axes({x0:58, x1:748, y0:22, y1:236, xmin:0, xmax:M.days - 1, ymin:-span, ymax:span,
+    xt:[0,5,10,15,20,25,30,35,39],
+    yt:[-span, -LIM.tool_drift, 0, LIM.tool_drift, span].map(v => +v.toFixed(2)),
+    xlab:'생산일', ylab:'기준 웨이퍼 값의 이동량 (nm)', fmt:v => v.toFixed(1)});
+  let s = '<rect x="58" y="' + A.Y(LIM.tool_drift) + '" width="690" height="' +
+    (A.Y(-LIM.tool_drift) - A.Y(LIM.tool_drift)) + '" fill="#eef1f3"/>' + A.s;
+  const ST = {'CDSEM-A':{c:'#8b98a3', d:''}, 'CDSEM-B':{c:'#0b6a72', d:'6 4'}};
+  ['CDSEM-A','CDSEM-B'].forEach(t => {
+    const rows = DATA.monitor.filter(d => d.tool === t);
+    s += '<polyline points="' + rows.map(d => A.X(d.day) + ',' + A.Y(d.drift)).join(' ') +
+      '" fill="none" stroke="' + ST[t].c + '" stroke-width="2.2" stroke-dasharray="' + ST[t].d + '"/>';
+    rows.forEach(d => {
+      s += '<circle class="pt" cx="' + A.X(d.day) + '" cy="' + A.Y(d.drift) + '" r="3.4" fill="' +
+        ST[t].c + '" data-t="' + t + '" data-v="' + d.drift.toFixed(2) + '" data-day="' + d.day + '"/>';
+    });
+  });
+  const g = $('#monitor'); g.innerHTML = s;
+  g.querySelectorAll('.pt').forEach(c => {
+    const shw = () => {
+      const v = +c.dataset.v;
+      showPop('<h4>' + c.dataset.t + '</h4><p>' +
+        '<b>기준선 대비</b> <span class="mono">' + (v > 0 ? '+' : '') + c.dataset.v + ' nm</span><br>' +
+        '<b>생산일</b> <span class="mono">' + c.dataset.day + '일차</span><br>' +
+        '<b>정상 범위</b> <span class="mono">±' + LIM.tool_drift.toFixed(2) + ' nm</span></p>' +
+        '<p style="margin-top:6px">' + (Math.abs(v) > LIM.tool_drift
+          ? '<b style="color:#a2321f">범위를 벗어났습니다. 이 장비로 측정한 값은 신뢰할 수 없습니다.</b>'
+          : '정상 범위 안입니다.') + '</p>', c);
+    };
+    c.addEventListener('mouseenter', shw);
+    c.addEventListener('click', e => { e.stopPropagation(); shw(); });
+  });
+  $('#monLegend').innerHTML =
+    '<span><i class="ln" style="border-color:#8b98a3"></i>CDSEM-A (실선)</span>' +
+    '<span><i class="ln" style="border-color:#0b6a72;border-top-style:dashed"></i>CDSEM-B (점선)</span>' +
+    '<span><i style="background:#eef1f3;border:1px solid #c8d2d8;border-radius:0"></i>정상 범위 ±' +
+    LIM.tool_drift.toFixed(2) + ' nm</span>';
+}
+
+function drawChambers(){
+  const byCh = {};
+  DATA.chamberSeries.forEach(r => { (byCh[r.chamber] = byCh[r.chamber] || []).push(r); });
+  const span = Math.max.apply(null, DATA.chamberSeries.map(r => Math.abs(r.dbias))) * 1.15;
+  $('#chambers').innerHTML = Object.keys(byCh).sort().map(ch => {
+    const rows = byCh[ch].slice().sort((a, b) => a.day - b.day);
+    const X = d => 6 + d / (M.days - 1) * 288, Y = v => 30 - v / span * 23;
+    const worst = rows.reduce((a, b) => Math.abs(b.dbias) > Math.abs(a.dbias) ? b : a);
+    return '<div class="mini"><div class="nm">' + ch + '<small>최대 ' +
+      (worst.dbias > 0 ? '+' : '') + worst.dbias.toFixed(2) + ' nm</small></div>' +
+      '<svg viewBox="0 0 300 60" style="width:100%;height:auto" role="img" aria-label="' + ch +
+      ' 챔버의 식각량 편차 추이"><rect x="6" y="' + Y(LIM.chamber_dev) + '" width="288" height="' +
+      (Y(-LIM.chamber_dev) - Y(LIM.chamber_dev)) + '" fill="#eef1f3"/>' +
+      '<line x1="6" y1="30" x2="294" y2="30" stroke="#c8d2d8"/>' +
+      '<polyline points="' + rows.map(r => X(r.day) + ',' + Y(r.dbias)).join(' ') +
+      '" fill="none" stroke="#8a2e68" stroke-width="1.6"/>' +
+      '<text x="6" y="55" font-size="9" font-family="IBM Plex Mono" fill="#57676f">0일</text>' +
+      '<text x="264" y="55" font-size="9" font-family="IBM Plex Mono" fill="#57676f">' +
+      (M.days - 1) + '일</text></svg></div>';
+  }).join('');
+}
+
+/* 8. 검증 결과 표 ──────────────────────────────── */
+(function(){
+  const c = DATA.confusion, set = {};
+  Object.keys(c).forEach(t => Object.keys(c[t]).forEach(p => set[p] = 1));
+  const preds = Object.keys(set).sort();
+  const NAME = {S0:'정상', S1:'노광 세기', S2:'열처리 분포', S3:'레티클',
+    S4:'식각 챔버', S5:'계측 장비', '??':'판정 보류'};
+  let s = '<tr><th>실제로 넣은 이상</th>' +
+    preds.map(p => '<th>' + (NAME[p] || p) + '</th>').join('') + '</tr>';
+  Object.keys(c).sort().forEach(t => {
+    s += '<tr><th>' + (NAME[t] || t) + '</th>' + preds.map(p => {
+      const v = c[t][p] || 0;
+      const st = t === p ? 'font-weight:700' : (v ? 'color:#a2321f' : 'color:#b7c0c7');
+      return '<td class="num mono" style="' + st + '">' + v + '</td>';
+    }).join('') + '</tr>';
+  });
+  $('#conf').innerHTML = s;
+})();
+
+/* 9. 화면 전환 ─────────────────────────────────── */
+const VIEWS = ['overview','terms','lots','charts','eval'];
+let chartsDrawn = false;
+function showView(v){
+  VIEWS.forEach(k => { $('#v-' + k).hidden = k !== v; });
+  document.querySelectorAll('#nav button').forEach(b => {
+    if (b.dataset.v === v) b.setAttribute('aria-current', 'page');
+    else b.removeAttribute('aria-current');
+  });
+  if (v === 'charts' && !chartsDrawn){ drawTrend(); drawMonitor(); drawChambers(); chartsDrawn = true; }
+  hidePop();
+}
+$('#nav').onclick = e => {
+  const b = e.target.closest('button');
+  if (b) { showView(b.dataset.v); scrollTo({top:0, behavior:'smooth'}); }
+};
+renderList();
+showView('overview');
 </script>
 </body>
 </html>
