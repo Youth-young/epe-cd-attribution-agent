@@ -87,7 +87,7 @@ footer{padding:8px 24px 40px;color:var(--muted);font-size:12px}
       <button data-f="abn" aria-pressed="false">이상만</button>
       <button data-f="aci" aria-pressed="false">ACI 측정</button>
     </div>
-    <div id="lots"></div>
+    <div id="lots" role="listbox" aria-label="로트 목록"></div>
   </aside>
 
   <main style="display:grid;gap:16px">
@@ -156,12 +156,17 @@ function visible(){
 }
 function renderLots(){
   $('#lots').innerHTML=visible().map(l=>`
-    <div class="lot" data-lot="${l.lot}" aria-selected="${current===l.lot}">
+    <div class="lot" data-lot="${l.lot}" role="option" tabindex="0" aria-selected="${current===l.lot}">
       <span class="dot" style="background:${COLOR[l.verdict]}"></span>
       <span><span class="mono">${l.lot}</span><br><small>${l.date} · ${l.chamber}</small></span>
       <small>${l.verdict==='NORMAL'?'':l.label}</small>
     </div>`).join('');
-  $('#lots').querySelectorAll('.lot').forEach(e=>e.onclick=()=>select(e.dataset.lot));
+  $('#lots').querySelectorAll('.lot').forEach(e=>{
+    e.onclick=()=>select(e.dataset.lot);
+    e.onkeydown=ev=>{
+      if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();select(e.dataset.lot);}
+    };
+  });
 }
 $('#filters').onclick=e=>{
   if(e.target.tagName!=='BUTTON')return;
@@ -235,7 +240,9 @@ function drawConf(){
 // ---- 선택
 function select(id){
   const l=DATA.lots.find(x=>x.lot===id); if(!l)return;
+  const hadFocus=document.activeElement?.closest('#lots');
   current=id; renderLots();
+  if(hadFocus) $(`#lots [data-lot="${id}"]`)?.focus({preventScroll:true});
   $('#verdict').style.borderLeftColor=COLOR[l.verdict];
   $('#verdict').innerHTML=`<h3>${l.label}
       <span class="badge" style="color:${COLOR[l.verdict]}">${l.risk}</span></h3>
