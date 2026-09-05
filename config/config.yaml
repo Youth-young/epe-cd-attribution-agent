@@ -1,0 +1,71 @@
+# EPE-CD Attribution Agent — 데이터 생성 파라미터
+#
+# basis 등급
+#   measured  : 계측 정합성 실습(3-way CD split)에서 직접 구한 실측 기반 값
+#   literature: 해당 세대 공정의 통상 범위에서 취한 값
+#   assumed   : 근거 없는 가정. 크기 순서만 물리적으로 타당하게 잡음
+
+seed: 20260905
+
+anchors:                      # 실습 회귀 결과 그대로
+  adi_cd_target:   {value: 130.0, unit: nm, basis: measured}   # VSEM BCD 90 nm 목표 시 ADI
+  aci_cd_target:   {value: 110.0, unit: nm, basis: measured}   # 동일 조건 ACI
+  vsem_bcd_target: {value:  90.0, unit: nm, basis: measured}
+  etch_bias:       {value: -20.0, unit: nm, basis: measured}   # ACI - ADI
+  slope_adi_vsem:  {value:   1.0, basis: measured}
+  intercept_adi_vsem: {value: -40.0, unit: nm, basis: measured}
+  slope_aci_vsem:  {value:   1.0, basis: measured}
+  intercept_aci_vsem: {value: -20.0, unit: nm, basis: measured}
+
+profile:                      # 단면 프로파일. 실습에는 없음 → 추가 가정
+  taper_bcd_tcd:   {value:  10.0, unit: nm, basis: assumed}    # BCD - TCD (bottom이 넓은 정상 taper)
+  mcd_offset:      {value:  -5.0, unit: nm, basis: assumed}    # MCD - BCD
+
+photo:
+  dose_sensitivity: {value: -2.0, unit: nm_per_pct, basis: literature}
+  focus_bossung:    {value: -0.0006, unit: nm_per_nm2, basis: literature}
+  slit_amplitude:   {value: 1.2, unit: nm, basis: assumed}
+  reticle_sigma:    {value: 0.6, unit: nm, basis: assumed}
+  track_radial_amp: {value: 1.0, unit: nm, basis: assumed}
+  stochastic_sigma: {value: 0.8, unit: nm, basis: literature}
+
+etch:
+  loading_coeff:    {value: -1.5, unit: nm_per_density, basis: assumed}
+  chamber_radial:   {CH-A: 0.35, CH-B: -0.30, CH-C: 0.45, CH-D: -0.20, unit: nm, basis: assumed}
+  chamber_offset:   {CH-A: 0.0, CH-B: 0.25, CH-C: -0.20, CH-D: 0.15, unit: nm, basis: assumed}
+  pm_drift:         {value: 0.0015, unit: nm_per_rf_hour, basis: assumed}
+  taper_per_bias:   {value: 0.55, basis: assumed}   # etch bias 변화가 taper에 전이되는 비율
+  noise_sigma:      {value: 0.5, unit: nm, basis: assumed}
+
+metrology:
+  cdsem_precision_3s: {value: 0.9, unit: nm, basis: literature}
+  xsem_precision_3s:  {value: 1.5, unit: nm, basis: literature}
+  tool_offset:        {CDSEM-A: 0.0, CDSEM-B: 0.3, unit: nm, basis: assumed}
+  golden_wafer_true:  {value: 111.4, unit: nm, basis: assumed}
+
+sampling:
+  weeks: 8
+  lots_per_day: 8
+  wafers_per_lot: 25
+  adi_slots: [3, 13, 23]
+  aci_slot: 13
+  aci_lot_fraction: 0.50        # ACI는 전 로트가 아니라 일부만 측정
+  fields_per_wafer: 9
+  sites_per_field: 5
+  wafer_radius_mm: 150
+  field_size_mm: [26, 33]
+  monitor_per_week: 2           # golden wafer 재측정 횟수
+  xsem_per_week: 1              # 단면 기준 측정
+
+fleet:
+  scanners: [SCN-01, SCN-02]
+  reticles: [RET-A, RET-B]
+  chambers: [CH-A, CH-B, CH-C, CH-D]
+  cdsem: [CDSEM-A, CDSEM-B]
+
+scenarios:                      # (시작일, 종료일)은 생산일 인덱스 0-based
+  - {id: S1, name: scanner_dose_drift,   day_from: 10, day_to: 13, target: SCN-01, magnitude_pct: 2.2}
+  - {id: S2, name: track_peb_radial,     day_from: 15, day_to: 18, target: ALL,    magnitude_nm: 4.5}
+  - {id: S3, name: reticle_cd_error,     day_from: 20, day_to: 23, target: RET-B,  magnitude_nm: 2.8}
+  - {id: S4, name: etch_chamber_pm_drift,day_from: 24, day_to: 32, target: CH-C,   magnitude_nm: 4.0}
+  - {id: S5, name: metrology_tool_drift, day_from: 34, day_to: 39, target: CDSEM-B,magnitude_nm: 3.6}

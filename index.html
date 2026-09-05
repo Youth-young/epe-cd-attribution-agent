@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EPE-CD 원인 귀속 콘솔</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --page:#e9edef; --panel:#fff; --ink:#12171b; --muted:#5d6b76; --line:#ccd5db;
+  --photo:#a86200; --etch:#8c2f6b; --metro:#0e6a72; --normal:#54646f; --hold:#5f52a0;
+  --cold:#2e6fa8; --hot:#c2472f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);
+  font-family:"IBM Plex Sans KR",-apple-system,"Segoe UI",sans-serif;font-weight:350;
+  font-size:14px;line-height:1.6}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+a{color:inherit}
+header{padding:26px 24px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
+header h1{margin:0;font-size:20px;font-weight:600;letter-spacing:-.01em}
+header p{margin:6px 0 0;color:var(--muted);max-width:74ch}
+.anchor{margin-top:14px;display:flex;flex-wrap:wrap;gap:0 22px;font-size:12.5px;color:var(--muted)}
+.anchor b{color:var(--ink);font-weight:500}
+
+.wrap{display:grid;grid-template-columns:262px 1fr;gap:16px;padding:16px;align-items:start}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);padding:16px 18px}
+.panel h2{margin:0 0 10px;font-size:13px;font-weight:600;color:var(--muted)}
+
+/* 좌측 로트 목록 */
+#filters{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+#filters button{border:1px solid var(--line);background:#fff;padding:4px 9px;font:inherit;
+  font-size:12px;cursor:pointer;color:var(--muted)}
+#filters button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+#lots{max-height:62vh;overflow:auto;border-top:1px solid var(--line)}
+.lot{display:grid;grid-template-columns:12px 1fr auto;gap:8px;align-items:center;
+  padding:7px 4px;border-bottom:1px solid #eef2f4;cursor:pointer}
+.lot:hover{background:#f4f7f8}
+.lot[aria-selected=true]{background:#e6edf1;box-shadow:inset 3px 0 0 var(--ink)}
+.dot{width:9px;height:9px;border-radius:50%}
+.lot small{color:var(--muted);font-size:11.5px}
+
+/* 판정 */
+.verdict{border-left:5px solid var(--normal);padding:2px 0 2px 14px;margin-bottom:14px}
+.verdict h3{margin:0;font-size:19px;font-weight:600}
+.verdict .sub{color:var(--muted);font-size:12.5px;margin-top:3px}
+.badge{display:inline-block;padding:1px 7px;border:1px solid currentColor;font-size:11.5px;
+  margin-left:8px;vertical-align:2px}
+.prose{margin:12px 0 0;max-width:76ch}
+.prose dt{font-size:12px;color:var(--muted);margin-top:10px}
+.prose dd{margin:2px 0 0}
+
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #eef2f4}
+th{color:var(--muted);font-weight:500;font-size:12px}
+td.num{text-align:right}
+tr.hit td{background:#fdf3ee}
+.ok{color:#1c6b3a}.no{color:#a2321f}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+figure{margin:0}
+figcaption{font-size:12px;color:var(--muted);margin-bottom:6px}
+svg{display:block;width:100%;height:auto}
+.legend{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);margin-top:6px}
+.bar{height:9px;flex:1;background:linear-gradient(90deg,var(--cold),#f0f3f5,var(--hot))}
+footer{padding:8px 24px 40px;color:var(--muted);font-size:12px}
+.note{font-size:12px;color:var(--muted);margin-top:8px;max-width:78ch}
+</style>
+</head>
+<body>
+<header>
+  <h1>EPE-CD 원인 귀속 콘솔</h1>
+  <p>ACI CD가 흔들렸을 때 그 원인이 노광인지, 식각인지, 아니면 계측 자체인지를 판정합니다.
+     CD 잔차를 좌표계별 성분으로 분해하고, 규칙 기반 게이트로 근거를 재검증합니다.</p>
+  <div class="anchor" id="anchor"></div>
+</header>
+
+<div class="wrap">
+  <aside class="panel">
+    <h2>로트</h2>
+    <div id="filters">
+      <button data-f="all" aria-pressed="true">전체</button>
+      <button data-f="abn" aria-pressed="false">이상만</button>
+      <button data-f="aci" aria-pressed="false">ACI 측정</button>
+    </div>
+    <div id="lots"></div>
+  </aside>
+
+  <main style="display:grid;gap:16px">
+    <section class="panel">
+      <div class="verdict" id="verdict"></div>
+      <dl class="prose" id="prose"></dl>
+    </section>
+
+    <section class="panel">
+      <h2>웨이퍼 맵 (slot 13)</h2>
+      <div class="grid2">
+        <figure><figcaption id="cap1"></figcaption><svg id="map1" viewBox="-165 -165 330 330"></svg></figure>
+        <figure><figcaption id="cap2"></figcaption><svg id="map2" viewBox="-165 -165 330 330"></svg></figure>
+      </div>
+      <div class="legend"><span class="mono" id="lo"></span><span class="bar"></span><span class="mono" id="hi"></span></div>
+      <p class="note">41점 샘플링(9 field × 5 site). 현업과 같이 ADI와 ACI가 동일 좌표를 공유합니다.</p>
+    </section>
+
+    <section class="panel">
+      <h2>증거</h2>
+      <table id="ev"></table>
+      <h2 style="margin-top:18px">Verification Gate</h2>
+      <table id="gate"></table>
+      <p class="note">게이트는 규칙이 요구하는 조건을 코드가 다시 확인합니다. 하나라도 불충족이면 판정을 내리지 않고 보류합니다.</p>
+    </section>
+
+    <section class="panel">
+      <h2>공정 흐름</h2>
+      <svg id="timeline" viewBox="0 0 1000 90" preserveAspectRatio="none" style="height:90px"></svg>
+      <h2 style="margin-top:16px">golden wafer 감시</h2>
+      <svg id="monitor" viewBox="0 0 1000 150" style="height:150px"></svg>
+      <p class="note">공정이 건드리지 않은 웨이퍼를 반복 측정해 계측 장비의 offset 이동을 추적합니다. 계측 drift를 공정 이상과 가르는 직접 증거입니다.</p>
+    </section>
+
+    <section class="panel">
+      <h2>블라인드 평가</h2>
+      <table id="conf"></table>
+      <p class="note">엔진은 정답 파일을 읽지 않습니다. 판정이 끝난 뒤에만 대조했습니다.</p>
+    </section>
+  </main>
+</div>
+<footer>합성 데이터입니다. 계측 정합성 실습의 회귀 결과를 앵커로, 현업 계측 구조를 본떠 생성했습니다.</footer>
+
+<script src="data.js"></script>
+<script>
+const COLOR={NORMAL:'var(--normal)',PHOTO_DOSE:'var(--photo)',PHOTO_TRACK_RADIAL:'var(--photo)',
+  RETICLE_CD_ERROR:'var(--photo)',ETCH_CHAMBER:'var(--etch)',METROLOGY_TOOL_DRIFT:'var(--metro)',
+  INDETERMINATE:'var(--hold)'};
+const $=s=>document.querySelector(s);
+let filter='all', current=null;
+
+// ---- 헤더 앵커
+const m=DATA.meta;
+$('#anchor').innerHTML=[
+  ['ADI Target',m.adiTarget+' nm'],['ACI Target',m.aciTarget+' nm'],
+  ['단면 BCD',m.vsemTarget+' nm'],['etch bias',m.etchBias+' nm'],
+  ['로트',m.lots+' (ACI '+m.aciLots+')'],['ADI 측정점',m.adiRows.toLocaleString()],
+  ['웨이퍼내 CDU 3σ',m.cdu3s+' nm']
+].map(([k,v])=>`<span>${k} <b class="mono">${v}</b></span>`).join('');
+
+// ---- 로트 목록
+function visible(){
+  return DATA.lots.filter(l=> filter==='all' ? true
+    : filter==='abn' ? l.verdict!=='NORMAL'
+    : l.m.dbias!==null);
+}
+function renderLots(){
+  $('#lots').innerHTML=visible().map(l=>`
+    <div class="lot" data-lot="${l.lot}" aria-selected="${current===l.lot}">
+      <span class="dot" style="background:${COLOR[l.verdict]}"></span>
+      <span><span class="mono">${l.lot}</span><br><small>${l.date} · ${l.chamber}</small></span>
+      <small>${l.verdict==='NORMAL'?'':l.label}</small>
+    </div>`).join('');
+  $('#lots').querySelectorAll('.lot').forEach(e=>e.onclick=()=>select(e.dataset.lot));
+}
+$('#filters').onclick=e=>{
+  if(e.target.tagName!=='BUTTON')return;
+  filter=e.target.dataset.f;
+  [...$('#filters').children].forEach(b=>b.setAttribute('aria-pressed',b===e.target));
+  renderLots();
+};
+
+// ---- 웨이퍼 맵
+function color(v,s){
+  const t=Math.max(-1,Math.min(1,v/s));
+  const a=[46,111,168],b=[240,243,245],c=[194,71,47];
+  const mix=(x,y,k)=>x.map((n,i)=>Math.round(n+(y[i]-n)*k));
+  const rgb= t<0 ? mix(b,a,-t) : mix(b,c,t);
+  return `rgb(${rgb.join(',')})`;
+}
+function drawMap(id,vals,scale){
+  const el=$('#'+id);
+  if(!vals){el.innerHTML='<text x="0" y="0" text-anchor="middle" font-size="13" fill="#5d6b76">ACI 미측정</text>';return;}
+  let s='<circle cx="0" cy="0" r="150" fill="#f6f8f9" stroke="#ccd5db"/>'+
+        '<path d="M -9 150 L 9 150 L 0 138 Z" fill="#ccd5db"/>';
+  DATA.sites.forEach((p,i)=>{
+    s+=`<circle cx="${p.wafer_x_mm}" cy="${-p.wafer_y_mm}" r="11" fill="${color(vals[i],scale)}" stroke="#fff" stroke-width="1.2"><title>${p.site_id}: ${vals[i]} nm</title></circle>`;
+  });
+  el.innerHTML=s;
+}
+
+// ---- 타임라인
+function drawTimeline(){
+  const n=DATA.lots.length, w=1000/n;
+  $('#timeline').innerHTML=DATA.lots.map((l,i)=>{
+    const h=Math.min(70,10+Math.abs(l.m.offset)*14+(l.m.dbias?Math.abs(l.m.dbias)*14:0));
+    return `<rect x="${i*w}" y="${80-h}" width="${Math.max(w-0.6,0.8)}" height="${h}"
+      fill="${COLOR[l.verdict]}" opacity="${l.verdict==='NORMAL'?0.28:0.95}"
+      style="cursor:pointer" data-lot="${l.lot}"><title>${l.lot} ${l.date} ${l.label}</title></rect>`;
+  }).join('')+`<line x1="0" y1="80" x2="1000" y2="80" stroke="#ccd5db"/>`;
+  $('#timeline').querySelectorAll('rect').forEach(e=>e.onclick=()=>select(e.dataset.lot));
+}
+
+// ---- golden wafer 감시
+function drawMonitor(){
+  const days=DATA.meta.days, ys=DATA.monitor.map(d=>d.drift);
+  const max=Math.max(1.2,...ys.map(Math.abs));
+  const X=d=>40+d/days*940, Y=v=>75-v/max*58;
+  let s=`<line x1="40" y1="${Y(0)}" x2="980" y2="${Y(0)}" stroke="#ccd5db"/>`;
+  s+=`<text x="4" y="${Y(max)+4}" font-size="10" fill="#5d6b76" class="mono">+${max.toFixed(1)}</text>`;
+  s+=`<text x="4" y="${Y(-max)+4}" font-size="10" fill="#5d6b76" class="mono">-${max.toFixed(1)}</text>`;
+  ['CDSEM-A','CDSEM-B'].forEach((t,k)=>{
+    const pts=DATA.monitor.filter(d=>d.tool===t).map(d=>`${X(d.day)},${Y(d.drift)}`).join(' ');
+    s+=`<polyline points="${pts}" fill="none" stroke="${k?'var(--metro)':'#8b98a3'}" stroke-width="1.8"/>`;
+    s+=`<text x="${X(days)-70}" y="${18+k*15}" font-size="11" fill="${k?'var(--metro)':'#8b98a3'}">${t}</text>`;
+  });
+  s+=`<text x="40" y="100" font-size="10" fill="#5d6b76">생산일 0</text><text x="930" y="100" font-size="10" fill="#5d6b76">${days}</text>`;
+  $('#monitor').innerHTML=s;
+}
+
+// ---- 혼동 행렬
+function drawConf(){
+  const c=DATA.confusion, preds=[...new Set(Object.values(c).flatMap(o=>Object.keys(o)))].sort();
+  const name={S0:'정상',S1:'노광 dose',S2:'트랙 반경',S3:'레티클',S4:'식각 챔버',S5:'계측 drift','??':'판정 보류'};
+  let s='<tr><th>실제 \\ 판정</th>'+preds.map(p=>`<th>${name[p]||p}</th>`).join('')+'</tr>';
+  Object.keys(c).sort().forEach(t=>{
+    s+=`<tr><th>${name[t]||t}</th>`+preds.map(p=>{
+      const v=c[t][p]||0;
+      return `<td class="num mono" style="${t===p?'font-weight:600':v?'color:#a2321f':'color:#b7c0c7'}">${v}</td>`;
+    }).join('')+'</tr>';
+  });
+  $('#conf').innerHTML=s;
+}
+
+// ---- 선택
+function select(id){
+  const l=DATA.lots.find(x=>x.lot===id); if(!l)return;
+  current=id; renderLots();
+  $('#verdict').style.borderLeftColor=COLOR[l.verdict];
+  $('#verdict').innerHTML=`<h3>${l.label}
+      <span class="badge" style="color:${COLOR[l.verdict]}">${l.risk}</span></h3>
+    <div class="sub mono">${l.lot} · ${l.date} · ${l.scanner} / ${l.reticle} / ${l.chamber}
+      · ADI ${l.adiTool}${l.aciMean?' · ACI '+l.aciTool:''}</div>
+    <div class="sub">담당 모듈 ${l.module} · 신호가 사는 좌표계 ${l.coord}</div>`;
+  $('#prose').innerHTML=`
+    <dt>무엇이 관측되었나</dt><dd>${l.cause}</dd>
+    <dt>무엇을 조치하나</dt><dd>${l.action}${l.extra?' <b class="mono">'+l.extra+'</b>':''}</dd>`;
+  $('#cap1').textContent=`ADI CD 잔차 (평균 ${l.adiMean} nm)`;
+  $('#cap2').textContent=l.aciMean?`ΔCD = ACI − ADI (ACI 평균 ${l.aciMean} nm)`:'ΔCD — 이 로트는 ACI 미측정';
+  drawMap('map1',l.adiMap,4); 
+  drawMap('map2',l.deltaMap?l.deltaMap.map(v=>v-DATA.meta.etchBias):null,3);
+  $('#lo').textContent='-4 nm'; $('#hi').textContent='+4 nm';
+  $('#ev').innerHTML='<tr><th>지표</th><th>값</th><th>관리 한계</th><th>상태</th></tr>'+
+    l.ev.map(e=>`<tr class="${e.hit?'hit':''}"><td>${e.k}</td><td class="num mono">${e.v}</td>
+      <td class="num mono">${e.lim}</td><td>${e.hit?'<b class="no">이탈</b>':'<span class="ok">정상</span>'}</td></tr>`).join('');
+  $('#gate').innerHTML = l.gate.length
+    ? '<tr><th>요구 조건</th><th>충족</th></tr>'+l.gate.map(g=>
+        `<tr><td class="mono">${g.c}</td><td>${g.ok?'<span class="ok">✓</span>':'<b class="no">✗</b>'}</td></tr>`).join('')
+    : '<tr><td>이 판정은 추가 요구 조건이 없습니다.</td></tr>';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+renderLots(); drawTimeline(); drawMonitor(); drawConf();
+select((DATA.lots.find(l=>l.verdict==='METROLOGY_TOOL_DRIFT')||DATA.lots[0]).lot);
+</script>
+</body>
+</html>

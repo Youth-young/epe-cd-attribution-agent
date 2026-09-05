@@ -1,0 +1,123 @@
+# 원인 귀속 규칙
+# 각 규칙은 (1) 어느 좌표계에 신호가 사는가 (2) 어떤 증거가 반드시 있어야 하는가
+# (3) 무엇이 원인이고 (4) 무엇을 조치하는가 를 정의한다.
+# require에 정의된 조건은 Verification Gate가 코드로 재검증한다.
+
+version: 1
+
+metrics:
+  adi_offset:    웨이퍼 평균 ADI CD − 목표 (nm). 웨이퍼 전체에 걸린 스칼라 성분.
+  adi_radial:    ADI 잔차를 (r/R)²로 회귀한 계수 (nm). 웨이퍼 반경 좌표계.
+  adi_slit:      field 내 X 방향 기울기로 환산한 진폭 (nm). 스캐너 슬릿 좌표계.
+  adi_reticle:   slit 성분 제거 후 site에 고정되어 반복되는 잔차 (nm). 레티클 좌표계.
+  delta_bias:    (ACI − ADI) 평균 − 기준 etch bias (nm).
+  delta_radial:  ΔCD를 (r/R)²로 회귀한 계수 (nm).
+  tool_drift:    golden wafer 재측정 기준선 대비 이동량 (nm).
+  chamber_dev:   해당 챔버의 window ΔCD 평균 − 타 챔버 평균 (nm).
+  taper_dev:     단면 taper(BCD−TCD) 기준선 대비 변화 (nm).
+
+rules:
+
+  - id: PHOTO_DOSE
+    label: 노광 dose drift
+    module: Photo
+    coordinate: 웨이퍼 스칼라
+    when: [adi_offset_exceeds]
+    require:
+      - adi_radial_within_limit      # 반경 성분이 함께 커졌다면 track 원인일 수 있다
+      - adi_reticle_within_limit
+    cause: >
+      스캐너 dose가 목표에서 벗어나 웨이퍼 전체 ADI CD가 균일하게 이동했다.
+      반경·슬릿·레티클 좌표계에는 신호가 없고 스칼라 성분만 커진 형태다.
+    action: >
+      dose 보정량을 산출해 다음 로트에 R2R 피드백. ADI 시점이므로 스펙 이탈 웨이퍼는
+      rework window 안에 있다. 스캐너 dose 센서와 조명계 출력 이력을 함께 확인.
+    risk: 정상
+
+  - id: PHOTO_TRACK_RADIAL
+    label: 트랙/PEB 반경 프로파일 변화
+    module: Photo(Track)
+    coordinate: 웨이퍼 반경
+    when: [adi_radial_exceeds]
+    require: [delta_within_limit_or_absent]
+    cause: >
+      ADI 잔차가 웨이퍼 반경의 함수로 커졌다. PEB plate의 온도 프로파일이나
+      코팅 두께 반경 분포가 바뀐 형태이며, 식각 이후 성분(ΔCD)은 정상이다.
+    action: >
+      해당 트랙의 PEB plate 온도 맵과 코터 회전 프로파일 점검. 반경 성분은 dose 보정으로
+      상쇄되지 않으므로 스캐너 피드백으로 덮지 말 것.
+    risk: 주의
+
+  - id: RETICLE_CD_ERROR
+    label: 레티클 CD 오차
+    module: Photo(Reticle)
+    coordinate: field 내 site 고정
+    when: [adi_reticle_exceeds]
+    require: [adi_reticle_repeats_across_fields]
+    cause: >
+      특정 site에서만 편차가 나타나고 모든 field에서 동일하게 반복된다.
+      웨이퍼·반경 좌표계와 무관하므로 마스크 자체의 CD 오차로 귀속된다.
+    action: >
+      해당 레티클을 다른 레티클과 교차 노광해 재현되는지 확인 후 마스크 재검사.
+      스캐너나 식각 recipe를 먼저 건드리지 말 것.
+    risk: 주의
+
+  - id: ETCH_CHAMBER
+    label: 식각 챔버 편차 / PM drift
+    module: Etch
+    coordinate: 웨이퍼 반경 + 챔버
+    when: [delta_bias_exceeds]
+    require:
+      - chamber_specific            # 특정 챔버에서만 나타나야 한다
+      - metrology_healthy           # 계측이 정상이어야 공정 원인으로 귀속 가능
+      - metrology_evidence_fresh    # 계측 감시 데이터가 오래됐으면 '정상'이라 단정할 수 없다
+      - taper_not_contradicting     # 실제 식각 변화라면 단면 taper도 함께 움직여야 한다
+    cause: >
+      ADI는 정상인데 ΔCD가 이동했고, 특정 챔버에서만 나타나며 웨이퍼 반경 성분을 동반한다.
+      플라즈마 균일도·가스 흐름·ESC 온도 변화 또는 PM 이후 누적 drift로 귀속된다.
+    action: >
+      해당 챔버 격리 후 챔버 매칭 웨이퍼 재측정, RF hours 대비 bias 추이 확인, PM 주기 재검토.
+      ACI는 되돌릴 수 없으므로 이후 로트의 ADI Target을 임시 보정해 손실을 줄인다.
+    risk: 위험
+
+  - id: METROLOGY_TOOL_DRIFT
+    label: 계측 장비 offset drift
+    module: Metrology
+    coordinate: 없음(측정 장비에 종속)
+    when: [delta_bias_exceeds]
+    require:
+      - tool_drift_exceeds          # golden wafer가 같은 방향으로 이동했는지
+      # not_chamber_specific 는 보조 증거로만 본다. golden wafer가 움직였다면
+      # 챔버 편중 여부와 무관하게 '자'를 먼저 바로잡고 재판정하는 것이 맞다.
+    cause: >
+      ΔCD가 이동했지만 특정 챔버에 몰리지 않고, 특정 계측 장비로 측정한 로트에서만 나타난다.
+      공정이 건드리지 않은 golden wafer의 재측정값이 같은 방향으로 이동했으므로
+      공정 변화가 아니라 계측 장비의 offset drift다.
+    action: >
+      공정 조치 보류. 해당 CD-SEM 재캘리브레이션 후 영향 기간 로트를 재판정.
+      이 판정을 놓치면 정상 챔버의 recipe를 건드리는 오조치가 발생한다.
+    risk: 위험
+
+  - id: INDETERMINATE
+    label: 판정 보류
+    module: "-"
+    coordinate: "-"
+    when: [delta_bias_exceeds]
+    require: []
+    cause: >
+      이상은 탐지되었으나 원인을 특정할 증거가 부족하다.
+      챔버 편중과 계측 drift가 모두 기준에 못 미치거나, 근거 데이터가 없는 경우다.
+    action: >
+      추가 측정 요청 — 해당 챔버 매칭 웨이퍼, golden wafer 임시 재측정, 단면 taper 확인.
+      근거 없이 조치 대상을 지정하지 않는다.
+    risk: 주의
+
+  - id: NORMAL
+    label: 정상
+    module: "-"
+    coordinate: "-"
+    when: []
+    require: []
+    cause: 모든 성분이 관리 한계 내에 있다.
+    action: 조치 없음.
+    risk: 정상
