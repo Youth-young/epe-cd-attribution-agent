@@ -237,13 +237,39 @@ footer{max-width:var(--w);margin:0 auto;padding:0 20px 44px;color:var(--muted);f
     <p class="lede">사람이 원인을 찾는 순서를 그대로 코드로 옮겼습니다.</p>
     <ol class="steps">
       <li><b>측정값을 성분으로 쪼갠다</b>
-        웨이퍼 전체가 똑같이 굵어졌는지, 가장자리만 굵어졌는지, 특정 위치에서만 반복되는지 —
-        <b>어긋남이 어떤 모양으로 나타나는가</b>가 곧 범인의 지문입니다.</li>
-      <li><b>지문과 원인을 대조한다</b>
-        웨이퍼 전면에 균일하게 걸리면 <b class="term" data-t="dose">dose</b>,
-        반경 방향으로 걸리면 <b class="term" data-t="peb">PEB</b> 온도 분포,
-        특정 <b class="term" data-t="chamber">Etch 챔버</b>에만 몰리면 그 챔버로 좁힙니다.
-        <b class="term" data-t="pm">PM</b> 후 경과 시간과 함께 흐르는지도 함께 봅니다.</li>
+        41개 측정점의 CD 편차를 하나의 회귀식으로 동시에 풀어, 네 가지 성분으로 나눕니다.
+        <b>어긋남이 어떤 모양으로 나타나는가</b>가 곧 원인의 지문이기 때문입니다.
+        <div class="scroller" style="margin-top:10px"><table>
+          <tr><th>성분</th><th>무슨 뜻인가</th><th>어떤 인자의 지문인가</th></tr>
+          <tr><td><b>스칼라</b><br><span class="mono" style="font-size:11.5px">wafer mean shift</span></td>
+            <td>웨이퍼 41점의 <b>평균</b>이 목표에서 얼마나 이동했는가.
+              특정 위치에 몰리지 않고 전면에 균일하게 걸린 성분입니다.</td>
+            <td>웨이퍼 전체에 동일하게 작용하는 인자 →
+              <b class="term" data-t="dose">노광량(dose)</b></td></tr>
+          <tr><td><b>반경</b><br><span class="mono" style="font-size:11.5px">radial (r/R)²</span></td>
+            <td>중심과 엣지의 CD 차이. 평균은 그대로여도 중심만 넓고 엣지만 좁을 수 있습니다.</td>
+            <td>웨이퍼 반경 방향으로 분포하는 인자 →
+              <b class="term" data-t="peb">PEB plate 온도</b>, 코팅 두께</td></tr>
+          <tr><td><b>슬릿</b><br><span class="mono" style="font-size:11.5px">intra-field X</span></td>
+            <td>노광 <b class="term" data-t="field">field</b> 안에서 X 좌표를 따라 기울어진 성분.
+              모든 field에서 같은 기울기로 나타납니다.</td>
+            <td>스캐너 슬릿·조명계 지문</td></tr>
+          <tr><td><b>레티클</b><br><span class="mono" style="font-size:11.5px">site-fixed</span></td>
+            <td>field 안 특정 site에서만 나타나고, 모든 field에서 <b>똑같이 반복</b>되는 성분입니다.</td>
+            <td><b class="term" data-t="reticle">레티클</b> 자체의 CD 오차</td></tr>
+        </table></div>
+        <span style="display:block;margin-top:8px">예를 들어 <b>스칼라 성분만 한계를 넘고 나머지 셋은 정상</b>이면,
+        웨이퍼 전면이 통째로 이동했다는 뜻이므로 dose 계열로 좁혀집니다.</span></li>
+      <li><b>Setting값과 Sensor 실측값을 분리해서 본다</b>
+        Recipe에 적힌 <b class="term" data-t="setting">Setting값</b>과
+        스캐너가 실제로 조사한 양을 읽은 <b class="term" data-t="sensor">Energy Sensor 실측값</b>은
+        다를 수 있습니다. 둘이 어긋나 있으면 Recipe를 고쳐도 실효 dose는 그대로여서 재발합니다.
+        그래서 <b>Recipe 보정이 아니라 Calibration 재수행</b>이 조치가 됩니다.
+        이 판정 분기가 이 에이전트의 Photo 원인 처리에서 가장 중요한 부분입니다.</li>
+      <li><b>변경점과 시점을 대조한다</b>
+        CD가 흔들리기 시작한 날과 <b class="term" data-t="pm">PM · Inform 이력</b>의 변경점
+        (Laser Source 교체, 광학 부품 교체, Calibration 수행일)이 일치하는지 봅니다.
+        <b class="term" data-t="chamber">Etch 챔버</b>는 PM 후 경과 시간과 함께 흐르는지도 확인합니다.</li>
       <li><b>증거가 충분한지 코드가 다시 확인한다</b>
         AI가 내린 결론이 규칙이 요구하는 조건을 모두 만족하는지 검사합니다.
         하나라도 어긋나면 원인을 지목하지 않습니다.</li>
@@ -585,6 +611,13 @@ const TERMS = {
     s:'<svg viewBox="0 0 200 90"><rect x="14" y="30" width="14" height="18" fill="#0b6a72" stroke="#57676f" stroke-width=".8"/><rect x="31" y="30" width="14" height="18" fill="#ffffff" stroke="#57676f" stroke-width=".8"/><rect x="48" y="30" width="14" height="18" fill="#0b6a72" stroke="#57676f" stroke-width=".8"/><rect x="65" y="30" width="14" height="18" fill="#ffffff" stroke="#57676f" stroke-width=".8"/><rect x="82" y="30" width="14" height="18" fill="#0b6a72" stroke="#57676f" stroke-width=".8"/><rect x="99" y="30" width="14" height="18" fill="#ffffff" stroke="#57676f" stroke-width=".8"/><rect x="116" y="30" width="14" height="18" fill="#0b6a72" stroke="#57676f" stroke-width=".8"/><rect x="133" y="30" width="14" height="18" fill="#ffffff" stroke="#57676f" stroke-width=".8"/><rect x="150" y="30" width="14" height="18" fill="#0b6a72" stroke="#57676f" stroke-width=".8"/><rect x="167" y="30" width="14" height="18" fill="#ffffff" stroke="#57676f" stroke-width=".8"/><text x="14" y="72" font-size="9" fill="#0b6a72">■ 측정</text><text x="62" y="72" font-size="9" fill="#8b98a3">□ skip</text><text x="120" y="72" font-size="9" fill="#57676f">skip 비율은</text><text x="120" y="86" font-size="9" fill="#57676f">Cp/Cpk로 결정</text></svg>'},
   apc:{k:'APC · R2R 제어',e:'Advanced Process Control, run-to-run',d:'앞 로트의 계측 결과로 다음 로트의 공정 조건을 자동 보정하는 제어 방식입니다. ADI에서 잰 CD와 오버레이가 스캐너 보정값으로 되먹임되는 것이 대표적입니다. 그래서 ADI는 actionable 측정, ACI는 검증 측정으로 구분합니다.',
     s:'<svg viewBox="0 0 200 100"><rect x="16" y="30" width="44" height="26" fill="none" stroke="#a05c00" stroke-width="1.2"/><text x="38" y="47" text-anchor="middle" font-size="9" fill="#a05c00">스캐너</text><path d="M64 43h24" stroke="#57676f"/><path d="M83 38l7 5-7 5" fill="#57676f"/><rect x="92" y="30" width="44" height="26" fill="none" stroke="#0b6a72" stroke-width="1.2"/><text x="114" y="47" text-anchor="middle" font-size="9" fill="#0b6a72">ADI 계측</text><path d="M114 60 L114 78 L38 78 L38 60" fill="none" stroke="#1c6b3a" stroke-width="1.4"/><path d="M33 65l5-7 5 7" fill="#1c6b3a"/><text x="46" y="92" font-size="9" fill="#1c6b3a">보정값 되먹임 (run-to-run)</text></svg>'},
+  setting:{k:'Setting값',e:'Recipe Input / setpoint',d:'Recipe에 적혀 있어 장비에 지시되는 값입니다. 노광량 Setting 32.0 mJ/cm2는 이만큼 조사하라는 지시일 뿐, 실제로 그만큼 조사되었는지를 보장하지 않습니다. Setting은 변경 이력이 남으므로, 이슈 시점과 Setting 변경 시점이 어긋나면 그 항목은 원인 후보에서 배제할 수 있습니다.',
+    s:'<svg viewBox="0 0 200 100"><rect x="14" y="26" width="80" height="44" fill="#fbfcfc" stroke="#57676f" stroke-width="1.2"/><text x="22" y="44" font-size="10" fill="#33424c">Recipe</text><text x="22" y="61" font-size="11" fill="#10161b" font-family="IBM Plex Mono">dose = 32.0</text><text x="14" y="86" font-size="9" fill="#57676f">장비에 내리는 지시값</text><text x="106" y="42" font-size="9" fill="#a2321f">지시했다는 뜻일 뿐</text><text x="106" y="58" font-size="9" fill="#a2321f">그대로 조사됐다는</text><text x="106" y="74" font-size="9" fill="#a2321f">보장은 아니다</text></svg>'},
+  sensor:{k:'Energy Sensor 실측값',e:'energy sensor readback',d:'스캐너 내부 에너지 센서가 실제로 조사된 광량을 적산해 읽은 값입니다. CD가 반응하는 것은 Setting이 아니라 이 실효 dose입니다. Setting은 그대로인데 이 값만 이동했다면 광원 교체 후 Dose Mapper Calibration 누락, 센서 열화·오염, 조명계 투과율 변화를 의심합니다. 이 경우 Recipe를 고쳐도 실효 dose는 그대로여서 재발합니다.',
+    s:'<svg viewBox="0 0 200 110"><line x1="26" y1="86" x2="182" y2="86" stroke="#c8d2d8"/><line x1="26" y1="20" x2="26" y2="86" stroke="#c8d2d8"/><line x1="26" y1="58" x2="182" y2="58" stroke="#8b98a3" stroke-dasharray="5 3"/><text x="32" y="54" font-size="9" fill="#57676f">Setting 32.0 (고정)</text><polyline points="34,60 62,58 90,59 112,50 134,40 160,34" fill="none" stroke="#a05c00" stroke-width="2"/><text x="106" y="28" font-size="9" fill="#a05c00">Sensor 실측</text><path d="M160 34 L160 58" stroke="#bf4630" stroke-width="1.6"/><text x="104" y="76" font-size="9" fill="#bf4630">이 괴리가 실효 dose 오차</text><text x="46" y="104" font-size="9" fill="#57676f">시간</text></svg>'},
+  dosemapper:{k:'Dose Mapper Calibration',e:'dose sensor calibration',d:'에너지 센서가 읽는 값과 웨이퍼 면에 실제 도달하는 광량 사이의 변환 관계를 다시 맞추는 작업입니다. 광원(Laser Source)을 교체하면 파장 대역폭(E95)과 pulse energy 특성이 달라지므로 같은 Setting에서도 실효 dose가 달라질 수 있습니다. 그래서 Source 교체는 Calibration 재수행을 필수 절차로 Change Control Checklist에 넣습니다.'},
+  changepoint:{k:'변경점 · PM/Inform 이력',e:'change point / maintenance log',d:'설비에 가해진 모든 변경의 기록입니다. 부품 교체, PM, Recipe 변경, Calibration 수행 이력이 시점과 함께 남습니다. 이상 분석의 출발점은 항상 이상이 시작된 시점과 일치하는 변경점이 있는가이며, 시점이 어긋나면 그 항목은 원인 후보에서 배제합니다.'},
+  ocap:{k:'SPC 관리도 · OCAP',e:'Statistical Process Control / Out of Control Action Plan',d:'지표를 관리 한계와 함께 시계열로 관리하고(SPC 관리도), 한계를 벗어났을 때 누가 무엇을 하는지 사전에 정해두는 절차(OCAP)입니다. Setting값만 감시하면 Setting과 실측의 괴리를 놓치므로, Sensor 실측값 자체에 관리도를 거는 것이 재발 방지의 핵심입니다.'},
   cdu:{k:'CDU',e:'CD Uniformity',d:'웨이퍼 안에서 선폭이 얼마나 고른지를 나타내는 지표로 보통 3σ로 표기합니다. 평균이 목표에 맞아도 CDU가 나쁘면 웨이퍼 일부는 스펙을 벗어납니다. 이 데이터의 웨이퍼 내 CDU는 3σ 기준 약 4.2 nm입니다.',
     s:'<svg viewBox="0 0 200 100"><g fill="#c9d4d9" stroke="#57676f" stroke-width=".8"><rect x="62" y="74" width="9" height="8"/><rect x="72" y="62" width="9" height="20"/><rect x="82" y="44" width="9" height="38"/><rect x="92" y="27" width="9" height="55"/><rect x="102" y="20" width="9" height="62"/><rect x="112" y="27" width="9" height="55"/><rect x="122" y="44" width="9" height="38"/><rect x="132" y="62" width="9" height="20"/><rect x="142" y="74" width="9" height="8"/></g><line x1="100" y1="18" x2="100" y2="82" stroke="#0b6a72" stroke-dasharray="3 2"/><path d="M62 88h76" stroke="#bf4630" stroke-width="1.6"/><path d="M62 84v8M138 84v8" stroke="#bf4630" stroke-width="1.2"/><text x="82" y="100" font-size="9" fill="#bf4630">3σ</text><text x="146" y="34" font-size="9" fill="#0b6a72">평균</text></svg>'}
 };
@@ -705,7 +738,10 @@ function openLot(id){
     '<div class="meta mono">' + l.lot + ' · ' + l.date + ' · 스캐너 ' + l.scanner +
     ' · 레티클 ' + l.reticle + ' · 챔버 ' + l.chamber + ' · 현상 후 측정 ' + l.adiTool +
     (l.aciMean ? ' · 식각 후 측정 ' + l.aciTool : '') + '</div>' +
-    '<div class="meta">담당 모듈 ' + esc(l.module) + ' · 신호가 나타난 좌표계 ' + esc(l.coord) + '</div>';
+    '<div class="meta">담당 모듈 ' + esc(l.module) + ' · 신호가 나타난 좌표계 ' + esc(l.coord) + '</div>' +
+    '<div class="meta mono">Dose Setting ' + l.doseSet + ' → Sensor ' + l.doseSensor +
+    ' mJ/cm² (' + (l.doseGap > 0 ? '+' : '') + l.doseGap + '%) · Focus Sensor ' +
+    (l.focusSensor > 0 ? '+' : '') + l.focusSensor + ' nm · RF hours ' + l.rf + '</div>';
   $('#plain').innerHTML = '<h3>무엇이 관측되었나</h3><p>' + esc(l.cause) + '</p>' +
     '<div class="act"><h3>무엇을 조치하나</h3><p>' + esc(l.action) +
     (l.extra ? ' <b class="mono">' + esc(l.extra) + '</b>' : '') + '</p></div>';

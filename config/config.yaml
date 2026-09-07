@@ -21,7 +21,16 @@ profile:                      # 단면 프로파일. 실습에는 없음 → 추
   taper_bcd_tcd:   {value:  10.0, unit: nm, basis: assumed}    # BCD - TCD (bottom이 넓은 정상 taper)
   mcd_offset:      {value:  -5.0, unit: nm, basis: assumed}    # MCD - BCD
 
+scanner:                      # Setting값(Recipe Input)과 Sensor 실측값을 분리해 관리한다
+  dose_setting_mJcm2:   {value: 32.0, unit: mJ/cm2, basis: literature}  # Eop 기준 노광량
+  exposure_latitude_pct: {value: 15.8, unit: pct, basis: literature}     # CD ±10% 를 주는 dose 창
+  focus_setting_nm:     {value: 0.0,  unit: nm, basis: assumed}         # best focus 기준
+  dose_sensor_3s:       {value: 0.15, unit: mJ/cm2, basis: literature}  # energy sensor 반복 정밀도
+
 photo:
+  # dose sensitivity 유도: EL 15.8% 가 CD ±10% 창에 대응 →
+  #   |dCD/d(dose%)| = 0.20 x 130 nm / 15.8 % = 1.65 nm/%  (문헌 기반 하한)
+  #   본 데이터는 보수적으로 2.0 nm/% 로 둔다. positive tone 이므로 부호는 음.
   dose_sensitivity: {value: -2.0, unit: nm_per_pct, basis: literature}
   focus_bossung:    {value: -0.0006, unit: nm_per_nm2, basis: literature}
   slit_amplitude:   {value: 1.2, unit: nm, basis: assumed}

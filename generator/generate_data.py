@@ -35,6 +35,7 @@ PH = {k: v["value"] for k, v in CFG["photo"].items()}
 SMP = CFG["sampling"]
 FLEET = CFG["fleet"]
 MET = CFG["metrology"]
+SCN = {k: v["value"] for k, v in CFG["scanner"].items()}
 ET = CFG["etch"]
 
 ADI_T = A["adi_cd_target"]
@@ -119,12 +120,23 @@ def build_runs():
                     ramp = 0.5 + 0.5 * prog   # 이상은 어느 정도 자란 뒤 검출된다
                     inj = dict(id=s["id"], name=s["name"], target=tgt, ramp=round(ramp, 3),
                                mag=s.get("magnitude_nm", s.get("magnitude_pct")))
+            # 실효 dose 편차 = 로트별 미세 변동 + (S1이면) sensor calibration 이탈분.
+            # Setting값(recipe)은 32.0 mJ/cm2에 고정되어 있고 움직이지 않는다.
+            # 현업 disposition의 첫 질문이 "Setting과 Sensor 실측값이 일치하는가"이므로
+            # 이 두 값을 반드시 분리해서 기록한다.
+            dose_dev = round(rng.normal(0, 0.25), 3)
+            if inj and inj["id"] == "S1":
+                dose_dev = round(dose_dev + inj["ramp"] * CFG["scenarios"][0]["magnitude_pct"], 3)
             runs.append(dict(
                 lot_id=lot, date=date.strftime("%Y-%m-%d"), day_index=d,
                 product="P-A1", layer="M1-LS",
                 scanner_id=scanner, reticle_id=reticle,
-                dose_setpoint_pct=round(rng.normal(0, 0.25), 3),
-                focus_offset_nm=round(rng.normal(0, 12), 1),
+                # Setting값은 recipe에 고정되어 있고, Sensor 실측값은 따로 움직인다.
+                # 실효 dose는 Sensor 실측값이며 CD는 여기에 반응한다.
+                dose_setting_mJcm2=SCN["dose_setting_mJcm2"],
+                dose_dev_pct=dose_dev,
+                focus_setting_nm=SCN["focus_setting_nm"],
+                focus_sensor_nm=round(rng.normal(0, 12), 1),
                 etch_chamber=chamber, rf_hours_since_pm=round(rf_hours[chamber], 1),
                 adi_meas_tool=adi_tool, aci_meas_tool=aci_tool,
                 aci_measured=bool((d * lpd + k) % 2 == 0),  # 짝수 로트만 ACI 측정 (성긴 샘플링)
@@ -147,14 +159,13 @@ def adi_cd_wafer(run, slot):
     n = NSITE
     cd = np.full(n, ADI_T, dtype=float)
 
-    # 1) dose — 웨이퍼 전체에 걸린 스칼라
-    dose = run.dose_setpoint_pct
-    if gt.scenario_id == "S1":
-        dose += gt.ramp * CFG["scenarios"][0]["magnitude_pct"]
-    cd += PH["dose_sensitivity"] * dose
+    # 1) dose — 웨이퍼 전면에 균일하게 걸리는 성분 (wafer mean shift)
+    #    S1은 Setting값을 건드리지 않고 Energy Sensor 실측값만 이동시킨다.
+    #    실제 fab의 Dose Mapper Calibration 누락/열화 시나리오와 같은 구조다.
+    cd += PH["dose_sensitivity"] * run.dose_dev_pct
 
     # 2) focus — field 단위 Bossung (여기서는 웨이퍼 단위로 근사)
-    cd += PH["focus_bossung"] * (run.focus_offset_nm ** 2)
+    cd += PH["focus_bossung"] * (run.focus_sensor_nm ** 2)
 
     # 3) slit — field 내 X 좌표의 함수 (스캐너 지문)
     cd += SLIT_K[run.scanner_id] * (PLAN["u_x"].to_numpy() / 0.35)
@@ -280,7 +291,13 @@ if __name__ == "__main__":
     adi, aci, xsem = build_measurements()
     mon = build_monitor()
     PLAN.to_csv(OUT / "sampling_plan.csv", index=False)
-    RUNS.to_csv(OUT / "runs.csv", index=False)
+    R = RUNS.copy()
+    # Energy Sensor 실측값(절대 노광량). Setting과의 괴리가 곧 실효 dose 오차다.
+    _noise = rng.normal(0, SCN["dose_sensor_3s"] / S3, len(R))
+    R["dose_sensor_mJcm2"] = (R.dose_setting_mJcm2 * (1 + R.dose_dev_pct / 100) + _noise).round(3)
+    R["dose_setting_vs_sensor_pct"] = (
+        (R.dose_sensor_mJcm2 - R.dose_setting_mJcm2) / R.dose_setting_mJcm2 * 100).round(3)
+    R.to_csv(OUT / "runs.csv", index=False)
     adi.to_csv(OUT / "meas_adi.csv", index=False)
     aci.to_csv(OUT / "meas_aci.csv", index=False)
     xsem.to_csv(OUT / "ref_xsem.csv", index=False)

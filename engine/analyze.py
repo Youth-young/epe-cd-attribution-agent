@@ -26,6 +26,7 @@ RULES = {r["id"]: r for r in KB["rules"]}
 ADI_T = CFG["anchors"]["adi_cd_target"]["value"]
 ETCH_BIAS = CFG["anchors"]["etch_bias"]["value"]
 DOSE_SENS = CFG["photo"]["dose_sensitivity"]["value"]
+DOSE_SET  = CFG["scanner"]["dose_setting_mJcm2"]["value"]
 BASELINE_DAYS = 10          # 이상 주입 이전 구간
 WINDOW_DAYS = 5             # drift 판정용 이동 창
 
@@ -133,6 +134,8 @@ LIM = {
     "delta_bias": 3 * base.delta_bias.dropna().std(),
     "tool_drift": 3 * 0.30,
     "chamber_dev": 3 * base.delta_bias.dropna().std() * 0.8,
+    # Setting값과 Energy Sensor 실측값의 괴리. 현업 disposition의 1차 확인 항목.
+    "dose_gap_pct": 3 * base.dose_setting_vs_sensor_pct.std(),
 }
 
 # 계측 장비 감시 — monitor wafer 일별 평균과 기준선 대비 이동량
@@ -195,6 +198,17 @@ def attribute(r):
     ev.append(dict(k="레티클 반복 성분", v=f"{ret:+.2f} nm", lim=f"≤{LIM['adi_reticle']:.2f}",
                    hit=bool(checks["adi_reticle_exceeds"])))
 
+    # Setting값(Recipe Input) vs Energy Sensor 실측값 — Photo 원인 분기의 핵심
+    gap = float(r.dose_setting_vs_sensor_pct)
+    checks["dose_gap_exceeds"] = abs(gap) > LIM["dose_gap_pct"]
+    ev.append(dict(k="Dose Setting vs Energy Sensor",
+                   v=f"{r.dose_setting_mJcm2:.2f} → {r.dose_sensor_mJcm2:.2f} mJ/cm² ({gap:+.2f}%)",
+                   lim=f"±{LIM['dose_gap_pct']:.2f}%",
+                   hit=bool(checks["dose_gap_exceeds"])))
+    ev.append(dict(k="Focus Setting vs Sensor",
+                   v=f"{r.focus_setting_nm:.0f} → {r.focus_sensor_nm:+.0f} nm",
+                   lim="±36 nm (DOF/2)", hit=bool(abs(r.focus_sensor_nm) > 36)))
+
     has_aci = dbias is not None
     td, td_age = tool_drift(r.aci_meas_tool, r.day_index) if has_aci else (0.0, 0)
     cdev, _ = chamber_deviation(r.etch_chamber, r.day_index) if has_aci else (None, None)
@@ -251,7 +265,20 @@ def attribute(r):
 
     extra = None
     if verdict == "PHOTO_DOSE":
-        extra = f"dose 보정 제안 {(-o / DOSE_SENS):+.2f} %"
+        need_pct = -o / DOSE_SENS                     # CD 편차를 상쇄하는 dose 변화율
+        cur_set = float(r.dose_setting_mJcm2)
+        cur_sen = float(r.dose_sensor_mJcm2)
+        tgt = cur_set * (1 + need_pct / 100)
+        if checks["dose_gap_exceeds"]:
+            extra = (f"Setting {cur_set:.2f} mJ/cm²는 유지되어 있으나 Energy Sensor 실측이 "
+                     f"{cur_sen:.2f} mJ/cm² ({gap:+.2f}%)로 이탈. Recipe를 건드리기 전에 "
+                     f"Dose Mapper / Energy Sensor Calibration을 먼저 재수행할 것. "
+                     f"Calibration 후에도 CD가 남으면 Setting {cur_set:.2f} → {tgt:.2f} mJ/cm² "
+                     f"({tgt - cur_set:+.2f} mJ/cm², {need_pct:+.2f}%)")
+        else:
+            extra = (f"Setting–Sensor 괴리는 정상. Recipe 보정 대상. "
+                     f"Dose Setting {cur_set:.2f} → {tgt:.2f} mJ/cm² "
+                     f"({tgt - cur_set:+.2f} mJ/cm², {need_pct:+.2f}%)")
     return verdict, ev, gate, extra, dict(tool_drift=td, chamber_dev=cdev, taper_dev=tdev)
 
 
@@ -272,6 +299,10 @@ for r in M.itertuples():
         risk=rule["risk"], cause=rule["cause"].strip(), action=rule["action"].strip(),
         scanner=r.scanner_id, reticle=r.reticle_id, chamber=r.etch_chamber,
         adiTool=r.adi_meas_tool, aciTool=r.aci_meas_tool, rf=r.rf_hours_since_pm,
+        doseSet=round(float(r.dose_setting_mJcm2), 2),
+        doseSensor=round(float(r.dose_sensor_mJcm2), 2),
+        doseGap=round(float(r.dose_setting_vs_sensor_pct), 2),
+        focusSensor=round(float(r.focus_sensor_nm), 1),
         adiMean=r.adi_mean, aciMean=(None if not hasattr(r, "aci_mean") or pd.isna(r.aci_mean) else r.aci_mean),
         m=dict(offset=round(r.adi_offset, 2), radial=round(r.adi_radial, 2),
                slit=round(r.adi_slit, 2), reticle=round(r.adi_reticle, 2),
