@@ -8,6 +8,7 @@ analyze.py가 계산을 끝내 data.js에 넣어두면, 여기서는 조회만 �
   python engine/tools.py lot L0231
   python engine/tools.py decompose L0231
   python engine/tools.py metrology --tool CDSEM-B --day 36
+  python engine/tools.py tmu --tool CDSEM-B
   python engine/tools.py chambers --day 30
   python engine/tools.py rules --signature delta_bias
   python engine/tools.py verify L0231
@@ -62,6 +63,24 @@ def cmd_metrology(a):
              note="golden wafer 재측정. 공정이 건드리지 않은 웨이퍼이므로 여기서 움직였다면 계측 원인이다."))
 
 
+def cmd_tmu(a):
+    """계측 불확도(TMU)가 공정 허용 예산의 몇 %를 소비하는지.
+
+    TMU = RSS(dynamic precision 3sigma, tool-to-tool match).
+    업계 통상 기준은 공정 허용 반폭 T의 20% 이내다.
+    """
+    rows = [t for t in D["tmu"]
+            if (not a.tool or t["tool"] == a.tool)
+            and (a.day is None or t["day"] <= a.day)]
+    if a.day is not None:
+        rows = rows[-2:] if not a.tool else rows[-1:]
+    out(dict(cd_tolerance_nm=D["meta"]["cdTol"],
+             budget_pct=D["meta"]["tmuBudget"],
+             series=rows,
+             note=("TMU가 예산을 넘으면 그 장비의 측정값을 근거로 한 공정 조치는 보류한다. "
+                   "TIS 항은 오버레이 전용이라 CD-SEM TMU에서는 제외했다.")))
+
+
 def cmd_chambers(a):
     rows = [c for c in D["chamberSeries"] if a.day - a.window < c["day"] <= a.day]
     agg = {}
@@ -95,6 +114,8 @@ p = sub.add_parser("lot"); p.add_argument("lot"); p.set_defaults(f=cmd_lot)
 p = sub.add_parser("decompose"); p.add_argument("lot"); p.set_defaults(f=cmd_decompose)
 p = sub.add_parser("metrology"); p.add_argument("--tool"); p.add_argument("--day", type=int)
 p.set_defaults(f=cmd_metrology)
+p = sub.add_parser("tmu"); p.add_argument("--tool"); p.add_argument("--day", type=int)
+p.set_defaults(f=cmd_tmu)
 p = sub.add_parser("chambers"); p.add_argument("--day", type=int, required=True)
 p.add_argument("--window", type=int, default=5); p.set_defaults(f=cmd_chambers)
 p = sub.add_parser("rules"); p.add_argument("--signature"); p.set_defaults(f=cmd_rules)

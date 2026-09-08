@@ -18,6 +18,7 @@ python engine/tools.py list --abnormal            # 이상 판정 로트 목록
 python engine/tools.py lot <LOT>                  # 로트 컨텍스트 + 지표
 python engine/tools.py decompose <LOT>            # 좌표계별 성분 분해와 관리 한계
 python engine/tools.py metrology --tool <TOOL> --day <D>   # monitor wafer drift 추이
+python engine/tools.py tmu --tool <TOOL> --day <D>        # 계측 불확도가 공정 예산의 몇 %인지
 python engine/tools.py chambers --day <D>         # 챔버별 ΔCD 비교
 python engine/tools.py rules --signature <SIG>    # 걸린 signature에 해당하는 규칙만
 python engine/tools.py verify <LOT>               # 게이트 통과 여부
@@ -28,7 +29,8 @@ python engine/tools.py verify <LOT>               # 게이트 통과 여부
 2. 벗어난 지표 이름으로 `rules --signature <지표>` — **해당 규칙만** 읽는다.
    `reference/attribution_rules.yaml` 전체를 열지 않는다
 3. 규칙의 `require` 조건을 도구로 확인한다
-   - ΔCD 계열이면 **`metrology` 를 먼저** 부른다
+   - ΔCD 계열이면 **`metrology` 와 `tmu` 를 먼저** 부른다
+   - TMU가 공정 예산의 20%를 넘으면 그 장비 측정값을 근거로 공정을 조치하지 않는다
    - 그다음 `chambers`
 4. `verify <LOT>` — 게이트 결과를 확인한다
 5. 게이트를 통과했을 때만 원인을 지목한다. 불충족이면 보류하고 필요한 추가 측정을 말한다

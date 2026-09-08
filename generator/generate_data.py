@@ -266,10 +266,19 @@ def build_measurements():
 
 
 def build_monitor():
-    """monitor wafer 재측정 — 현업에서 계측 장비 drift를 잡는 실제 방법."""
+    """monitor wafer 반복 측정 — 계측 장비의 stability와 tool-to-tool matching 감시.
+
+    현업과 같이 (1) site마다 참값이 조금씩 다르고 (2) 같은 site를 여러 번 반복 측정한다.
+    반복 측정은 dynamic precision을, 장비 간 site 평균 차이는 tool-to-tool match를 준다.
+    이 둘이 TMU(Total Measurement Uncertainty)의 두 성분이다.
+    """
     rows = []
     true_cd = MET["monitor_wafer_true"]["value"]
+    nsite = 9
+    # site별 참값은 웨이퍼에 고정되어 있다. 매 측정마다 같은 값을 재는 것이 전제.
+    site_true = true_cd + rng.normal(0, MET["monitor_site_spread"]["value"], nsite)
     sigma = MET["cdsem_precision_3s"]["value"] / S3
+    reps = int(MET["monitor_repeats"]["value"])
     s5 = CFG["scenarios"][4]
     for d in range(SMP["weeks"] * 5):
         if d % 5 not in (0, 3):
@@ -280,10 +289,12 @@ def build_monitor():
             if tool == s5["target"] and s5["day_from"] <= d <= s5["day_to"]:
                 ramp = (d - s5["day_from"] + 1) / (s5["day_to"] - s5["day_from"] + 1)
                 off += ramp * s5["magnitude_nm"]
-            for site in range(9):
-                rows.append(dict(date=date, day_index=d, meas_tool=tool,
-                                 site_id=f"G{site:02d}",
-                                 cd_nm=round(true_cd + off + float(rng.normal(0, sigma)), 3)))
+            for site in range(nsite):
+                for rep in range(reps):
+                    rows.append(dict(date=date, day_index=d, meas_tool=tool,
+                                     site_id=f"G{site:02d}", repeat=rep + 1,
+                                     cd_nm=round(float(site_true[site] + off
+                                                       + rng.normal(0, sigma)), 3)))
     return pd.DataFrame(rows)
 
 

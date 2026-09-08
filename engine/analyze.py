@@ -27,6 +27,8 @@ ADI_T = CFG["anchors"]["adi_cd_target"]["value"]
 ETCH_BIAS = CFG["anchors"]["etch_bias"]["value"]
 DOSE_SENS = CFG["photo"]["dose_sensitivity"]["value"]
 DOSE_SET  = CFG["scanner"]["dose_setting_mJcm2"]["value"]
+CD_TOL    = CFG["metrology"]["cd_tolerance_nm"]["value"]      # 공정 허용 반폭 T
+TMU_BUDGET = CFG["metrology"]["tmu_budget_pct"]["value"]      # T의 몇 %까지 허용하는가
 BASELINE_DAYS = 10          # 이상 주입 이전 구간
 WINDOW_DAYS = 5             # drift 판정용 이동 창
 
@@ -139,6 +141,32 @@ LIM = {
 }
 
 # 계측 장비 감시 — monitor wafer 일별 평균과 기준선 대비 이동량
+# ── TMU (Total Measurement Uncertainty) ─────────────────────────────
+# 업계 정의는 TIS-mean, TIS-3sigma, dynamic precision, tool-to-tool match 의 RSS다.
+# TIS는 0/180도 회전으로 정의되는 오버레이 전용 항이라 CD-SEM에는 해당되지 않는다.
+# 그래서 여기서는 CD에 해당하는 두 항만 쓴다:  TMU = RSS(dynamic precision 3sigma,
+# tool-to-tool match). 생략한 항은 한계로 명시한다.
+_site = mon.groupby(["day_index", "meas_tool", "site_id"]).cd_nm.agg(["mean", "std"]).reset_index()
+# dynamic precision: 같은 site 반복 측정의 pooled 3sigma
+_prec = (_site.groupby(["day_index", "meas_tool"])["std"]
+         .apply(lambda v: 3 * float(np.sqrt((v ** 2).mean()))).reset_index(name="prec3s"))
+# tool-to-tool match: 같은 site를 두 장비가 잰 평균의 차 (fleet 단위 단일값)
+_piv = _site.pivot_table(index=["day_index", "site_id"], columns="meas_tool", values="mean")
+_tools = list(_piv.columns)
+_match = (_piv[_tools[0]] - _piv[_tools[1]]).groupby("day_index").mean().abs().reset_index(name="match")
+TMU = _prec.merge(_match, on="day_index")
+TMU["tmu"] = np.sqrt(TMU.prec3s ** 2 + TMU.match ** 2)
+TMU["ratio"] = TMU.tmu / CD_TOL * 100          # 공정 허용 예산 T 대비 소비율 (%)
+
+def tmu_at(tool, day):
+    """해당 시점 기준 가장 최근의 TMU 평가값."""
+    w = TMU[(TMU.meas_tool == tool) & (TMU.day_index <= day)]
+    if not len(w):
+        return None
+    r = w.iloc[-1]
+    return dict(prec=float(r.prec3s), match=float(r.match), tmu=float(r.tmu),
+                ratio=float(r.ratio), age=int(day - r.day_index))
+
 mon_d = mon.groupby(["day_index", "meas_tool"]).cd_nm.mean().reset_index()
 mon_base = mon_d[mon_d.day_index < BASELINE_DAYS].groupby("meas_tool").cd_nm.mean()
 mon_d["drift"] = mon_d.apply(lambda r: r.cd_nm - mon_base[r.meas_tool], axis=1)
@@ -205,6 +233,18 @@ def attribute(r):
                    v=f"{r.dose_setting_mJcm2:.2f} → {r.dose_sensor_mJcm2:.2f} mJ/cm² ({gap:+.2f}%)",
                    lim=f"±{LIM['dose_gap_pct']:.2f}%",
                    hit=bool(checks["dose_gap_exceeds"])))
+    _tool = r.aci_meas_tool if dbias is not None else r.adi_meas_tool
+    _t = tmu_at(_tool, r.day_index)
+    if _t:
+        checks["tmu_within_budget"] = _t["ratio"] <= TMU_BUDGET
+        ev.append(dict(k=f"{_tool} 계측 불확도 TMU / 공정 예산",
+                       v=f"{_t['tmu']:.2f} nm / ±{CD_TOL:.1f} nm = {_t['ratio']:.0f}%"
+                         f"  (precision {_t['prec']:.2f} · match {_t['match']:.2f})",
+                       lim=f"≤{TMU_BUDGET:.0f}%",
+                       hit=not checks["tmu_within_budget"]))
+    else:
+        checks["tmu_within_budget"] = True
+
     ev.append(dict(k="Focus Setting vs Sensor",
                    v=f"{r.focus_setting_nm:.0f} → {r.focus_sensor_nm:+.0f} nm",
                    lim="±36 nm (DOF/2)", hit=bool(abs(r.focus_sensor_nm) > 36)))
@@ -327,6 +367,7 @@ payload = dict(
         sites=len(sites), days=int(M.day_index.max() + 1),
         adiRows=len(adi), aciRows=len(aci),
         cdu3s=round(3 * adi[adi.lot_id.isin(base.lot_id)].groupby(["lot_id", "wafer_slot"]).cd_nm.std().mean(), 2),
+        cdTol=CD_TOL, tmuBudget=TMU_BUDGET,
     ),
     limits={k: round(v, 3) for k, v in LIM.items()},
     sites=sites,
@@ -334,6 +375,9 @@ payload = dict(
     monitor=[dict(day=int(r.day_index), tool=r.meas_tool, drift=round(r.drift, 3))
              for r in mon_d.itertuples()],
     confusion=conf,
+    tmu=[dict(day=int(r.day_index), tool=r.meas_tool, prec=round(float(r.prec3s), 3),
+              match=round(float(r.match), 3), tmu=round(float(r.tmu), 3),
+              ratio=round(float(r.ratio), 1)) for r in TMU.itertuples()],
     chamberSeries=[dict(day=int(d), chamber=c, dbias=round(float(v), 3), n=int(n))
                    for (d, c), (v, n) in
                    M.dropna(subset=["delta_bias"]).groupby(["day_index", "etch_chamber"])

@@ -1,7 +1,7 @@
 # EPE-CD 원인 귀속 에이전트
 
-> ACI CD 이탈의 원인이 **노광인지, 식각인지, 아니면 계측 자체인지**를
-> 좌표계 성분 분해로 귀속하는 AI 에이전트.
+> ACI CD excursion의 원인이 **Litho인지, Etch인지, 아니면 Metrology인지**를
+> 좌표계 성분 분해로 귀속하고, 계측 불확도가 공정 예산을 넘으면 조치를 차단하는 AI 에이전트.
 
 **데모** — https://epe-cd-attribution-agent.vercel.app
 **상세 보고서** — [`docs/REPORT.md`](docs/REPORT.md)
@@ -12,6 +12,22 @@
 
 CD 잔차를 좌표계별 성분으로 분해해 조치 대상 모듈을 정하고,
 근거가 부족하면 **판정하지 않는** 에이전트.
+
+## 산업 지표 위에서의 위치
+
+| 축 | 업계 지표 | 이 에이전트의 기여 |
+|---|---|---|
+| Accuracy | Overlay · Local CDU · EPE | on-product CD 오차를 **공정 기여와 계측 기여로 분해** |
+| Patterning Yield | rework · cycle time | ADI 시점 판정으로 **rework window 확보** |
+| 계측 신뢰성 | **TMU / 공정 예산** | 20% 초과 시 **그 장비 근거의 공정 조치를 차단** |
+
+노광 장비에는 모니터 웨이퍼로 스캐너가 기준선에서 얼마나 벗어났는지 판단하는 안정성 모듈이 있다.
+이 프로젝트는 **같은 논리를 계측 장비에 적용한다.** 감시 대상이 스캐너가 아니라 CD-SEM이고,
+출력이 보정값이 아니라 원인 귀속과 조치 보류 판정이다.
+
+계측 drift와 공정 drift를 가르는 개념 자체는 2000년대 초 특허에 이미 있다. 이 프로젝트가 더한 것은
+**좌표계 성분 분해와의 결합**, **Setting값과 Sensor 실측값의 분리**,
+**근거 부족 시 판정을 거부하는 게이트** 세 가지다.
 
 ## 왜 만들었나
 
@@ -35,6 +51,12 @@ CD 잔차는 성분의 합이고, **각 성분은 서로 다른 좌표계에 산
 | 마스크 오차 | site 고정 반복 | 레티클 |
 | 플라즈마 균일도 | 웨이퍼 반경 + 챔버 | 식각 |
 | 장비 offset | **좌표계 없음** | 계측 |
+
+계측 기여는 업계 표준 지표 **TMU**(Total Measurement Uncertainty)로 정량화한다.
+오버레이 정의는 TIS-mean, TIS-3σ, dynamic precision, tool-to-tool match의 RSS이지만,
+TIS는 0°/180° 회전으로 정의되는 오버레이 전용 항이라 CD-SEM에는 해당되지 않는다.
+그래서 여기서는 `TMU = RSS(dynamic precision 3σ, tool-to-tool match)` 두 항만 쓰고,
+생략한 항은 한계로 명시한다. 판정 기준은 **공정 허용 반폭 ±6.0 nm의 20% 이내**다.
 
 마지막 행이 이 프로젝트의 이유다. 계측 drift는 어느 좌표계에도 살지 않는다.
 그래서 원시 데이터만 보면 식각 이상과 구분되지 않고, 잘못 판정하면
@@ -97,6 +119,42 @@ validation/ ground_truth.csv (엔진 미열람) · blind_eval.md
 감시 데이터가 2일 이상 묵어 있었고, 그때 엔진이 "계측이 정상이라고 단정할 수 없다"며
 판정을 거부한 결과다.
 
+## 계측 불확도(TMU)를 판정 대상으로
+
+계측 기여를 업계 표준 지표로 정량화하고, 그 결과를 판정 게이트에 연결했다.
+
+```
+TMU = RSS(dynamic precision 3σ, tool-to-tool match)
+소비율 = TMU / 공정 허용 반폭 T (±6.0 nm)     판정 기준 20% 이내
+```
+
+| 구간 | precision | match | TMU | 예산 소비율 |
+|---|---|---|---|---|
+| 기준선 (0–9일) | 0.8~1.1 nm | 0.3~0.4 nm | ≈1.0 nm | **14.7~19.1%** (초과 0일) |
+| 계측 drift (34–39일) | 0.9 nm | 최대 3.3 nm | 최대 3.5 nm | **28.5~57.8%** |
+
+`ETCH_CHAMBER` 규칙의 `require`에 `tmu_within_budget`이 들어 있다.
+계측 불확도가 예산을 넘은 상태에서는 챔버 편중이 보여도 공정 원인으로 귀속하지 않는다.
+
+정상 구간에서도 소비율이 15~19%로 예산 경계에 붙어 있다는 점이 이 데이터가 보여주는
+구조적 사실이다. precision 항 하나만으로 예산의 약 4분의 3을 쓰기 때문이다.
+
+## 산업적 위치
+
+ASML Holistic Lithography의 가치 축(Resolution × Productivity × **Accuracy** ×
+Patterning Yield) 중 **Accuracy 칸의 Local CDU / EPE-CD 성분**에 해당한다.
+ASML 자신의 on-product 오버레이 error budget 목록에 `metrology accuracy`가
+한 항목으로 들어 있다는 점이 이 프로젝트의 존재 근거다.
+
+논리 구조상 가장 가까운 실물은 ASML **Baseliner**다. monitor wafer로 baseline drift를
+판단하는 방식이 같고, 감시 대상만 다르다 — Baseliner는 스캐너를, 이 프로젝트는 계측 장비를 본다.
+
+> **한 줄 포지셔닝** — On-product CD accuracy budget attribution:
+> 오차 기여를 Litho / Etch / Metrology에 귀속하고, 계측 기여가 예산을 넘으면
+> APC 보정을 차단하는 게이트.
+
+자세한 근거는 [`docs/REPORT.md`](docs/REPORT.md) §6.5.
+
 ## 사용한 스킬
 
 | 스킬 | 출처 | 어디에 |
@@ -131,6 +189,17 @@ gstack 23개 중 3개만 설치했다. 스킬을 많이 깔면 세션마다 모�
 4. **EPE 중 CD 성분만 다뤘다.** 프로파일 비대칭이 회절 기반 오버레이 측정에 주는 bias 같은
    상호작용은 범위 밖이다.
 5. **가장 확신이 없는 것은 주입 신호의 크기다.** 현업 담당자의 검토를 받지 못했다.
+6. **TMU에서 TIS 항을 생략했다.** CD-SEM에는 회전 기반 TIS가 정의되지 않아 제외했지만,
+   실제 CD 측정에도 charging·shrink 같은 계통 오차가 있어 두 항만으로는 불완전하다.
+7. **공정 허용 반폭 ±6.0 nm는 가정이다.** 웨이퍼 내 CDU 3σ에서 Cp≈1.43이 되도록 역산한 값이며,
+   실제 스펙은 layer와 제품이 정한다.
+
+## 이 데이터에서 나온 결론 하나
+
+정상 구간에서도 TMU가 공정 예산의 15~19%를 소비한다. precision 항(3σ 0.9 nm) 하나만으로
+예산의 약 4분의 3을 쓰고 있어 여유가 거의 없고, tool matching이 조금만 흔들리면 예산을 넘는다.
+실제로 계측 drift 구간에서 match 항이 0.3 → 3.3 nm로 커지자 소비율이 58%까지 올랐다.
+**계측 정밀도를 높이거나 공정 허용폭을 넓히지 않으면 이 구조는 반복된다.**
 
 ## 개선 방향
 
@@ -152,8 +221,10 @@ python run.py            # 데이터 생성 → 분해·귀속 → data.js 갱�
 ```bash
 python engine/tools.py list --abnormal
 python engine/tools.py decompose L0283
-python engine/tools.py metrology --tool CDSEM-B --day 36
+python engine/tools.py metrology --tool CDSEM-B --day 36   # monitor wafer drift
+python engine/tools.py tmu --tool CDSEM-B --day 36         # TMU / 공정 예산 소비율
 python engine/tools.py chambers --day 36
+python engine/tools.py tmu --day 36
 python engine/tools.py verify L0283
 ```
 

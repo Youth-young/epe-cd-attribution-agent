@@ -13,6 +13,9 @@ metrics:
   delta_bias:    (ACI − ADI) 평균 − 기준 etch bias (nm).
   delta_radial:  ΔCD를 (r/R)²로 회귀한 계수 (nm).
   tool_drift:    monitor wafer 재측정 기준선 대비 이동량 (nm).
+  tmu_ratio:     계측 불확도 TMU가 공정 허용 예산(±6.0 nm)의 몇 %를 소비하는지.
+                 TMU = RSS(dynamic precision 3sigma, tool-to-tool match).
+                 통상 기준은 20% 이내이며, 넘으면 그 장비 측정값으로 공정을 조치하지 않는다.
   chamber_dev:   해당 챔버의 window ΔCD 평균 − 타 챔버 평균 (nm).
   taper_dev:     단면 taper(BCD−TCD) 기준선 대비 변화 (nm).
 
@@ -103,6 +106,7 @@ rules:
     require:
       - chamber_specific            # 특정 챔버에서만 나타나야 한다
       - metrology_healthy           # 계측이 정상이어야 공정 원인으로 귀속 가능
+      - tmu_within_budget           # 계측 불확도가 공정 예산의 20%를 넘으면 판정 근거로 못 쓴다
       - metrology_evidence_fresh    # 계측 감시 데이터가 오래됐으면 '정상'이라 단정할 수 없다
       - taper_not_contradicting     # 실제 식각 변화라면 단면 taper도 함께 움직여야 한다
     cause: >
@@ -140,6 +144,9 @@ rules:
       (4) 영향 기간에 해당 장비로 측정된 로트를 모두 재판정한다.
       (5) monitor wafer 점검 주기를 단축할지 검토한다. 이번 사례에서 판정 보류가
       발생한 원인이 감시 주기 부족이었다.
+      (6) TMU 항을 분해해 precision과 tool-to-tool match 중 어느 쪽이 예산을 먹는지 본다.
+      match가 주범이면 fleet matching 재조정, precision이 주범이면 recipe(프레임 수, 배율,
+      landing energy)나 장비 컨디션을 본다.
     risk: 위험
 
   - id: INDETERMINATE

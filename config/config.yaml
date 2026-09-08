@@ -51,6 +51,13 @@ metrology:
   xsem_precision_3s:  {value: 1.5, unit: nm, basis: literature}
   tool_offset:        {CDSEM-A: 0.0, CDSEM-B: 0.3, unit: nm, basis: assumed}
   monitor_wafer_true:  {value: 111.4, unit: nm, basis: assumed}
+  monitor_site_spread: {value: 1.2, unit: nm, basis: assumed}   # monitor wafer의 site별 CD 차이
+  monitor_repeats:     {value: 5, basis: literature}            # dynamic precision 산출용 반복 측정
+  # TMU 판정 기준
+  #   CD 공정 허용 반폭 T: 웨이퍼 내 CDU 3sigma 4.2 nm 에서 Cp≈1.43 이 되도록 설정
+  #   측정 불확도는 공정 허용 예산의 20% 이내여야 한다는 것이 업계 통상 기준
+  cd_tolerance_nm:    {value: 6.0, unit: nm, basis: assumed}
+  tmu_budget_pct:     {value: 20.0, unit: pct, basis: literature}
 
 sampling:
   weeks: 8

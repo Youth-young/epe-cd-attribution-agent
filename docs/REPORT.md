@@ -369,7 +369,49 @@ CH-A 챔버 편중    +0.74 nm   (한계 ±0.79)  → 정상
 세 챔버가 동시에 흔들렸다. 챔버 문제라면 하나만 흔들려야 한다.
 게이트가 식각 귀속을 막고 계측으로 판정한다.
 
-### 5.4 배포 후 QA
+### 5.4 계측 불확도(TMU)의 공정 예산 소비
+
+계측 기여를 업계 표준 지표로 정량화했다.
+
+```
+TMU = RSS( dynamic precision 3σ , tool-to-tool match )
+소비율 = TMU / 공정 허용 반폭 T          (T = ±6.0 nm)
+판정 기준 = 20% 이내
+```
+
+**T를 6.0 nm로 잡은 근거** — 웨이퍼 내 CDU 3σ가 4.2 nm이므로 σ ≈ 1.4 nm.
+공정능력 Cp = T / 3σ 에서 Cp ≈ 1.43이 되도록 T = 6.0 nm로 두었다.
+
+**20% 기준의 근거** — 측정 불확도가 공정 허용 예산의 20%를 넘지 않아야 한다는 것이
+계측 분야의 통상 기준이다. 20%를 넘으면 공정 변동과 측정 오차가 구분되지 않는다.
+
+**모니터 웨이퍼 데이터 구조** — precision과 match를 모두 뽑기 위해 두 가지를 넣었다.
+site마다 참값이 다르고(웨이퍼에 고정), 같은 site를 3회 반복 측정한다.
+반복 측정의 pooled 3σ가 dynamic precision, 두 장비의 site 평균 차이가 tool-to-tool match다.
+
+**결과**
+
+| 구간 | precision 3σ | match | TMU | 소비율 |
+|---|---|---|---|---|
+| 기준선 (0–9일) | 0.8 ~ 1.1 nm | 0.3 ~ 0.4 nm | ≈ 1.0 nm | **14.7 ~ 19.1%** (초과 0일) |
+| 계측 drift (34–39일) | 0.9 nm | 최대 3.3 nm | 최대 3.5 nm | **28.5 ~ 57.8%** |
+
+**이 데이터가 말해주는 구조적 사실** — 정상 구간에서도 소비율이 15~19%로 예산 경계에
+붙어 있다. precision 항(3σ 0.9 nm) 하나만으로 예산의 약 4분의 3을 쓰기 때문이다.
+여유가 없어서 tool matching이 조금만 흔들려도 예산을 넘는다.
+계측 정밀도를 높이거나 공정 허용폭을 넓히지 않으면 이 구조는 반복된다.
+
+**판정 게이트에 연결** — `ETCH_CHAMBER` 규칙의 `require`에 `tmu_within_budget`을 넣었다.
+계측 불확도가 예산을 넘은 상태에서는 챔버 편중이 보여도 공정 원인으로 귀속하지 않는다.
+자가 흔들리는 상태에서 잰 값으로 설비를 조치할 수 없기 때문이다.
+
+**생략한 항** — TMU의 본래 정의는 TIS-mean, TIS-3σ, dynamic precision, tool-to-tool match의
+RSS다. TIS는 target을 0°와 180°로 회전시켜 정의하는 오버레이 전용 항이라 top-down CD
+측정에는 그대로 적용되지 않아 제외했다. 따라서 이 값은 실제 TMU의 하한이다.
+
+---
+
+### 5.5 배포 후 QA
 
 `/qa`로 배포된 URL을 실제 브라우저에서 검증했다. Health score 97 → 100.
 
@@ -430,6 +472,50 @@ Low 2건(배지 텍스트 중복, 타임라인 미니차트 마우스 전용)은
    이 거부 3건은 설계 실패가 아니라 설계 의도다.
 4. **데이터의 근거를 등급으로 공개했다.** measured / literature / assumed.
    숫자 하나를 지적받아도 "그건 가정입니다"라고 답할 수 있다.
+
+---
+
+### 6.5 산업적 포지셔닝 — 장비사 가치 지표와의 연결
+
+**ASML** — Holistic Lithography의 가치 축은 Resolution × Productivity × Accuracy ×
+Patterning Yield이고, 최종 지표는 Good Wafers per Day다. 이 중 **Accuracy는
+Overlay · Local CDU · EPE 세 KPI**로 구성된다. 이 프로젝트는 Accuracy 칸의
+Local CDU / EPE-CD 성분에 위치한다.
+
+결정적인 근거가 하나 있다. ASML의 오버레이 error budget 분해에서 스캐너 자체 기여는
+2 nm 미만인데 on-product 오버레이는 6 nm를 넘고, 그 기여 인자 목록에
+wafer alignment, etch fingerprint, CMP fingerprint와 나란히 **metrology accuracy**가
+들어가 있다. 장비사 스스로 만든 예산 목록에 계측 정확도가 한 항목으로 존재하며,
+그 예산을 분해해 기여를 가려내는 것이 Applications 조직의 일이다.
+
+**Applied Materials** — 가치 축이 다르다. IPC 사업의 핵심 명제는 **time to yield**이며,
+CD-SEM 요구사항에는 측정 정확도와 함께 **fleet stability**가 명시된다.
+이 프로젝트의 TMU 트랙(precision + tool-to-tool match)이 곧 fleet stability의 정량화다.
+
+**가장 가까운 실물 제품** — ASML Baseliner. 특수 마크가 노광된 monitor wafer를
+계측 장비로 재서 baseline 대비 drift를 판단하고 보정 세트를 계산하는 스캐너 안정성 모듈이다.
+논리 구조가 이 프로젝트와 같고, **감시 대상만 다르다**.
+
+| | Baseliner | 이 프로젝트 |
+|---|---|---|
+| monitor wafer로 baseline 감시 | ○ | ○ |
+| 감시 대상 | 스캐너 | **계측 장비(CD-SEM)** |
+| 출력 | 스캐너 보정 세트 | 원인 귀속 + 조치 보류 판정 |
+
+**선행기술** — 계측 drift와 공정 drift를 가르는 개념 자체는 새롭지 않다.
+복수 계측 장비의 CD를 비교해 metrology drift를 식별하고, 계측 원인이면 해당 장비를
+out-of-service 처리하고 공정 원인이면 생산을 중단시키는 방식이 2000년대 초 특허에 있다.
+이 프로젝트의 차별점은 세 가지다.
+
+1. 그 판정을 **좌표계 성분 분해** 위에서 수행한다
+2. **Setting값과 Sensor 실측값의 괴리**를 Photo 원인 분기에 넣었다
+3. 근거가 부족하면 **판정을 기권**한다
+
+**한 줄 포지셔닝**
+
+> On-product CD accuracy budget attribution — ADI·ACI CD의 좌표계 성분 분해로
+> 오차 기여를 Litho / Etch / Metrology에 귀속하고, 계측 기여가 예산을 넘으면
+> APC 보정을 차단하는 게이트.
 
 ---
 
