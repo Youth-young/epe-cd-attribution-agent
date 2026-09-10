@@ -75,6 +75,20 @@ main{max-width:var(--w);margin:0 auto;padding:22px 20px 72px}
 .steps b{display:block;font-weight:600}
 
 /* 용어 */
+/* 설명은 화면에 늘어놓지 않고 ⓘ 뒤에 둔다 */
+.hd{display:flex;align-items:center;gap:9px;margin-bottom:14px;flex-wrap:wrap}
+.hd h2{margin:0}
+.hd .sub{color:var(--muted);font-size:12.5px;margin-left:2px}
+.info{width:19px;height:19px;flex:none;border:1px solid var(--line);background:var(--panel);
+  border-radius:50%;font-size:11px;line-height:1;color:var(--muted);cursor:help;padding:0;
+  font-family:"IBM Plex Mono",monospace;font-weight:600}
+.info:hover{border-color:var(--metro);color:var(--metro);background:#e8f2f2}
+table.spec td:first-child{font-weight:500;white-space:nowrap}
+table.spec td.n{text-align:right;font-family:"IBM Plex Mono",monospace;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.tagline{color:var(--muted);font-size:12.5px}
+tr.me td{background:#e8f2f2}
+tr.me td:first-child{font-weight:600}
 .term{border-bottom:1.5px dotted var(--metro);cursor:help;font-weight:500;
   text-underline-offset:3px;padding:0 1px}
 .term:hover{background:#e2eff0}
@@ -206,220 +220,98 @@ footer{max-width:var(--w);margin:0 auto;padding:0 20px 44px;color:var(--muted);f
 
 <section class="view" id="v-overview">
   <div class="hero">
-    <p class="q"><b class="term" data-t="aci">ACI</b> <b class="term" data-t="cd">CD</b>가
-       <b class="term" data-t="excursion">excursion</b>을 냈다.<br>
-       원인은 <em>Litho</em>인가, <em>Etch</em>인가,<br>아니면 <em>Metrology</em>인가.</p>
-    <p style="font-size:14px;color:var(--muted);margin-bottom:18px">
-       이 콘솔은 fab에서 매일 오가는 이 질문에 답하는 도구입니다.
-       ADI·ACI 계측 데이터를 좌표계별 성분으로 분해해 원인 모듈을
-       <b class="term" data-t="attribution">귀속</b>하고, 근거가 부족하면 판정을 보류합니다.</p>
-    <p>반도체 공정은 웨이퍼에 회로 패턴을 빛으로 전사하고(<b class="term" data-t="photo">Litho, 노광</b>),
-       그 패턴대로 아래층을 깎아냅니다(<b class="term" data-t="etch">Etch, 식각</b>).
-       이때 회로 선폭(<b class="term" data-t="cd">CD</b>)이 스펙을 벗어나면 소자 특성이 틀어집니다.
-       <b class="term" data-t="pitch">Pitch</b>는 설계가 정한 고정값이므로, CD가 커지면
-       그만큼 이웃 패턴과의 간격이 줄어듭니다.</p>
-    <p>실제 현장에서 어려운 것은 이상을 <b>발견</b>하는 일이 아니라 <b>원인을 귀속</b>하는 일입니다.
-       Litho 모듈과 Etch 모듈이 각자의 데이터를 들고 회의에 들어가고, 그 시간만큼
-       <b class="term" data-t="rework">rework</b> 가능 시간이 닫힙니다. 잘못 귀속하면 정상 설비의
-       recipe를 건드려 오히려 공정을 흔듭니다.</p>
+    <p class="q"><b class="term" data-t="aci">ACI</b> <b class="term" data-t="cd">CD</b>
+       <b class="term" data-t="excursion">excursion</b>.<br>
+       <em>Litho</em>인가, <em>Etch</em>인가,<br><em>Metrology</em>인가.</p>
+    <p class="tagline">ADI·ACI 계측 데이터를 좌표계 성분으로 분해해 원인 모듈을 귀속합니다.
+      근거가 부족하면 판정하지 않습니다.</p>
     <div class="flow" id="flowdiagram"></div>
-    <p>그리고 후보에서 빠지기 쉬운 세 번째 답이 있습니다.
-       <b><b class="term" data-t="metro">Metrology</b> 장비 자체의 drift</b>입니다.
-       CD를 재는 <b class="term" data-t="cdsem">CD-SEM</b>은 업계에서 <i>the ruler of the fab</i>라고 불릴 만큼
-       공정 판단의 기준이 되는데, 이 기준이 미세하게 이동하면 공정은 정상인데 숫자만 이동합니다.
-       이를 공정 이상으로 오귀속하면 정상 챔버의 recipe를 건드리게 됩니다.
-       이 에이전트는 그 가능성을 항상 판정 후보에 올려둡니다.</p>
     <div class="facts" id="facts"></div>
   </div>
 
   <div class="card">
-    <h2>에이전트는 이렇게 판단합니다</h2>
-    <p class="lede">사람이 원인을 찾는 순서를 그대로 코드로 옮겼습니다.</p>
-    <ol class="steps">
-      <li><b>측정값을 성분으로 쪼갠다</b>
-        41개 측정점의 CD 편차를 하나의 회귀식으로 동시에 풀어, 네 가지 성분으로 나눕니다.
-        <b>어긋남이 어떤 모양으로 나타나는가</b>가 곧 원인의 지문이기 때문입니다.
-        <div class="scroller" style="margin-top:10px"><table>
-          <tr><th>성분</th><th>무슨 뜻인가</th><th>어떤 인자의 지문인가</th></tr>
-          <tr><td><b>스칼라</b><br><span class="mono" style="font-size:11.5px">wafer mean shift</span></td>
-            <td>웨이퍼 41점의 <b>평균</b>이 목표에서 얼마나 이동했는가.
-              특정 위치에 몰리지 않고 전면에 균일하게 걸린 성분입니다.</td>
-            <td>웨이퍼 전체에 동일하게 작용하는 인자 →
-              <b class="term" data-t="dose">노광량(dose)</b></td></tr>
-          <tr><td><b>반경</b><br><span class="mono" style="font-size:11.5px">radial (r/R)²</span></td>
-            <td>중심과 엣지의 CD 차이. 평균은 그대로여도 중심만 넓고 엣지만 좁을 수 있습니다.</td>
-            <td>웨이퍼 반경 방향으로 분포하는 인자 →
-              <b class="term" data-t="peb">PEB plate 온도</b>, 코팅 두께</td></tr>
-          <tr><td><b>슬릿</b><br><span class="mono" style="font-size:11.5px">intra-field X</span></td>
-            <td>노광 <b class="term" data-t="field">field</b> 안에서 X 좌표를 따라 기울어진 성분.
-              모든 field에서 같은 기울기로 나타납니다.</td>
-            <td>스캐너 슬릿·조명계 지문</td></tr>
-          <tr><td><b>레티클</b><br><span class="mono" style="font-size:11.5px">site-fixed</span></td>
-            <td>field 안 특정 site에서만 나타나고, 모든 field에서 <b>똑같이 반복</b>되는 성분입니다.</td>
-            <td><b class="term" data-t="reticle">레티클</b> 자체의 CD 오차</td></tr>
-        </table></div>
-        <span style="display:block;margin-top:8px">예를 들어 <b>스칼라 성분만 한계를 넘고 나머지 셋은 정상</b>이면,
-        웨이퍼 전면이 통째로 이동했다는 뜻이므로 dose 계열로 좁혀집니다.</span></li>
-      <li><b>Setting값과 Sensor 실측값을 분리해서 본다</b>
-        Recipe에 적힌 <b class="term" data-t="setting">Setting값</b>과
-        스캐너가 실제로 조사한 양을 읽은 <b class="term" data-t="sensor">Energy Sensor 실측값</b>은
-        다를 수 있습니다. 둘이 어긋나 있으면 Recipe를 고쳐도 실효 dose는 그대로여서 재발합니다.
-        그래서 <b>Recipe 보정이 아니라 Calibration 재수행</b>이 조치가 됩니다.
-        이 판정 분기가 이 에이전트의 Photo 원인 처리에서 가장 중요한 부분입니다.</li>
-      <li><b>변경점과 시점을 대조한다</b>
-        CD가 흔들리기 시작한 날과 <b class="term" data-t="pm">PM · Inform 이력</b>의 변경점
-        (Laser Source 교체, 광학 부품 교체, Calibration 수행일)이 일치하는지 봅니다.
-        <b class="term" data-t="chamber">Etch 챔버</b>는 PM 후 경과 시간과 함께 흐르는지도 확인합니다.</li>
-      <li><b>증거가 충분한지 코드가 다시 확인한다</b>
-        AI가 내린 결론이 규칙이 요구하는 조건을 모두 만족하는지 검사합니다.
-        하나라도 어긋나면 원인을 지목하지 않습니다.</li>
-      <li><b>모르면 모른다고 말한다</b>
-        근거가 부족하면 <b>판정 보류</b>를 내고 어떤 추가 측정이 필요한지 알려줍니다.
-        틀린 답보다 보류가 나은 분야이기 때문입니다.</li>
-    </ol>
-  </div>
-
-  <div class="card">
-    <h2>이 에이전트가 개선하려는 지표</h2>
-    <p class="lede">장비사가 고객에게 파는 가치 지표 위에 이 프로젝트를 올려놓으면 이렇게 됩니다.</p>
-    <div class="scroller"><table>
-      <tr><th style="width:24%">축</th><th>업계 지표</th><th>이 에이전트의 기여</th></tr>
-      <tr><td><b>Accuracy</b></td><td>Overlay · Local CDU · <b class="term" data-t="epe">EPE</b></td>
-        <td>on-product CD 오차를 <b>공정 기여와 계측 기여로 분해</b>해 어느 쪽 예산을 쓰고 있는지 밝힙니다.
-          장비사가 만드는 오차 예산표에도 계측 정확도는 한 항목으로 들어갑니다.</td></tr>
-      <tr><td><b>Patterning Yield</b></td><td>rework · cycle time</td>
-        <td><b class="term" data-t="adi">ADI</b> 시점에 원인을 좁혀
-          <b class="term" data-t="rework">rework</b> 가능 시간을 확보합니다.</td></tr>
-      <tr><td><b>계측 신뢰성</b></td><td><b class="term" data-t="tmu">TMU</b> / 공정 예산</td>
-        <td>측정 불확도가 공정 허용 예산의 20%를 넘으면
-          <b>그 장비 측정값에 근거한 공정 조치를 차단</b>합니다.</td></tr>
-    </table></div>
-    <p style="margin-top:14px"><b>가장 가까운 실물에 빗대면</b> — 노광 장비에는 모니터 웨이퍼를 매일 재서
-      장비가 기준선에서 얼마나 벗어났는지 판단하고 보정값을 계산하는 안정성 모듈이 있습니다.
-      이 에이전트는 <b>같은 논리를 계측 장비에 적용</b>합니다.
-      감시 대상이 스캐너가 아니라 CD-SEM이고, 출력이 보정값이 아니라 원인 귀속과 조치 보류 판정입니다.</p>
-    <p style="margin-top:12px"><b>선행 사례도 있습니다.</b> 여러 계측 장비의 CD 측정값을 비교해
-      계측 drift와 공정 drift를 가르고, 계측 원인이면 그 장비를 사용 중지시키고 공정 원인이면 생산을
-      중단시키는 방식이 2000년대 초 특허에 이미 나와 있습니다. 개념 자체가 새로운 것은 아닙니다.
-      이 프로젝트가 더한 것은 <b>좌표계 성분 분해와의 결합</b>,
-      <b>Setting값과 Sensor 실측값의 분리</b>, 그리고 <b>근거 부족 시 판정을 거부하는 게이트</b>입니다.</p>
-  </div>
-
-  <div class="card">
-    <h2>Etch bias 기준값을 왜 −20 nm로 두었나</h2>
-    <p class="lede">임의로 고른 값이 아닙니다. 실측에서 나온 값이고, 문헌상 타당한 범위인지 따로 확인했습니다.</p>
-
-    <p><b>① 정의와 부호 규약.</b>
-      <b class="term" data-t="delta">etch bias</b> = ACI CD − ADI CD 입니다.
-      음수면 식각이 선을 좁혔다는 뜻이고, 이 프로젝트의 기준값 −20 nm는
-      <span class="mono">ADI 130 nm → ACI 110 nm</span>, 즉 약 15%의 CD 축소를 의미합니다.
-      가로 방향 폭의 변화이며 식각 깊이가 아닙니다.</p>
-
-    <p><b>② 이 값의 출처.</b> 계측 정합성 실습의 3-way CD split 원자료에서
-      <span class="mono">ADI 140 / 148 / 125 → ACI 120 / 128 / 105</span>로,
-      세 조건 모두 정확히 20 nm 차이를 유지했습니다(회귀 기울기 1.0).
-      단면 BCD 목표 90 nm를 대입해 얻은 값이 ADI 130 / ACI 110이고,
-      이것이 이 데이터셋 전체의 앵커입니다. 가정이 아니라 <b>실측에서 나온 수치</b>입니다.</p>
-
-    <p><b>③ 물리적으로 타당한가.</b> 식각이 선폭을 의도적으로 줄이는 공정은 흔합니다.
-      레지스트나 하드마스크의 선폭을 패턴 전사 전에 좁히는 <b>trim etch</b>가 대표적이고,
-      문헌에는 30 nm 수준의 trim이 보고되어 있습니다. 반대로 챔버 상태 변화로 발생한
-      의도치 않은 CD shift도 20 nm 규모로 보고된 사례가 있습니다.
-      130 nm급 L/S 패턴에서 −20 nm는 이 범위 안에 있으며,
-      <b>trim 성격이 포함된 식각 스텝</b>으로 해석하는 것이 자연스럽습니다.</p>
-
-    <p><b>④ 변동 성분이 실제 트러블슈팅과 맞는가.</b>
-      모델에 넣은 각 항이 현업에서 실제로 다루는 현상과 대응되는지 확인했습니다.</p>
-    <div class="scroller"><table>
-      <tr><th style="width:34%">모델의 항</th><th>대응하는 실제 현상</th></tr>
-      <tr><td>PM 후 경과에 따른 완만한 drift</td>
-        <td><b class="term" data-t="pm">Chamber seasoning</b>. 챔버 벽에 반응 부산물이 쌓이면
-          라디칼 밀도가 떨어져 식각 속도와 CD bias가 함께 이동합니다.
-          챔버 세정 직후 CD가 20 nm 규모로 점프한 사례가 문헌에 있습니다.</td></tr>
-      <tr><td>챔버별 offset</td>
-        <td>Chamber matching. 같은 recipe라도 챔버마다 벽면 이력과 부품 상태가 달라
-          bias가 갈립니다. fab에서 상시 관리하는 항목입니다.</td></tr>
-      <tr><td>웨이퍼 반경 성분</td>
-        <td>플라즈마 밀도 분포와 ESC 온도 프로파일. 중심-엣지 형태의 CD 분포로 나타납니다.</td></tr>
-      <tr><td>패턴 밀도 의존성</td>
-        <td>Loading effect. 식각 종이 소모되는 정도가 패턴 밀도에 따라 달라져
-          bias가 위치별로 갈립니다.</td></tr>
-    </table></div>
-
-    <p style="margin-top:14px"><b>⑤ 그래도 단순화한 부분.</b> 실제 seasoning 거동은
-      PM 직후 급변(<b>first wafer effect</b>) → 빠른 안정화 → 이후 완만한 drift의 3단계입니다.
-      이 모델은 이를 <b>선형 drift + PM 시점 리셋</b>으로 단순화했습니다.
-      PM 직후 몇 장에서 나타나는 급격한 구간은 재현하지 않으므로,
-      실제 데이터에 적용하려면 이 구간을 별도 항으로 두어야 합니다. 한계로 명시해 둡니다.</p>
-  </div>
-
-  <div class="card">
-    <h2>샘플링 플랜을 왜 이렇게 잡았나</h2>
-    <p class="lede">모든 숫자에 근거가 있습니다. 아래 표의 왼쪽이 이 데이터의 설정, 오른쪽이 그 근거입니다.</p>
-    <div class="scroller"><table>
-      <tr><th style="width:36%">설정</th><th>근거</th></tr>
-      <tr><td><b>웨이퍼당 41점</b><br><span class="mono">9 field × 5 site</span></td>
-        <td>분해하려는 성분이 세 종류이고, 각각 사는 좌표계가 다릅니다.
-          <b>웨이퍼 반경 성분</b>을 2차항으로 추정하려면 center–mid–edge가 모두 표본에 있어야 하고,
-          <b>intra-field 성분</b>(스캐너 slit 지문·레티클 오차)을 분리하려면 한 field 안에 여러 site가 필요합니다.
-          그래서 field를 웨이퍼 전면에 9개 배치하고, 각 field 안에 중심 1점 + 모서리 4점을 뒀습니다.
-          모던 CD-SEM의 웨이퍼당 측정 능력이 대략 13~36점 수준이므로 41점은 그 상단이며,
-          <b>루틴 모니터링보다는 characterization 급의 조밀한 플랜</b>입니다. 이 점은 한계로 명시했습니다.</td></tr>
-      <tr><td><b>로트당 3장</b><br><span class="mono">slot 3 / 13 / 23</span></td>
-        <td>로트 내 슬롯 위치에 따른 차이(front / center / rear)를 최소 비용으로 덮기 위한 배치입니다.
-          25장 전수 측정은 현업에서 하지 않습니다.</td></tr>
-      <tr><td><b>ACI는 로트의 절반만</b></td>
-        <td>업계 표준인 <b class="term" data-t="skiplot">skip-lot sampling</b>입니다.
-          ADI는 rework와 스캐너 APC 피드백이 걸린 <b>actionable</b> 측정이라 매 로트 또는 거의 매 로트 측정하지만,
-          ACI는 해당 로트를 되돌릴 수 없어 <b>etch bias 특성화·검증</b>이 목적이므로 저빈도로 갑니다.
-          실제 fab의 skip 비율은 공정 능력지수(Cp/Cpk)에 따라 정해집니다.</td></tr>
-      <tr><td><b>8주 · 320 로트</b><br><span class="mono">생산일 40일 × 8 로트</span></td>
-        <td>세 가지 제약이 동시에 걸립니다. ① <b>관리 한계 추정</b>에는 SPC 관례상 20~25개 이상의 subgroup이 필요해
-          기준선 10일(80 로트)을 확보했습니다. ② <b>PM 주기</b>(RF hours 0→600)가 최소 한 바퀴 돌아야
-          PM drift를 관측할 수 있습니다. ③ 5개 이상 시나리오를 서로 겹치지 않게 배치하려면
-          최소 6~8주가 필요합니다. 이 셋을 만족하는 최소 기간이 8주입니다.</td></tr>
-      <tr><td><b>단면(X-SEM) 주 3회 5점</b></td>
-        <td>파괴 측정이라 웨이퍼를 소모합니다. 절대 기준으로만 쓰므로 최소 빈도로 뒀습니다.</td></tr>
-      <tr><td><b>Monitor wafer 주 2회</b></td>
-        <td>CD-SEM tool stability·tool-to-tool matching 감시 주기입니다.
-          실제 fab에서는 일 단위 점검도 흔하며, <b>주 2회는 보수적으로 낮춘 설정</b>입니다.
-          그 결과 이상 발생 첫날 감시 데이터가 묵어 판정 보류가 3건 발생했는데,
-          이는 샘플링 설계가 판정 능력을 어떻게 제약하는지 보여주는 사례로 그대로 뒀습니다.</td></tr>
+    <div class="hd"><h2>판정 축</h2>
+      <button class="info" data-i="axes" aria-label="설명">i</button>
+      <span class="sub">CD 잔차를 네 성분으로 동시 회귀 분해</span></div>
+    <div class="scroller"><table class="spec">
+      <tr><th>성분</th><th>좌표계</th><th>귀속</th></tr>
+      <tr><td>스칼라</td><td class="mono">wafer mean</td>
+        <td><b class="term" data-t="dose">dose</b></td></tr>
+      <tr><td>반경</td><td class="mono">radial (r/R)²</td>
+        <td><b class="term" data-t="peb">PEB</b> · 코팅</td></tr>
+      <tr><td>슬릿</td><td class="mono">intra-field X</td><td>스캐너 · 조명계</td></tr>
+      <tr><td>레티클</td><td class="mono">site-fixed</td>
+        <td><b class="term" data-t="reticle">레티클</b> CD</td></tr>
+      <tr><td>ΔCD</td><td class="mono">chamber · RF hours</td>
+        <td><b class="term" data-t="chamber">Etch 챔버</b></td></tr>
+      <tr class="me"><td>없음</td><td class="mono">tool-dependent</td>
+        <td><b class="term" data-t="metro">Metrology</b> drift</td></tr>
     </table></div>
   </div>
 
   <div class="card">
-    <h2>이 데이터에 대해</h2>
-    <p class="lede">정직하게 밝혀둘 부분입니다.</p>
-    <p>실제 fab 데이터가 아니라 <b>현업의 계측 구조를 본떠 만든 합성 데이터</b>입니다.
-      계측 정합성 실습에서 직접 측정해 얻은 ADI–ACI–단면 회귀식을 앵커로 삼고,
-      물리적으로 타당한 변동 성분을 쌓아 생성했습니다.</p>
-    <p><b>측정이 없는 구간은 판정하지 않습니다.</b> ACI가 skip된 로트에서는 etch bias를 계산할 수 없으므로
-      에이전트는 Litho 계열까지만 판정하고 Etch·Metrology 판정은 내리지 않습니다.</p>
+    <div class="hd"><h2>데이터 사양</h2>
+      <button class="info" data-i="spec" aria-label="설명">i</button>
+      <span class="sub">합성 데이터 · 앵커는 실습 실측</span></div>
+    <div class="scroller"><table class="spec">
+      <tr><th>항목</th><th>값</th><th>근거</th></tr>
+      <tr><td>ADI / ACI CD Target</td><td class="n">130 / 110 nm</td><td>실측 회귀</td></tr>
+      <tr><td>단면 BCD Target</td><td class="n">90 nm</td><td>실측 회귀</td></tr>
+      <tr><td><b class="term" data-t="delta">Etch bias</b></td><td class="n">−20 nm</td>
+        <td>실측 <button class="info" data-i="bias" aria-label="설명">i</button></td></tr>
+      <tr><td>Dose Setting</td><td class="n">32.0 mJ/cm²</td><td>문헌</td></tr>
+      <tr><td>Dose sensitivity</td><td class="n">−2.0 nm/%</td><td>EL 15.8%에서 유도</td></tr>
+      <tr><td>웨이퍼 내 <b class="term" data-t="cdu">CDU</b> 3σ</td><td class="n">4.2 nm</td><td>생성 결과</td></tr>
+      <tr><td>CD 공정 허용 반폭</td><td class="n">±6.0 nm</td><td>Cp ≈ 1.43</td></tr>
+      <tr><td>측정점</td><td class="n">41 / wafer</td>
+        <td>9 field × 5 site <button class="info" data-i="sampling" aria-label="설명">i</button></td></tr>
+      <tr><td>측정 웨이퍼</td><td class="n">3 / lot</td><td>slot 3 · 13 · 23</td></tr>
+      <tr><td>ACI 측정 비율</td><td class="n">50%</td>
+        <td><b class="term" data-t="skiplot">skip-lot</b></td></tr>
+      <tr><td>단면 / 모니터</td><td class="n">주 3회 / 주 2회</td><td>파괴 측정 · tool 감시</td></tr>
+      <tr><td>규모</td><td class="n">320 lot · 40일</td>
+        <td>SPC 20~25 subgroup <button class="info" data-i="scale" aria-label="설명">i</button></td></tr>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <div class="hd"><h2>산업 지형에서의 위치</h2>
+      <button class="info" data-i="landscape" aria-label="설명">i</button>
+      <span class="sub">기존 상용 스택과의 관계</span></div>
+    <div class="scroller"><table class="spec">
+      <tr><th>계층</th><th>대표 도구</th><th>하는 일</th><th>시점</th></tr>
+      <tr><td>설계 · 개발</td><td>PROLITH · LithoWare</td>
+        <td>조건 → CD·프로파일 예측, process window 정의</td><td>노광 전</td></tr>
+      <tr><td>장비 감시</td><td>FDC</td><td>공정 장비 센서 트레이스로 이상 탐지</td><td>실시간</td></tr>
+      <tr><td>공정 제어</td><td><b class="term" data-t="apc">APC · R2R</b></td>
+        <td>계측 결과로 다음 로트 조건 보정</td><td>로트 간</td></tr>
+      <tr><td>수율 분석</td><td>Klarity · Yield Mine</td>
+        <td>commonality · ANOVA로 원인 장비군 식별</td><td>사후</td></tr>
+      <tr><td>패터닝 제어</td><td>OVALiS</td>
+        <td>계측 + 장비 컨텍스트 결합, on-product 진단</td><td>양산</td></tr>
+      <tr class="me"><td>이 프로젝트</td><td>—</td>
+        <td><b>계측 장비를 용의선상에 포함</b> · TMU 예산 초과 시 공정 귀속 차단</td><td>양산</td></tr>
+    </table></div>
   </div>
 </section>
 
 <section class="view" id="v-terms" hidden>
   <div class="card">
-    <h2>용어 사전</h2>
-    <p class="lede">본문 곳곳의 <span class="term" data-t="cd">점선 밑줄</span> 위에 마우스를 올리거나
-      모바일에서는 눌러서, 같은 설명을 그 자리에서 바로 볼 수 있습니다.</p>
+    <div class="hd"><h2>용어</h2>
+      <span class="sub">본문의 점선 밑줄에 마우스를 올리면 같은 설명이 그 자리에 나옵니다</span></div>
     <div class="glossary" id="glossary"></div>
   </div>
 </section>
 
 <section class="view" id="v-lots" hidden>
   <div class="card" id="lotlistcard">
-    <h2>로트를 하나 고르세요</h2>
-    <p class="lede"><b class="term" data-t="lot">로트</b> 하나를 고르면 그 로트의 판정만 따로 보여드립니다.
-      목록의 <b>ACI skip</b> 표시는 <b class="term" data-t="skiplot">skip-lot sampling</b>으로
-      식각 후 측정을 건너뛴 로트라는 뜻이며, 이 경우 etch bias를 계산할 수 없어
-      Litho 계열까지만 판정합니다.</p>
+    <div class="hd"><h2>로트</h2>
+      <button class="info" data-i="lots" aria-label="설명">i</button></div>
     <div class="tools">
-      <input id="q" type="search" placeholder="로트 번호 검색" aria-label="로트 번호 검색">
+      <input id="q" type="search" placeholder="로트 검색" aria-label="로트 번호 검색">
       <button class="chip" data-f="all" aria-pressed="true">전체</button>
-      <button class="chip" data-f="abn" aria-pressed="false">이상만</button>
-      <button class="chip" data-f="aci" aria-pressed="false">ACI 측정된 것만</button>
+      <button class="chip" data-f="abn" aria-pressed="false">이상</button>
+      <button class="chip" data-f="aci" aria-pressed="false">ACI 측정</button>
       <span class="count" id="count"></span>
     </div>
     <div id="lotlist" role="listbox" aria-label="로트 목록"></div>
@@ -427,10 +319,10 @@ footer{max-width:var(--w);margin:0 auto;padding:0 20px 44px;color:var(--muted);f
 
   <div id="lotdetail" hidden>
     <div class="detailbar">
-      <button class="back" id="backBtn">← 목록으로</button>
+      <button class="back" id="backBtn">← 목록</button>
       <span class="navs">
-        <button class="back" id="prevBtn">이전 로트</button>
-        <button class="back" id="nextBtn">다음 로트</button>
+        <button class="back" id="prevBtn">이전</button>
+        <button class="back" id="nextBtn">다음</button>
       </span>
     </div>
     <div class="card">
@@ -440,55 +332,39 @@ footer{max-width:var(--w);margin:0 auto;padding:0 20px 44px;color:var(--muted);f
 
     <details class="acc" id="accMap">
       <summary hidden></summary>
-      <button type="button" data-acc="accMap">웨이퍼 지도로 보기<span class="mark">＋</span></button>
+      <button type="button" data-acc="accMap">웨이퍼 맵<span class="mark">＋</span></button>
       <div class="body">
         <div class="maps">
           <figure>
-            <figcaption>ADI CD — 목표 대비 편차<span id="cap1s"></span></figcaption>
+            <figcaption>ADI CD 잔차<span id="cap1s"></span></figcaption>
             <svg class="wafer" id="map1" viewBox="-178 -178 356 356" role="img"
-                 aria-label="현상 후 선폭의 웨이퍼 분포"></svg>
+                 aria-label="ADI CD 잔차의 웨이퍼 분포"></svg>
           </figure>
           <figure>
-            <figcaption>Etch bias (ACI CD − ADI CD) — 기준 대비 편차<span id="cap2s"></span></figcaption>
+            <figcaption>Etch bias 잔차<span id="cap2s"></span></figcaption>
             <svg class="wafer" id="map2" viewBox="-178 -178 356 356" role="img"
                  aria-label="etch bias의 웨이퍼 분포"></svg>
           </figure>
         </div>
-        <div class="scale"><span class="mono" id="lo"></span><span class="bar"></span><span class="mono" id="hi"></span></div>
-        <p class="howto"><b>점 하나가 <b class="term" data-t="cdsem">CD-SEM</b> 측정 site입니다.</b>
-          점 위에 마우스를 올리면 실측 CD, 목표 대비 편차, 소속 field 좌표, 웨이퍼 중심으로부터의
-          정규화 반경이 나옵니다. 회색 사각형은 실제 노광 <b class="term" data-t="field">field</b>
-          크기(26 × 33 mm)이고, 아래쪽 노치는 웨이퍼 정렬 기준입니다.
-          <b>파란색이 목표보다 좁고, 붉은색이 넓다</b>는 뜻입니다. 두 지도 모두 가로 방향
-          <b class="term" data-t="cd">CD</b>이며 두께가 아닙니다.</p>
-        <p class="howto" style="margin-top:10px"><b>왜 이 지점들인가.</b>
-          field는 웨이퍼 중심 · 중간 · 엣지가 모두 표본에 들어오도록 반경 방향으로 펼쳐 배치했습니다.
-          <b class="term" data-t="peb">PEB</b> 온도 분포나 플라즈마 균일도가 만드는 신호는 웨이퍼 반경의
-          함수로 나타나기 때문에, 반경 방향 표본이 한쪽에 몰리면 그 성분을 추정할 수 없습니다.
-          field 안의 5점(중심 + 모서리 4점)은 스캐너 slit 지문과 레티클 오차를 분리하기 위한 것으로,
-          slit 지문은 field 내 X좌표의 함수로, 레티클 오차는 site 번호에 고정되어 모든 field에서
-          동일하게 반복됩니다. 두 성분을 가르려면 field 안에 여러 site가 반드시 필요합니다.</p>
+        <div class="scale"><span class="mono" id="lo"></span><span class="bar"></span>
+          <span class="mono" id="hi"></span>
+          <button class="info" data-i="map" aria-label="설명">i</button></div>
       </div>
     </details>
 
     <details class="acc" id="accEv">
       <summary hidden></summary>
-      <button type="button" data-acc="accEv">판정 근거 숫자 보기<span class="mark">＋</span></button>
+      <button type="button" data-acc="accEv">판정 근거<span class="mark">＋</span></button>
       <div class="body">
-        <p class="small" style="margin:14px 0 10px">각 지표가 정상 범위(<b class="term" data-t="limit">관리 한계</b>) 안에 있는지 확인합니다.
-          한계는 사람이 정한 값이 아니라, 이상이 주입되기 전 초기 10일 데이터의 평균 ± 3σ로
-          엔진이 스스로 계산한 값입니다.</p>
-        <div class="scroller"><table id="ev"></table></div>
+        <div class="scroller" style="margin-top:14px"><table id="ev"></table></div>
       </div>
     </details>
 
     <details class="acc" id="accGate">
       <summary hidden></summary>
-      <button type="button" data-acc="accGate">검증 게이트 통과 여부<span class="mark">＋</span></button>
+      <button type="button" data-acc="accGate">Verification Gate<span class="mark">＋</span></button>
       <div class="body">
-        <p class="small" style="margin:14px 0 10px">AI가 원인을 지목하면, 코드가 그 원인이 요구하는
-          조건을 하나씩 다시 확인합니다. 하나라도 어긋나면 판정을 취소하고 보류합니다.</p>
-        <div class="scroller"><table id="gate"></table></div>
+        <div class="scroller" style="margin-top:14px"><table id="gate"></table></div>
       </div>
     </details>
   </div>
@@ -496,106 +372,62 @@ footer{max-width:var(--w);margin:0 auto;padding:0 20px 44px;color:var(--muted);f
 
 <section class="view" id="v-charts" hidden>
   <div class="card">
-    <h2>생산일별 추이</h2>
-    <p class="lede">8주(생산일 40일) 동안 지표가 어떻게 움직였는지 봅니다. 점 하나가 로트 하나이고,
-      세로축 단위는 nm, 가로축은 생산일입니다.</p>
+    <div class="hd"><h2>생산일별 추이</h2>
+      <button class="info" data-i="trend" aria-label="설명">i</button>
+      <span class="sub">점 = 로트 · 클릭 시 해당 판정으로 이동</span></div>
     <div class="metricpick" id="metricpick"></div>
     <div class="chartbox"><svg class="chart" id="trend" viewBox="0 0 780 330" role="img"
       aria-label="생산일별 지표 추이"></svg></div>
     <div class="legend" id="trendLegend"></div>
-    <p class="small" style="margin-top:12px"><b>읽는 법.</b> 회색 띠가
-      <b class="term" data-t="limit">관리 한계</b>(기준선 평균 ± 3σ) 범위입니다. 띠 안의 점은 옅게,
-      벗어난 점은 진하고 크게 그렸습니다. 점의 색은 에이전트가 귀속한 원인 모듈이고,
-      <b>점을 누르면 그 로트의 판정 화면으로 이동</b>합니다.
-      식각량 편차는 ACI가 측정된 로트에서만 계산되므로 점의 수가 320개가 아니라 160개입니다.</p>
   </div>
 
   <div class="card">
-    <h2>CD-SEM tool stability 감시</h2>
-    <p class="lede">패턴이 이미 형성된 전용 <b class="term" data-t="golden">모니터 웨이퍼</b>를
-      고정 recipe로 주 2회 반복 측정해, 장비의 절대 선폭이 이동하는지와 장비 간 정합이 유지되는지를
-      추적합니다.</p>
+    <div class="hd"><h2>CD-SEM tool stability</h2>
+      <button class="info" data-i="mon" aria-label="설명">i</button>
+      <span class="sub"><b class="term" data-t="golden">모니터 웨이퍼</b> 주 2회 반복 측정</span></div>
     <div class="chartbox"><svg class="chart" id="monitor" viewBox="0 0 780 300" role="img"
-      aria-label="측정 장비별 기준 웨이퍼 값의 이동량"></svg></div>
+      aria-label="장비별 모니터 웨이퍼 값의 이동량"></svg></div>
     <div class="legend" id="monLegend"></div>
-    <p class="small" style="margin-top:12px"><b>읽는 법.</b> 세로축은 기준선(초기 10일 평균) 대비
-      이동량이고, 가로축은 생산일입니다. 모니터 웨이퍼는 공정 라인에 다시 투입되지 않으므로
-      패턴 자체가 변할 수 없습니다. 따라서 값이 이동했다면 그 이동분은 전부 장비 기여입니다.
-      선이 회색 띠(±<span class="mono" id="tdlim"></span> nm)를 벗어나 한쪽으로 흐르면
-      해당 장비로 측정한 CD는 신뢰할 수 없는 상태이며, 그 장비가 측정한 로트의 판정은
-      재캘리브레이션 후 다시 내려야 합니다.</p>
-    <p class="small" style="margin-top:10px">실제 fab에서도 CD-SEM 여러 대의 절대 선폭과 tool-to-tool
-      matching을 이 방식으로 감시합니다. 다만 현업 점검 주기는 일 단위인 경우도 흔하며,
-      이 데이터는 주 2회로 보수적으로 낮춰 잡았습니다. 그래서 이상 발생 첫날에는 감시 데이터가
-      묵어 있어 판정 보류가 발생하는데, <b>샘플링 주기가 판정 능력을 어떻게 제약하는지</b>를
-      그대로 드러내려고 조정하지 않았습니다.</p>
   </div>
 
   <div class="card">
-    <h2>계측 불확도(TMU)가 공정 예산을 얼마나 먹는가</h2>
-    <p class="lede">"측정을 믿을 수 있는가"를 <b class="term" data-t="tmu">TMU</b>라는 업계 표준 지표로 정량화합니다.
-      측정 불확도는 공정 허용 예산의 <b>20% 이내</b>여야 한다는 것이 통상 기준입니다.</p>
+    <div class="hd"><h2><b class="term" data-t="tmu">TMU</b> / 공정 예산</h2>
+      <button class="info" data-i="tmu" aria-label="설명">i</button>
+      <span class="sub">허용 반폭 ±<span class="mono" id="cdtol"></span> nm 대비 소비율</span></div>
     <div class="chartbox"><svg class="chart" id="tmuchart" viewBox="0 0 780 300" role="img"
       aria-label="장비별 TMU의 공정 예산 소비율"></svg></div>
     <div class="legend" id="tmuLegend"></div>
     <div class="scroller" style="margin-top:16px"><table id="tmuTable"></table></div>
-    <p class="small" style="margin-top:14px"><b>읽는 법.</b> 세로축은 TMU가 공정 허용 반폭
-      (±<span class="mono" id="cdtol"></span> nm)의 몇 %를 소비하는지입니다.
-      회색 띠 위(20% 초과)로 올라가면 <b>그 장비의 측정값을 근거로 공정을 조치해서는 안 되는 상태</b>입니다.
-      TMU는 <b class="term" data-t="precision">dynamic precision</b>과
-      <b class="term" data-t="match">tool-to-tool match</b>를 제곱합 제곱근으로 합친 값입니다.</p>
-    <p class="small" style="margin-top:10px"><b>이 데이터에서 나온 결론.</b>
-      정상 구간에서도 소비율이 15~19%로 예산 경계에 붙어 있습니다.
-      precision 항(3σ 0.9 nm) 하나만으로 예산의 약 4분의 3을 이미 쓰고 있기 때문입니다.
-      여유가 거의 없어 <b>tool matching이 조금만 흔들려도 예산을 넘습니다.</b>
-      실제로 계측 drift 구간에서 match 항이 0.3 → 3.3 nm로 커지자 소비율이 58%까지 치솟았습니다.
-      계측 정밀도를 높이거나 공정 허용폭을 넓히지 않으면 이 구조는 반복됩니다.</p>
-    <p class="small" style="margin-top:10px"><b>정의에서 생략한 항.</b>
-      TMU의 본래 정의는 <b class="term" data-t="tis">TIS</b>-mean, TIS-3σ, dynamic precision,
-      tool-to-tool match의 제곱합 제곱근입니다. TIS는 target을 0°와 180°로 회전시켜 정의하는
-      오버레이 전용 항이라 top-down CD 측정에는 그대로 적용되지 않으므로 제외했습니다.
-      따라서 이 값은 <span class="mono">TMU = √(precision² + match²)</span>이며,
-      실제 TMU의 하한에 해당합니다. 한계로 명시합니다.</p>
-    <p class="small" style="margin-top:10px"><b>이 지표가 판정에 실제로 걸립니다.</b>
-      Etch 챔버 귀속 규칙은 <span class="mono">tmu_within_budget</span>을 요구 조건으로 갖습니다.
-      계측 불확도가 예산을 넘은 상태에서는 아무리 챔버 편중이 보여도
-      <b>공정 원인으로 귀속하지 않습니다.</b> 자가 흔들리는 상태에서 잰 값으로
-      설비를 조치할 수는 없기 때문입니다.</p>
   </div>
 
   <div class="card">
-    <h2>Etch 챔버별 etch bias 비교</h2>
-    <p class="lede">식각은 4개의 <b class="term" data-t="chamber">챔버</b>가 번갈아 처리합니다.
-      세로축은 <b class="term" data-t="delta">etch bias</b>가 기준에서 벗어난 양(nm),
-      가로축은 생산일이며, 회색 띠가 챔버 편중 판정의 관리 한계입니다.</p>
+    <div class="hd"><h2>Etch 챔버별 bias</h2>
+      <button class="info" data-i="cham" aria-label="설명">i</button>
+      <span class="sub">회색 띠 = 챔버 편중 관리 한계</span></div>
     <div id="chambers"></div>
-    <p class="small" style="margin-top:14px"><b>한 챔버만 흐르면 Etch, 네 챔버가 함께 흐르면 Metrology</b>입니다.
-      챔버는 각각 독립된 진공 통이고 PM 이력도 따로 관리되므로, 동시에 같은 방향으로 어긋날
-      물리적 이유가 없습니다. 반대로 계측 장비 drift는 그 장비가 측정한 모든 로트에 똑같이 실리므로
-      챔버와 무관하게 전면적으로 나타납니다. 이 대비가 두 원인을 가르는 두 번째 근거입니다.</p>
   </div>
 </section>
 
 <section class="view" id="v-eval" hidden>
   <div class="card">
-    <h2>정답을 보지 않고 맞혔는지</h2>
-    <p class="lede">데이터를 만들 때 어떤 이상을 어디에 넣었는지는 별도 파일에 기록해 두고,
-      판정 엔진은 그 파일을 읽지 못하게 막았습니다. 판정이 끝난 뒤에만 대조했습니다.</p>
+    <div class="hd"><h2>블라인드 평가</h2>
+      <button class="info" data-i="eval" aria-label="설명">i</button>
+      <span class="sub">세로 = 주입한 이상 · 가로 = 판정</span></div>
     <div class="scroller"><table id="conf"></table></div>
-    <p class="small" style="margin-top:14px">세로가 실제로 넣은 이상, 가로가 에이전트의 판정입니다.
-      대각선(굵은 글씨)이 정답입니다.</p>
   </div>
   <div class="card">
-    <h2>이 표에서 가장 중요한 칸</h2>
-    <p><b>계측 장비가 어긋난 경우를 식각 문제로 잘못 지목한 사례가 0건</b>이라는 점입니다.
-      이 실수를 하면 멀쩡한 챔버의 설정을 건드리게 되고, 정상이던 공정이 망가집니다.</p>
-    <p>대신 3건은 <b>판정 보류</b>로 처리했습니다. 기준 웨이퍼 재측정이 주 2회라서,
-      이상이 막 시작된 날에는 감시 데이터가 이틀 이상 묵어 있었습니다.
-      그때 엔진은 계측이 정상이라고 단정할 수 없다며 판정을 거부했습니다.
-      의도한 설계이지 실패가 아닙니다.</p>
-    <p>식각 챔버 이상 26건 중 13건이 정상으로 나온 것도 같은 이유입니다.
-      그 13건은 <b class="term" data-t="aci">식각 후 측정</b>이 없는 로트라 애초에 계산이 불가능합니다.
-      없는 데이터로 추측하지 않습니다.</p>
+    <div class="hd"><h2>핵심 지표</h2>
+      <button class="info" data-i="kpi" aria-label="설명">i</button></div>
+    <div class="scroller"><table class="spec">
+      <tr><th>지표</th><th>값</th></tr>
+      <tr class="me"><td>계측 drift → Etch 오귀속</td><td class="n">0 건</td></tr>
+      <tr><td>정상 로트 오경보</td><td class="n">0 / 204</td></tr>
+      <tr><td>Litho dose 검출</td><td class="n">16 / 16</td></tr>
+      <tr><td>Track PEB 검출</td><td class="n">32 / 32</td></tr>
+      <tr><td>Reticle 검출</td><td class="n">16 / 18</td></tr>
+      <tr><td>Etch 챔버 검출 (ACI 측정 로트)</td><td class="n">13 / 13</td></tr>
+      <tr><td>Metrology drift 검출 (ACI 측정 로트)</td><td class="n">8 / 11 · 보류 3</td></tr>
+    </table></div>
   </div>
 </section>
 
@@ -694,6 +526,25 @@ const TERMS = {
     s:'<svg viewBox="0 0 200 100"><g fill="#c9d4d9" stroke="#57676f" stroke-width=".8"><rect x="62" y="74" width="9" height="8"/><rect x="72" y="62" width="9" height="20"/><rect x="82" y="44" width="9" height="38"/><rect x="92" y="27" width="9" height="55"/><rect x="102" y="20" width="9" height="62"/><rect x="112" y="27" width="9" height="55"/><rect x="122" y="44" width="9" height="38"/><rect x="132" y="62" width="9" height="20"/><rect x="142" y="74" width="9" height="8"/></g><line x1="100" y1="18" x2="100" y2="82" stroke="#0b6a72" stroke-dasharray="3 2"/><path d="M62 88h76" stroke="#bf4630" stroke-width="1.6"/><path d="M62 84v8M138 84v8" stroke="#bf4630" stroke-width="1.2"/><text x="82" y="100" font-size="9" fill="#bf4630">3σ</text><text x="146" y="34" font-size="9" fill="#0b6a72">평균</text></svg>'}
 };
 
+
+/* 화면에서 걷어낸 설명은 전부 여기 ⓘ 뒤에 둔다 */
+const INFO = {
+axes:{k:'판정 축',d:'41개 측정점의 CD 잔차를 하나의 설계행렬로 동시 회귀해 성분을 분리한다. 성분을 순차적으로 빼면 서로를 오염시키므로 함께 푼다. 어긋남이 어느 좌표계에 사는지가 곧 원인의 지문이다. 스칼라 성분만 한계를 넘고 나머지가 정상이면 웨이퍼 전면이 통째로 이동한 것이므로 dose 계열로 좁혀진다. 마지막 행이 이 프로젝트의 핵심이다. 계측 장비 drift는 어느 좌표계에도 살지 않아 원시 데이터만으로는 식각 이상과 구분되지 않는다.'},
+spec:{k:'데이터 사양',d:'실제 fab 데이터가 아니라 현업의 계측 구조를 본떠 만든 합성 데이터다. 계측 정합성 실습의 3-way CD split에서 직접 측정해 얻은 ADI-ACI-단면 회귀식을 앵커로 삼고, 물리적으로 타당한 변동 성분을 쌓아 생성했다. 모든 상수에 measured / literature / assumed 등급을 붙였다. 측정이 없는 구간은 판정하지 않는다.'},
+bias:{k:'Etch bias −20 nm의 근거',d:'실습 3-way CD split 원자료에서 ADI 140/148/125 → ACI 120/128/105로 세 조건 모두 정확히 20 nm 차이를 유지했다(회귀 기울기 1.0). 가정이 아니라 실측이다. 물리적으로도 타당하다. 레지스트 선폭을 패턴 전사 전에 좁히는 trim etch가 표준 기법이며 문헌에 30 nm 수준의 trim이 보고되어 있다. 130 nm급 L/S에서 −20 nm(약 15% 축소)는 그 범위 안이다. 변동 항도 실제 현상과 대응된다. PM 후 drift는 chamber seasoning, 챔버별 offset은 chamber matching, 반경 성분은 플라즈마 균일도와 ESC 온도, 패턴 밀도 의존은 loading effect다. 다만 실제 seasoning은 PM 직후 급변(first wafer effect) 후 안정화, 이후 완만한 drift의 3단계인데 이 모델은 선형 drift + PM 리셋으로 단순화했다.'},
+sampling:{k:'41점 샘플링의 근거',d:'분해하려는 성분이 세 종류이고 각각 사는 좌표계가 다르다. 반경 성분을 2차항으로 추정하려면 center-mid-edge가 모두 표본에 있어야 하고, intra-field 성분(슬릿 지문과 레티클 오차)을 분리하려면 한 field 안에 여러 site가 필요하다. 그래서 field를 웨이퍼 전면에 9개 펼치고 각 field 안에 중심 1점 + 모서리 4점을 뒀다. 모던 CD-SEM의 웨이퍼당 측정 능력이 대략 13~36점 수준이므로 41점은 그 상단이며, 루틴 모니터링이 아니라 characterization 급 플랜이다. 한계로 명시한다.'},
+scale:{k:'320 로트 · 8주의 근거',d:'세 제약이 동시에 걸린다. 첫째, 관리 한계 추정에는 SPC 관례상 20~25개 이상의 표본군이 필요해 기준선 10일(80 로트)을 확보했다. 둘째, PM 주기(RF hours 0→600)가 최소 한 바퀴 돌아야 PM drift를 관측할 수 있다. 셋째, 5개 시나리오를 서로 겹치지 않게 배치하려면 최소 6~8주가 필요하다. 이 셋을 만족하는 최소 기간이 8주다.'},
+landscape:{k:'산업 지형',d:'PROLITH는 노광 전 process window를 정의하는 forward 시뮬레이터이고 이 프로젝트는 양산 데이터에서 원인을 역추적하는 inverse 문제라 방향이 다르다. 다만 원인 귀속 자체는 새로운 것이 아니다. equipment commonality analysis와 one-way ANOVA로 어느 장비군이 excursion에 기여했는지 식별하는 기능이 상용 수율 분석 도구에 이미 있고, lot disposition과 excursion 알림도 마찬가지다. 계측 데이터와 장비 컨텍스트를 결합해 on-product 성능을 진단하는 제품군도 있다. 이 프로젝트가 다르게 둔 지점은 하나다. 기존 분석은 공정 장비를 용의선상에 올리고 측정값은 참으로 둔다. 여기서는 측정한 장비를 같은 선상에 올렸고, TMU가 공정 예산의 20%를 넘으면 공정 귀속을 차단하도록 게이트를 걸었다.'},
+lots:{k:'로트 목록',d:'로트 하나를 고르면 그 로트의 판정만 따로 보여준다. ACI skip 표시는 skip-lot sampling으로 식각 후 측정을 건너뛴 로트라는 뜻이며, 이 경우 etch bias를 계산할 수 없어 Litho 계열까지만 판정한다. ADI는 rework와 스캐너 APC 피드백이 걸린 actionable 측정이라 매 로트 측정하지만, ACI는 그 로트를 되돌릴 수 없어 etch bias 특성화가 목적이므로 저빈도로 간다. 실제 skip 비율은 공정 능력지수(Cp/Cpk)로 정해진다.'},
+map:{k:'웨이퍼 맵 읽는 법',d:'점 하나가 CD-SEM 측정 site다. 점에 마우스를 올리면 실측 CD, 목표 대비 편차, 소속 field 좌표, 정규화 반경, 측정 장비가 나온다. 회색 사각형은 실제 노광 field 크기(26 × 33 mm)이고 아래쪽 노치는 웨이퍼 정렬 기준이다. 파란색이 목표보다 좁고 붉은색이 넓다. 두 지도 모두 가로 방향 CD이며 두께가 아니다. field는 웨이퍼 중심·중간·엣지가 모두 표본에 들어오도록 반경 방향으로 펼쳐 배치했다. 반경 방향 표본이 한쪽에 몰리면 PEB 온도 분포나 플라즈마 균일도가 만드는 성분을 추정할 수 없기 때문이다.'},
+trend:{k:'추이 읽는 법',d:'회색 띠가 관리 한계(기준선 평균 ± 3σ) 범위다. 띠 안의 점은 옅게, 벗어난 점은 진하고 크게 그렸다. 점의 색은 귀속된 원인 모듈이고, 점을 누르면 그 로트의 판정 화면으로 이동한다. 관리 한계는 사람이 정한 값이 아니라 이상 주입 이전 기준선 10일 데이터에서 엔진이 스스로 계산한 값이다. Etch bias 편차는 ACI가 측정된 로트에서만 계산되므로 점의 수가 320개가 아니라 160개다.'},
+mon:{k:'tool stability 읽는 법',d:'세로축은 기준선 대비 이동량, 가로축은 생산일이다. 모니터 웨이퍼는 패턴이 이미 형성되어 있고 공정 라인에 다시 투입하지 않으므로 패턴 자체가 변할 수 없다. 따라서 값이 이동했다면 그 이동분은 전부 장비 기여다. 선이 회색 띠를 벗어나 한쪽으로 흐르면 해당 장비로 측정한 CD는 신뢰할 수 없는 상태이며, 그 장비가 측정한 로트의 판정은 재캘리브레이션 후 다시 내려야 한다. 실제 fab의 점검 주기는 일 단위인 경우도 흔하나 이 데이터는 주 2회로 보수적으로 낮췄고, 그래서 이상 발생 첫날 판정 보류가 발생한다. 샘플링 주기가 판정 능력을 제약하는 것을 그대로 드러내려고 조정하지 않았다.'},
+tmu:{k:'TMU',d:'TMU = RSS(dynamic precision 3σ, tool-to-tool match). 세로축은 이 값이 공정 허용 반폭의 몇 %를 소비하는지다. 측정 불확도는 공정 허용 예산의 20% 이내여야 한다는 것이 업계 통상 기준이다. 허용 반폭 ±6.0 nm는 웨이퍼 내 CDU 3σ에서 공정능력 Cp가 약 1.43이 되도록 역산한 값이다. 정상 구간에서도 소비율이 15~19%로 예산 경계에 붙어 있는데, precision 항 하나만으로 예산의 약 4분의 3을 쓰기 때문이다. 여유가 없어 tool matching이 조금만 흔들려도 예산을 넘는다. 이 지표는 판정에 실제로 걸린다. Etch 챔버 귀속 규칙이 tmu_within_budget을 요구 조건으로 갖는다. 본래 정의에 포함되는 TIS 항은 target을 0°와 180°로 회전시켜 정의하는 오버레이 전용 항이라 top-down CD 측정에는 적용되지 않아 제외했고, 따라서 이 값은 실제 TMU의 하한이다.'},
+cham:{k:'챔버 비교 읽는 법',d:'세로축은 etch bias가 기준에서 벗어난 양(nm), 가로축은 생산일이다. 한 챔버만 흐르면 Etch, 네 챔버가 함께 흐르면 Metrology다. 챔버는 각각 독립된 진공 반응기이고 PM 이력도 따로 관리되므로 동시에 같은 방향으로 어긋날 물리적 이유가 없다. 반대로 계측 장비 drift는 그 장비가 측정한 모든 로트에 똑같이 실리므로 챔버와 무관하게 전면적으로 나타난다.'},
+eval:{k:'블라인드 평가',d:'데이터를 만들 때 어떤 이상을 어디에 넣었는지는 별도 파일에 기록해 두고, 판정 엔진은 그 파일을 읽지 못하게 막았다. 판정이 끝난 뒤에만 대조했다. 대각선이 정답이다.'},
+kpi:{k:'핵심 지표',d:'대표 지표는 첫 행이다. Metrology drift를 Etch 원인으로 오귀속하면 정상 챔버의 recipe를 건드리게 되고 멀쩡하던 공정이 흔들린다. 그 사례가 0건이다. 대신 3건은 판정 보류로 처리했다. 모니터 웨이퍼 점검이 주 2회라 이상 발생 첫날에는 감시 데이터가 이틀 이상 묵어 있었고, 그때 엔진은 계측이 정상이라고 단정할 근거가 없다며 Etch 귀속을 기각했다. Etch 챔버 이상 26건 중 13건이 정상으로 나온 것도 같은 맥락이다. 그 13건은 skip-lot으로 ACI를 측정하지 않은 로트라 etch bias 자체를 계산할 수 없다. 없는 측정을 추정으로 메우지 않는다.'}
+};
+
 const pop = $('#pop');
 function popHTML(t){
   const x = TERMS[t]; if (!x) return '';
@@ -710,15 +561,22 @@ function showPop(html, anchor){
   pop.style.top = Math.max(scrollY + 6, top) + 'px';
 }
 const hidePop = () => { pop.style.display = 'none'; };
+function infoHTML(k){
+  const x = INFO[k]; if (!x) return '';
+  return '<h4>' + esc(x.k) + '</h4><p>' + esc(x.d) + '</p>';
+}
 document.addEventListener('mouseover', e => {
-  const t = e.target.closest('.term'); if (t) showPop(popHTML(t.dataset.t), t);
+  const t = e.target.closest('.term'); if (t) { showPop(popHTML(t.dataset.t), t); return; }
+  const i = e.target.closest('.info'); if (i) showPop(infoHTML(i.dataset.i), i);
 });
 document.addEventListener('mouseout', e => {
-  if (e.target.closest('.term') && !(e.relatedTarget && e.relatedTarget.closest('#pop'))) hidePop();
+  if ((e.target.closest('.term') || e.target.closest('.info')) &&
+      !(e.relatedTarget && e.relatedTarget.closest('#pop'))) hidePop();
 });
 document.addEventListener('click', e => {
-  const t = e.target.closest('.term');
+  const t = e.target.closest('.term'), i = e.target.closest('.info');
   if (t) { e.preventDefault(); showPop(popHTML(t.dataset.t), t); }
+  else if (i) { e.preventDefault(); showPop(infoHTML(i.dataset.i), i); }
   else if (!e.target.closest('#pop')) hidePop();
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') hidePop(); });
