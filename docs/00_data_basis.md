@@ -33,7 +33,7 @@ taper가 etch bias 변화를 따라가는 비율.
 - 웨이퍼 전면 CD 맵은 존재하지 않는다. 9 field × 5 site = 41점 샘플링
 - ADI는 로트당 3장(slot 3/13/23), ACI는 로트의 절반만 1장
 - 단면 측정은 파괴적이므로 주 3회 5점
-- 계측 장비 drift는 golden wafer 재측정으로 감시
+- 계측 장비 drift는 monitor wafer 재측정으로 감시
 - ADI와 ACI는 동일 좌표를 공유한다 (정합성 확보를 위한 실제 recipe 관행)
 
 ## 가장 확신이 없는 것

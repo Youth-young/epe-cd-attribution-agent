@@ -1,0 +1,1 @@
+const VALIDATION = {"confusion": {"S0": {"S0": 204}, "S1": {"S1": 16}, "S2": {"S2": 32}, "S3": {"S0": 2, "S3": 16}, "S4": {"S4": 13, "S0": 13}, "S5": {"??": 3, "S0": 13, "S5": 8}}, "summary": {"evaluated_lots": 320, "exact_matches": 289, "abstentions": 3, "missing_ground_truth": []}};

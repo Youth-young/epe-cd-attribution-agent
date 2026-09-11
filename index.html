@@ -436,6 +436,7 @@ footer{max-width:var(--w);margin:0 auto;padding:0 20px 44px;color:var(--muted);f
 <div id="pop" role="tooltip" aria-live="polite"></div>
 
 <script src="data.js"></script>
+<script src="validation/validation.js"></script>
 <script>
 /* 1. 공통 상수와 도우미 ─────────────────────────── */
 const M = DATA.meta, LIM = DATA.limits;
@@ -1002,7 +1003,7 @@ function drawChambers(){
 
 /* 8. 검증 결과 표 ──────────────────────────────── */
 (function(){
-  const c = DATA.confusion, set = {};
+  const c = (typeof VALIDATION !== 'undefined' && VALIDATION.confusion) ? VALIDATION.confusion : {}, set = {};
   Object.keys(c).forEach(t => Object.keys(c[t]).forEach(p => set[p] = 1));
   const preds = Object.keys(set).sort();
   const NAME = {S0:'정상', S1:'Litho dose', S2:'Track PEB 반경', S3:'Reticle CD',

@@ -101,14 +101,14 @@ CD-SEM은 OCD 모델 보정과 이상 시 국소 확인, 단면은 최종 기준
 | ACI 측정 | ADI보다 훨씬 성김, 전 로트가 아님 | **로트의 절반만**, 그중 1장 |
 | 측정 위치 | ADI/ACI 같은 recipe·같은 site | 동일 sampling plan 공유 |
 | 단면 기준 | 파괴적, 극소 샘플링 | 주 3회 5 site |
-| 계측 tool 감시 | golden wafer 재측정 | 주 2회 9 site |
+| 계측 tool 감시 | monitor wafer 재측정 | 주 2회 9 site |
 
 **ACI가 성기다는 사실이 그 자체로 설계 제약이다.** 절반의 로트에서는 ΔCD를 아예
 계산할 수 없고, 에이전트는 그 경우 판정하지 않는다.
 
 ### 2.4 계측 장비 drift는 어떻게 잡는가
 
-매주 단면을 뜨는 것이 아니라 **golden wafer(monitor wafer)를 반복 측정**해
+매주 단면을 뜨는 것이 아니라 **monitor wafer를 반복 측정**해
 offset과 precision을 추적한다. 공정이 건드리지 않은 웨이퍼가 움직였다면
 답은 하나뿐이라는 논리다. 본 프로젝트의 핵심 판정 근거가 정확히 이것이다.
 
@@ -171,7 +171,7 @@ ADI CD = 목표
 | `meas_adi.csv` | 측정점 | `lot_id, wafer_slot, step, meas_tool, site_id, field_x, field_y, site_in_field, wafer_x_mm, wafer_y_mm, r_norm, pattern_density, cd_nm` |
 | `meas_aci.csv` | 측정점 | 위와 동일 스키마 |
 | `ref_xsem.csv` | 단면 표본 | `lot_id, wafer_slot, site_id, bcd_nm, mcd_nm, tcd_nm, taper_nm` |
-| `tool_monitor.csv` | golden wafer | `date, day_index, meas_tool, site_id, cd_nm` |
+| `tool_monitor.csv` | monitor wafer | `date, day_index, meas_tool, site_id, cd_nm` |
 | `sampling_plan.csv` | 좌표 정의 | `site_id, field_x, field_y, site_in_field, u_x, u_y, wafer_x_mm, wafer_y_mm, r_norm, pattern_density` |
 
 규모 — 320 로트 / 40 생산일 / ADI 39,360행 / ACI 6,560행 / 단면 160행 / 감시 288행.
@@ -216,7 +216,7 @@ ADI CD = 목표
 평균과 3σ**로 스스로 계산한다. 데이터를 바꾸면 한계도 따라 바뀐다.
 
 교체 시 반드시 확인해야 할 것 — `validation/sanity` 항목(웨이퍼 내 CDU 3σ,
-ADI–ACI 회귀 slope, etch bias 평균과 산포, golden wafer 재측정 산포)이
+ADI–ACI 회귀 slope, etch bias 평균과 산포, monitor wafer 재측정 산포)이
 물리적으로 납득 가능한 범위에 있는지.
 
 ---
@@ -244,7 +244,7 @@ ADI–ACI 회귀 slope, etch bias 평균과 산포, golden wafer 재측정 산�
 python engine/tools.py list --abnormal          # 이상 판정 로트 목록
 python engine/tools.py lot <LOT>                # 로트 컨텍스트 + 지표
 python engine/tools.py decompose <LOT>          # 좌표계별 성분 분해와 관리 한계
-python engine/tools.py metrology --tool <T> --day <D>   # golden wafer drift 추이
+python engine/tools.py metrology --tool <T> --day <D>   # monitor wafer drift 추이
 python engine/tools.py chambers --day <D>       # 챔버별 ΔCD 비교
 python engine/tools.py rules --signature <SIG>  # 걸린 signature에 해당하는 규칙만
 python engine/tools.py verify <LOT>             # 게이트 통과 여부
@@ -274,11 +274,11 @@ ADI 잔차를 **하나의 설계행렬로 동시 회귀**한다.
 | PHOTO_TRACK_RADIAL | 반경 성분 이탈 | ΔCD 정상 또는 부재 | PEB plate 온도 맵 점검 |
 | RETICLE_CD_ERROR | site 고정 성분 이탈 | 모든 field에서 반복 | 레티클 교차 노광 확인 |
 | ETCH_CHAMBER | ΔCD 이탈 | 챔버 편중 · 계측 정상 · **감시 데이터 신선** · taper 모순 없음 | 챔버 격리, PM 주기 재검토 |
-| METROLOGY_TOOL_DRIFT | ΔCD 이탈 | golden wafer 이동 | **공정 조치 보류**, CD-SEM 재캘리브레이션 |
+| METROLOGY_TOOL_DRIFT | ΔCD 이탈 | monitor wafer 이동 | **공정 조치 보류**, CD-SEM 재캘리브레이션 |
 | INDETERMINATE | ΔCD 이탈 | — | 추가 측정 요청 |
 
 **판정 순서** — 되돌릴 수 있는 시점을 먼저 본다. ADI 계열(레티클 → 트랙 → dose)을
-먼저 검사하고, 그다음 ΔCD 계열을 본다. ΔCD 이상에서는 **golden wafer가 움직였는지를
+먼저 검사하고, 그다음 ΔCD 계열을 본다. ΔCD 이상에서는 **monitor wafer가 움직였는지를
 가장 먼저** 확인한다. 자가 틀린 상태에서 공정을 조치하면 정상 설비를 건드리게 된다.
 
 **기권 설계** — 근거가 부족하면 억지로 답하지 않고 보류한다.
@@ -320,7 +320,7 @@ ADI 잔차를 **하나의 설계행렬로 동시 회귀**한다.
 | ADI 반경 | ±0.78 nm |
 | 레티클 반복 | ±0.37 nm |
 | ΔCD 편차 | ±0.99 nm |
-| golden wafer drift | ±0.90 nm |
+| monitor wafer drift | ±0.90 nm |
 | 챔버 편중 | ±0.79 nm |
 
 정상 공정에도 고유 지문(반경 프로파일 등)이 있으므로, 절대값이 아니라
@@ -354,7 +354,7 @@ ADI 잔차를 **하나의 설계행렬로 동시 회귀**한다.
 | ΔCD | 이동 | 이동 |
 | 챔버 분포 | **특정 챔버에 몰림** | 모든 챔버에서 균등 |
 | 측정 장비 상관 | 없음 | **특정 CD-SEM에서만** |
-| golden wafer | 정상 | **같은 방향으로 이동** |
+| monitor wafer | 정상 | **같은 방향으로 이동** |
 | 단면 taper | 함께 변함 | 변하지 않음 |
 
 실제 판정 사례(L0283, 계측 drift):
@@ -432,7 +432,7 @@ Low 2건(배지 텍스트 중복, 타임라인 미니차트 마우스 전용)은
 
 - **분해 축이 같다.** 신호가 어느 좌표계에 사는지로 원인을 가르는 것은
   실제 fab의 원인 분석 방식 그대로다.
-- **감시 방식이 같다.** golden wafer 재측정으로 계측 장비 offset을 추적하는 것은
+- **감시 방식이 같다.** monitor wafer 재측정으로 계측 장비 offset을 추적하는 것은
   현업 관행이다.
 - **되먹임 구조가 같다.** ADI 시점 판정 → 다음 로트 보정 또는 rework.
 - **데이터 스키마가 같다.** 측정점 단위 평면 테이블 + 설비 컨텍스트 조인.
@@ -446,7 +446,7 @@ Low 2건(배지 텍스트 중복, 타임라인 미니차트 마우스 전용)은
 잘못 판정하면 정상 설비의 recipe를 건드린다. 이것은 잘못된 조치 중에서도 가장 비싼 부류다.
 정상이던 공정을 스스로 망가뜨리기 때문이다.
 
-**그래서 판정 순서를 "자를 먼저 확인한다"로 고정했다.** golden wafer가 움직였다면
+**그래서 판정 순서를 "자를 먼저 확인한다"로 고정했다.** monitor wafer가 움직였다면
 챔버 편중 여부와 무관하게 계측을 먼저 바로잡고 재판정한다.
 
 ### 6.3 업계 동향과의 대조

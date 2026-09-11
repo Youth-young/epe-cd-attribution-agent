@@ -1,18 +1,19 @@
-"""
-에이전트가 호출하는 도구 표면.
+"""EPE-CD Attribution Agent CLI tool surface.
 
-analyze.py가 계산을 끝내 data.js에 넣어두면, 여기서는 조회만 한다.
-숫자를 새로 만들지 않는다 — 그게 이 파일의 존재 이유다.
+CLI와 FastAPI는 같은 AttributionQueryService를 사용한다.
+향후 Agent tool-calling도 이 서비스의 메서드를 직접 감싸면 된다.
 
+예:
   python engine/tools.py list --abnormal
   python engine/tools.py lot L0231
   python engine/tools.py decompose L0231
   python engine/tools.py metrology --tool CDSEM-B --day 36
-  python engine/tools.py tmu --tool CDSEM-B
+  python engine/tools.py tmu --tool CDSEM-B --day 36
   python engine/tools.py chambers --day 30
   python engine/tools.py rules --signature delta_bias
   python engine/tools.py verify L0231
 """
+from __future__ import annotations
 
 import argparse
 import json
@@ -20,90 +21,55 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-RAW = (ROOT / "data.js").read_text(encoding="utf-8")
-D = json.loads(RAW[RAW.index("{"):RAW.rstrip().rstrip(";").rindex("}") + 1])
-LOTS = {l["lot"]: l for l in D["lots"]}
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from engine.query_service import AttributionQueryService, LotNotFoundError
+
+SERVICE = AttributionQueryService()
 
 
-def out(o):
-    print(json.dumps(o, ensure_ascii=False, indent=2))
+def out(obj):
+    print(json.dumps(obj, ensure_ascii=False, indent=2))
 
 
-def need(lot):
-    if lot not in LOTS:
-        sys.exit(f"없는 로트: {lot}")
-    return LOTS[lot]
+def safe(call):
+    try:
+        return call()
+    except LotNotFoundError as exc:
+        sys.exit(f"없는 로트: {exc.args[0]}")
 
 
 def cmd_list(a):
-    rows = [l for l in D["lots"]
-            if (not a.abnormal or l["verdict"] != "NORMAL")
-            and (not a.chamber or l["chamber"] == a.chamber)]
-    out([dict(lot=l["lot"], date=l["date"], chamber=l["chamber"],
-              verdict=l["verdict"], label=l["label"]) for l in rows[:a.n]])
+    out(SERVICE.list_lots(abnormal=a.abnormal, chamber=a.chamber, limit=a.n))
 
 
 def cmd_lot(a):
-    l = need(a.lot)
-    out({k: l[k] for k in ("lot", "date", "day", "scanner", "reticle", "chamber",
-                           "adiTool", "aciTool", "rf", "adiMean", "aciMean", "m")})
+    out(safe(lambda: SERVICE.lot_context(a.lot)))
 
 
 def cmd_decompose(a):
-    l = need(a.lot)
-    out(dict(lot=l["lot"], metrics=l["m"], centers=D["centers"],
-             limits=D["limits"], evidence=l["ev"]))
+    out(safe(lambda: SERVICE.decompose(a.lot)))
 
 
 def cmd_metrology(a):
-    rows = [m for m in D["monitor"]
-            if (not a.tool or m["tool"] == a.tool)
-            and (a.day is None or a.day - 14 <= m["day"] <= a.day)]
-    out(dict(limit=D["limits"]["tool_drift"], series=rows,
-             note="golden wafer 재측정. 공정이 건드리지 않은 웨이퍼이므로 여기서 움직였다면 계측 원인이다."))
+    out(SERVICE.metrology(tool=a.tool, day=a.day))
 
 
 def cmd_tmu(a):
-    """계측 불확도(TMU)가 공정 허용 예산의 몇 %를 소비하는지.
-
-    TMU = RSS(dynamic precision 3sigma, tool-to-tool match).
-    업계 통상 기준은 공정 허용 반폭 T의 20% 이내다.
-    """
-    rows = [t for t in D["tmu"]
-            if (not a.tool or t["tool"] == a.tool)
-            and (a.day is None or t["day"] <= a.day)]
-    if a.day is not None:
-        rows = rows[-2:] if not a.tool else rows[-1:]
-    out(dict(cd_tolerance_nm=D["meta"]["cdTol"],
-             budget_pct=D["meta"]["tmuBudget"],
-             series=rows,
-             note=("TMU가 예산을 넘으면 그 장비의 측정값을 근거로 한 공정 조치는 보류한다. "
-                   "TIS 항은 오버레이 전용이라 CD-SEM TMU에서는 제외했다.")))
+    out(SERVICE.tmu(tool=a.tool, day=a.day))
 
 
 def cmd_chambers(a):
-    rows = [c for c in D["chamberSeries"] if a.day - a.window < c["day"] <= a.day]
-    agg = {}
-    for r in rows:
-        s = agg.setdefault(r["chamber"], dict(n=0, sum=0.0))
-        s["n"] += r["n"]; s["sum"] += r["dbias"] * r["n"]
-    out(dict(window=[a.day - a.window + 1, a.day], limit=D["limits"]["chamber_dev"],
-             chambers={k: round(v["sum"] / v["n"], 3) for k, v in sorted(agg.items())}))
+    out(SERVICE.chambers(day=a.day, window=a.window))
 
 
 def cmd_rules(a):
-    """점진적 공개 — 걸린 signature에 해당하는 규칙만 돌려준다."""
-    hit = [r for r in D["rules"]
-           if not a.signature or a.signature in json.dumps(r, ensure_ascii=False)]
-    out(hit if hit else D["rules"])
+    out(SERVICE.rules(signature=a.signature))
 
 
 def cmd_verify(a):
-    l = need(a.lot)
-    fail = [g["c"] for g in l["gate"] if not g["ok"]]
-    out(dict(lot=l["lot"], verdict=l["verdict"], gate=l["gate"],
-             passed=not fail, unmet=fail,
-             action=l["action"] if not fail else "근거 불충족 — 판정하지 않는다."))
+    out(safe(lambda: SERVICE.verify(a.lot)))
 
 
 P = argparse.ArgumentParser(description=__doc__)
@@ -112,15 +78,13 @@ p = sub.add_parser("list"); p.add_argument("--abnormal", action="store_true")
 p.add_argument("--chamber"); p.add_argument("-n", type=int, default=40); p.set_defaults(f=cmd_list)
 p = sub.add_parser("lot"); p.add_argument("lot"); p.set_defaults(f=cmd_lot)
 p = sub.add_parser("decompose"); p.add_argument("lot"); p.set_defaults(f=cmd_decompose)
-p = sub.add_parser("metrology"); p.add_argument("--tool"); p.add_argument("--day", type=int)
-p.set_defaults(f=cmd_metrology)
-p = sub.add_parser("tmu"); p.add_argument("--tool"); p.add_argument("--day", type=int)
-p.set_defaults(f=cmd_tmu)
+p = sub.add_parser("metrology"); p.add_argument("--tool"); p.add_argument("--day", type=int); p.set_defaults(f=cmd_metrology)
+p = sub.add_parser("tmu"); p.add_argument("--tool"); p.add_argument("--day", type=int); p.set_defaults(f=cmd_tmu)
 p = sub.add_parser("chambers"); p.add_argument("--day", type=int, required=True)
 p.add_argument("--window", type=int, default=5); p.set_defaults(f=cmd_chambers)
 p = sub.add_parser("rules"); p.add_argument("--signature"); p.set_defaults(f=cmd_rules)
 p = sub.add_parser("verify"); p.add_argument("lot"); p.set_defaults(f=cmd_verify)
 
 if __name__ == "__main__":
-    a = P.parse_args()
-    a.f(a)
+    args = P.parse_args()
+    args.f(args)

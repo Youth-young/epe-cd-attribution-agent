@@ -37,7 +37,6 @@ adi = pd.read_csv(ROOT / "data/meas_adi.csv")
 aci = pd.read_csv(ROOT / "data/meas_aci.csv")
 mon = pd.read_csv(ROOT / "data/tool_monitor.csv")
 xsem = pd.read_csv(ROOT / "data/ref_xsem.csv")
-gt = pd.read_csv(ROOT / "validation/ground_truth.csv")
 
 
 # ------------------------------------------------------------------ 분해
@@ -116,7 +115,7 @@ for run in runs.itertuples():
     rec["lot_id"] = run.lot_id
     recs.append(rec)
 
-M = pd.DataFrame(recs).merge(runs, on="lot_id").merge(gt[["lot_id", "scenario_id", "scenario_name"]], on="lot_id")
+M = pd.DataFrame(recs).merge(runs, on="lot_id")
 
 # ------------------------------------------------------------------ 기준선과 관리 한계
 base = M[M.day_index < BASELINE_DAYS]
@@ -326,12 +325,10 @@ VERD_TO_SCEN = {"NORMAL": "S0", "PHOTO_DOSE": "S1", "PHOTO_TRACK_RADIAL": "S2",
                 "RETICLE_CD_ERROR": "S3", "ETCH_CHAMBER": "S4", "METROLOGY_TOOL_DRIFT": "S5",
                 "INDETERMINATE": "??"}
 
-lots, conf = [], {}
+lots = []
 for r in M.itertuples():
     v, ev, gate, extra, aux = attribute(r)
     pred = VERD_TO_SCEN[v]
-    conf.setdefault(r.scenario_id, {}).setdefault(pred, 0)
-    conf[r.scenario_id][pred] += 1
     rule = RULES[v]
     lots.append(dict(
         lot=r.lot_id, date=r.date, day=int(r.day_index), verdict=v,
@@ -350,7 +347,6 @@ for r in M.itertuples():
                dradial=(None if pd.isna(r.delta_radial) else round(r.delta_radial, 2))),
         ev=ev, gate=gate, extra=extra,
         adiMap=r.adi_map, deltaMap=(None if not isinstance(r.delta_map, list) else r.delta_map),
-        truth=r.scenario_id,
     ))
 
 # 웹 뷰어가 측정점 하나하나를 설명할 수 있도록 좌표 정보를 함께 내보낸다
@@ -374,7 +370,6 @@ payload = dict(
     lots=lots,
     monitor=[dict(day=int(r.day_index), tool=r.meas_tool, drift=round(r.drift, 3))
              for r in mon_d.itertuples()],
-    confusion=conf,
     tmu=[dict(day=int(r.day_index), tool=r.meas_tool, prec=round(float(r.prec3s), 3),
               match=round(float(r.match), 3), tmu=round(float(r.tmu), 3),
               ratio=round(float(r.ratio), 1)) for r in TMU.itertuples()],
@@ -390,17 +385,11 @@ payload = dict(
 (ROOT / "data.js").write_text("const DATA = " + json.dumps(payload, ensure_ascii=False, default=lambda o: bool(o) if isinstance(o, (np.bool_,)) else float(o)) + ";\n",
                              encoding="utf-8")
 
-# 블라인드 평가 리포트
-lines = ["# 블라인드 평가", "", "engine은 ground_truth.csv를 읽지 않는다. 아래는 판정 후 대조 결과.", ""]
-allp = sorted({p for v in conf.values() for p in v})
-lines.append("| 실제 \\ 판정 | " + " | ".join(allp) + " |")
-lines.append("|" + "---|" * (len(allp) + 1))
-for t in sorted(conf):
-    lines.append(f"| {t} | " + " | ".join(str(conf[t].get(p, 0)) for p in allp) + " |")
-(ROOT / "validation" / "blind_eval.md").write_text("\n".join(lines), encoding="utf-8")
-
+# 판정 엔진은 여기서 종료한다.
+# ground_truth와의 비교는 validation/evaluate.py에서 별도 수행한다.
+# 이렇게 분리해야 prediction path가 정답 파일을 전혀 알지 못한다.
+from collections import Counter
+_verdict_counts = Counter(l["verdict"] for l in lots)
 print("관리 한계:", {k: round(v, 2) for k, v in LIM.items()})
-print("혼동 행렬:")
-for t in sorted(conf):
-    print(" ", t, conf[t])
+print("판정 분포:", dict(sorted(_verdict_counts.items())))
 print("data.js", (ROOT / "data.js").stat().st_size // 1024, "KB")

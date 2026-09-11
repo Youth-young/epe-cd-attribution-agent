@@ -78,7 +78,7 @@ TIS는 0°/180° 회전으로 정의되는 오버레이 전용 항이라 CD-SEM�
 
 현업 계측 구조를 반영한 부분 — 웨이퍼 전면 CD 맵은 존재하지 않으므로 9 field × 5 site
 = **41점 샘플링**, ADI는 로트당 3장(slot 3/13/23)·**ACI는 절반의 로트만 1장**,
-단면은 파괴적이라 주 3회 5점, 계측 장비 drift는 **golden wafer 재측정**으로 감시.
+단면은 파괴적이라 제한적으로 측정하고, 계측 장비 drift는 **monitor wafer 재측정**으로 감시.
 
 전체 근거와 등급(measured / literature / assumed)은 [`docs/00_data_basis.md`](docs/00_data_basis.md).
 
@@ -93,7 +93,10 @@ engine/     분해 · 관리 한계 산출 · 귀속 · Verification Gate  ← �
 index.html  판정 결과 뷰어 (순수 HTML/CSS/JS, 프레임워크 없음)
             개요·용어·로트 판정·추이와 감시·검증 5개 화면으로 분리
             전문 용어는 마우스를 올리면 그림과 함께 설명이 뜬다
-validation/ ground_truth.csv (엔진 미열람) · blind_eval.md
+validation/ ground_truth.csv (엔진 미열람) · evaluate.py · blind_eval.md
+api/        FastAPI 서비스 인터페이스 (`/docs` 자동 문서)
+domain/     Pydantic 기반 최소 데이터 계약
+tests/      engine 격리 · service · API 회귀 테스트
 ```
 
 **LLM은 단 하나의 숫자도 생성하지 않는다.** 분해·회귀·통계 검정은 전부 결정론적 코드가
@@ -103,7 +106,7 @@ validation/ ground_truth.csv (엔진 미열람) · blind_eval.md
 
 ## 결과 (블라인드 평가)
 
-`validation/ground_truth.csv`를 읽지 않고 판정한 뒤 대조했다.
+`engine/analyze.py`는 `validation/ground_truth.csv`를 전혀 읽지 않는다. 판정 snapshot인 `data.js`가 생성된 뒤, 별도 `validation/evaluate.py`가 ground truth를 읽어 대조한다.
 
 | 실제 | 판정 성공 | 비고 |
 |---|---|---|
@@ -115,7 +118,7 @@ validation/ ground_truth.csv (엔진 미열람) · blind_eval.md
 | 계측 drift 11* | 8 | 3건 판정 보류, **식각으로 오귀속 0건** |
 
 가장 중요한 숫자는 마지막 줄이다. **계측 drift를 공정 이상으로 오판해 정상 챔버를
-조치하게 만든 사례가 없다.** 보류 3건은 golden wafer 재측정이 주 2회라 신호 발생 첫날
+조치하게 만든 사례가 없다.** 보류 3건은 monitor wafer 재측정이 주 2회라 신호 발생 첫날
 감시 데이터가 2일 이상 묵어 있었고, 그때 엔진이 "계측이 정상이라고 단정할 수 없다"며
 판정을 거부한 결과다.
 
@@ -190,6 +193,19 @@ PROLITH는 노광 **전**에 조건에서 CD를 예측해 process window를 정�
 gstack 23개 중 3개만 설치했다. 스킬을 많이 깔면 세션마다 모든 설명이 컨텍스트에 올라가
 한도를 넘으면 일부가 조용히 누락된다. **컨텍스트를 통제하는 것이 곧 판정 품질이다.**
 선택 근거는 [`docs/01_skill_setup.md`](docs/01_skill_setup.md).
+
+
+## FastAPI 서비스 인터페이스
+
+정적 뷰어와 별도로 동일한 판정 snapshot을 사용하는 API가 있다. CLI와 API가 `engine/query_service.py`를 공유하므로 향후 Agent tool도 같은 domain service를 재사용할 수 있다.
+
+```bash
+pip install -r requirements.txt
+python run.py
+uvicorn api.main:app --reload
+```
+
+브라우저에서 `http://127.0.0.1:8000/docs`를 열면 OpenAPI 문서와 현재 tool surface를 확인할 수 있다. 상세 구조는 [`docs/02_agent_ready_refactor.md`](docs/02_agent_ready_refactor.md).
 
 ## 배포 후 QA
 
