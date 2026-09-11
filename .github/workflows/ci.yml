@@ -15,8 +15,8 @@ jobs:
           python-version: "3.12"
           cache: pip
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: python -m pip install -r requirements.txt
       - name: Rebuild deterministic outputs
         run: python run.py
       - name: Run tests
-        run: pytest -q
+        run: python -m pytest -q
