@@ -12,6 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).parent
 STEPS = [
     "generator/generate_data.py",
+    "generator/generate_events.py",
     "engine/analyze.py",
     "validation/evaluate.py",
 ]

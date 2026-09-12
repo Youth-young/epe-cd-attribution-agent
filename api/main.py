@@ -10,12 +10,14 @@ from __future__ import annotations
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-from domain.models import HealthResponse, LotSummary, VerificationResult
+from domain.models import HealthResponse, InvestigationResult, LotSummary, VerificationResult
 from engine.query_service import AttributionQueryService, LotNotFoundError
+from agent.orchestrator import investigate_lot
+from agent.tools import tool_catalog
 
 app = FastAPI(
     title="EPE-CD Attribution API",
-    version="0.2.0",
+    version="0.3.0",
     description=(
         "Deterministic CD attribution engine의 서비스 인터페이스. "
         "향후 Agent tool-calling은 이 API와 동일한 service layer를 공유한다."
@@ -92,5 +94,31 @@ def rules(signature: str | None = None):
 def verify(lot_id: str):
     try:
         return service.verify(lot_id)
+    except LotNotFoundError as exc:
+        raise not_found(exc) from exc
+
+
+@app.get("/equipment/events", tags=["equipment"])
+def equipment_events(
+    tool_id: str | None = None,
+    event_type: str | None = None,
+    day: int | None = None,
+    window: int = Query(default=7, ge=0, le=30),
+    limit: int = Query(default=100, ge=1, le=500),
+):
+    return service.equipment_events(
+        tool_id=tool_id, event_type=event_type, day=day, window=window, limit=limit
+    )
+
+
+@app.get("/agent/tools", tags=["agent"])
+def agent_tools():
+    return {"tools": tool_catalog()}
+
+
+@app.post("/lots/{lot_id}/investigate", response_model=InvestigationResult, tags=["agent"])
+def investigate(lot_id: str):
+    try:
+        return investigate_lot(lot_id)
     except LotNotFoundError as exc:
         raise not_found(exc) from exc

@@ -41,3 +41,35 @@ class JsonEnvelope(BaseModel):
     """스키마가 아직 안정화되지 않은 분석 응답을 위한 임시 envelope."""
 
     data: dict[str, Any]
+
+
+class EquipmentEvent(BaseModel):
+    event_id: str
+    date: str
+    day_index: int
+    tool_id: str
+    module: str
+    event_type: str
+    component: str
+    status: str
+    description: str
+    before_value: float | None = None
+    after_value: float | None = None
+    unit: str | None = None
+    source: str
+
+
+class InvestigationStep(BaseModel):
+    tool: str
+    args: dict[str, Any]
+    reason: str
+    result: Any
+
+
+class InvestigationResult(BaseModel):
+    lot: str
+    status: str
+    verdict: str
+    action: str
+    tool_calls: int
+    trace: list[InvestigationStep]

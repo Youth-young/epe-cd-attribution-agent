@@ -1,0 +1,29 @@
+event_id,date,day_index,tool_id,module,event_type,component,status,description,before_value,after_value,unit,source
+EVT-0001,2026-03-04,2,SCN-01,PHOTO,CALIBRATION,Energy Sensor,COMPLETED,Scheduled energy sensor calibration,0.42,0.08,%,MES/EES
+EVT-0002,2026-03-12,8,SCN-01,PHOTO,PM,Laser Source,COMPLETED,Routine source module preventive maintenance,,,,MES/EES
+EVT-0003,2026-03-04,2,SCN-02,PHOTO,CALIBRATION,Energy Sensor,COMPLETED,Scheduled energy sensor calibration,0.42,0.08,%,MES/EES
+EVT-0004,2026-03-12,8,SCN-02,PHOTO,PM,Laser Source,COMPLETED,Routine source module preventive maintenance,,,,MES/EES
+EVT-0005,2026-03-13,9,SCN-01,PHOTO,COMPONENT_REPLACE,Laser Source,COMPLETED,Laser source module replaced after PM inspection,,,,MES/EES
+EVT-0006,2026-03-13,9,SCN-01,PHOTO,CALIBRATION,Energy Sensor,OVERDUE,Post-source-replacement energy calibration not closed within planned window,,,,MES/EES
+EVT-0007,2026-03-20,14,SCN-01,PHOTO,CALIBRATION,Energy Sensor,COMPLETED,Energy sensor recalibration completed,1.96,0.11,%,MES/EES
+EVT-0008,2026-03-20,14,SCN-01,PHOTO,QUALIFICATION,Dose Mapper,PASS,Post-calibration dose qualification passed,,,,MES/EES
+EVT-0009,2026-03-20,14,TRACK-01,PHOTO,PM,PEB Hotplate,COMPLETED,Routine PEB hotplate PM,,,,MES/EES
+EVT-0010,2026-03-23,15,TRACK-01,PHOTO,CALIBRATION,PEB Hotplate,CHECK_REQUIRED,Across-wafer plate uniformity check requested after PM,1.1,,degC,MES/EES
+EVT-0011,2026-03-27,19,TRACK-01,PHOTO,CALIBRATION,PEB Hotplate,COMPLETED,PEB hotplate uniformity tuning completed,1.1,0.28,degC,MES/EES
+EVT-0012,2026-03-27,19,RET-B,RETICLE,INSPECTION,Pattern CD,REVIEW,Scheduled reticle inspection flagged two sites for engineering review,,,,MES/EES
+EVT-0013,2026-04-03,24,RET-B,RETICLE,QUALIFICATION,Pattern CD,PASS,Reticle requalification after review,,,,MES/EES
+EVT-0014,2026-03-18,12,CH-A,ETCH,PM,Chamber,COMPLETED,Routine chamber PM and wet clean,,,,MES/EES
+EVT-0015,2026-03-18,12,CH-B,ETCH,PM,Chamber,COMPLETED,Routine chamber PM and wet clean,,,,MES/EES
+EVT-0016,2026-03-18,12,CH-C,ETCH,PM,Chamber,COMPLETED,Routine chamber PM and wet clean,,,,MES/EES
+EVT-0017,2026-03-18,12,CH-D,ETCH,PM,Chamber,COMPLETED,Routine chamber PM and wet clean,,,,MES/EES
+EVT-0018,2026-04-03,24,CH-C,ETCH,PM,Chamber,DUE,Preventive maintenance window opened based on RF-hour criterion,,,,MES/EES
+EVT-0019,2026-04-10,29,CH-C,ETCH,INSPECTION,Endpoint/OES,REVIEW,Endpoint trace shift sent for engineering review,,,,MES/EES
+EVT-0020,2026-04-16,33,CH-C,ETCH,PM,Chamber,COMPLETED,Wet clean and chamber PM completed,,,,MES/EES
+EVT-0021,2026-04-16,33,CH-C,ETCH,QUALIFICATION,Etch Bias,PASS,Post-PM etch-bias qualification passed,,,,MES/EES
+EVT-0022,2026-03-09,5,CDSEM-A,METROLOGY,CALIBRATION,CD Scale,COMPLETED,Routine CD scale calibration,0.35,0.12,nm,MES/EES
+EVT-0023,2026-03-30,20,CDSEM-A,METROLOGY,QUALIFICATION,Monitor Wafer,PASS,Periodic monitor wafer qualification,,,,MES/EES
+EVT-0024,2026-03-09,5,CDSEM-B,METROLOGY,CALIBRATION,CD Scale,COMPLETED,Routine CD scale calibration,0.35,0.12,nm,MES/EES
+EVT-0025,2026-03-30,20,CDSEM-B,METROLOGY,QUALIFICATION,Monitor Wafer,PASS,Periodic monitor wafer qualification,,,,MES/EES
+EVT-0026,2026-04-16,33,CDSEM-B,METROLOGY,CALIBRATION,CD Scale,OVERDUE,Scheduled CD scale calibration exceeded due date,,,,MES/EES
+EVT-0027,2026-04-22,37,CDSEM-B,METROLOGY,MONITOR_ALERT,Monitor Wafer,REVIEW,Monitor wafer mean shift exceeded engineering watch level,,,,MES/EES
+EVT-0028,2026-04-27,40,CDSEM-B,METROLOGY,CALIBRATION,CD Scale,COMPLETED,CD scale recalibration completed,3.22,0.18,nm,MES/EES

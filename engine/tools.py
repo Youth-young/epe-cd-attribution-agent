@@ -11,6 +11,8 @@ CLI와 FastAPI는 같은 AttributionQueryService를 사용한다.
   python engine/tools.py tmu --tool CDSEM-B --day 36
   python engine/tools.py chambers --day 30
   python engine/tools.py rules --signature delta_bias
+  python engine/tools.py events --tool SCN-01 --day 11 --window 3
+  python engine/tools.py investigate L0081
   python engine/tools.py verify L0231
 """
 from __future__ import annotations
@@ -25,6 +27,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from engine.query_service import AttributionQueryService, LotNotFoundError
+from agent.orchestrator import investigate_lot
 
 SERVICE = AttributionQueryService()
 
@@ -68,6 +71,16 @@ def cmd_rules(a):
     out(SERVICE.rules(signature=a.signature))
 
 
+def cmd_events(a):
+    out(SERVICE.equipment_events(
+        tool_id=a.tool, event_type=a.event_type, day=a.day, window=a.window, limit=a.n
+    ))
+
+
+def cmd_investigate(a):
+    out(safe(lambda: investigate_lot(a.lot)))
+
+
 def cmd_verify(a):
     out(safe(lambda: SERVICE.verify(a.lot)))
 
@@ -83,6 +96,10 @@ p = sub.add_parser("tmu"); p.add_argument("--tool"); p.add_argument("--day", typ
 p = sub.add_parser("chambers"); p.add_argument("--day", type=int, required=True)
 p.add_argument("--window", type=int, default=5); p.set_defaults(f=cmd_chambers)
 p = sub.add_parser("rules"); p.add_argument("--signature"); p.set_defaults(f=cmd_rules)
+p = sub.add_parser("events"); p.add_argument("--tool"); p.add_argument("--event-type")
+p.add_argument("--day", type=int); p.add_argument("--window", type=int, default=7)
+p.add_argument("-n", type=int, default=100); p.set_defaults(f=cmd_events)
+p = sub.add_parser("investigate"); p.add_argument("lot"); p.set_defaults(f=cmd_investigate)
 p = sub.add_parser("verify"); p.add_argument("lot"); p.set_defaults(f=cmd_verify)
 
 if __name__ == "__main__":

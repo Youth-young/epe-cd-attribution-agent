@@ -10,6 +10,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from repositories.event_repository import EquipmentEventRepository
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -20,6 +22,7 @@ class LotNotFoundError(KeyError):
 class AttributionQueryService:
     def __init__(self, data_path: Path | None = None):
         self.data_path = data_path or ROOT / "data.js"
+        self.events = EquipmentEventRepository()
         self.reload()
 
     def reload(self) -> None:
@@ -113,6 +116,32 @@ class AttributionQueryService:
             if not signature or signature in json.dumps(rule, ensure_ascii=False)
         ]
         return hit if hit else self.data["rules"]
+
+
+    def equipment_events(
+        self,
+        *,
+        tool_id: str | None = None,
+        event_type: str | None = None,
+        day: int | None = None,
+        window: int = 7,
+        limit: int = 100,
+    ) -> dict[str, Any]:
+        if day is not None:
+            rows = self.events.list_events(
+                tool_id=tool_id, event_type=event_type,
+                day_from=max(0, day - window), day_to=day + window, limit=limit,
+            )
+        else:
+            rows = self.events.list_events(tool_id=tool_id, event_type=event_type, limit=limit)
+        return {
+            "tool_id": tool_id,
+            "event_type": event_type,
+            "day": day,
+            "window": window if day is not None else None,
+            "events": rows,
+            "note": "PM/Calibration/Component change는 attribution의 보조 근거다. event 자체만으로 원인을 확정하지 않는다.",
+        }
 
     def verify(self, lot_id: str) -> dict[str, Any]:
         lot = self._need(lot_id)

@@ -296,3 +296,15 @@ Python (numpy, pandas, PyYAML) · 순수 HTML/CSS/JavaScript · Vercel · Git
 - **차트에 축과 단위가 있다** — 생산일(x)과 nm(y), 관리 한계를 회색 띠로 표시하고,
   점을 누르면 해당 로트 판정으로 이동한다.
 - **모바일 대응** — 단일 열로 재배치되고 터치로 모든 설명을 열 수 있다.
+
+## v0.3 Agent Investigation Tools
+
+Agent가 단순히 “PM/Calibration을 확인하세요”라고 말하는 데서 끝나지 않도록 structured equipment history와 callable tool surface를 추가했다.
+
+- `data/equipment_events.csv`: PM / calibration / component change / qualification / monitor alert
+- `GET /equipment/events`: 장비 이력 조회
+- `GET /agent/tools`: Agent tool catalog
+- `POST /lots/{lot_id}/investigate`: tool-call trace를 포함한 첫 investigation orchestrator
+- 최종 disposition은 기존 deterministic verification gate가 제한
+
+상세 설계는 `docs/03_agent_investigation_v03.md` 참조.
