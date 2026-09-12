@@ -1,166 +1,174 @@
-# Attribution rules
-# Each rule defines (1) where the signal lives in coordinate space,
-# (2) which evidence is mandatory, (3) the attributed cause, and
-# (4) the recommended disposition/action.
-# Conditions under `require` are re-checked by the deterministic Verification Gate.
+# 원인 귀속 규칙
+# 각 규칙은 (1) 어느 좌표계에 신호가 사는가 (2) 어떤 증거가 반드시 있어야 하는가
+# (3) 무엇이 원인이고 (4) 무엇을 조치하는가 를 정의한다.
+# require에 정의된 조건은 Verification Gate가 코드로 재검증한다.
 
 version: 1
 
 metrics:
-  adi_offset:    Wafer-mean ADI CD minus target (nm). Scalar component applied across the whole wafer.
-  adi_radial:    Coefficient of the ADI residual regressed on (r/R)^2 (nm). Wafer-radial coordinate system.
-  adi_slit:      Amplitude converted from the intra-field X-direction slope (nm). Scanner slit coordinate system.
-  adi_reticle:   Residual that repeats at a fixed site after removing the slit component (nm). Reticle coordinate system.
-  delta_bias:    Mean (ACI - ADI) minus the reference etch bias (nm).
-  delta_radial:  Coefficient of delta-CD regressed on (r/R)^2 (nm).
-  tool_drift:    Monitor-wafer re-measurement shift versus baseline (nm).
-  tmu_ratio:     Percentage of the process tolerance budget (+/-6.0 nm) consumed by measurement uncertainty (TMU).
+  adi_offset:    웨이퍼 평균 ADI CD − 목표 (nm). 웨이퍼 전체에 걸린 스칼라 성분.
+  adi_radial:    ADI 잔차를 (r/R)²로 회귀한 계수 (nm). 웨이퍼 반경 좌표계.
+  adi_slit:      field 내 X 방향 기울기로 환산한 진폭 (nm). 스캐너 슬릿 좌표계.
+  adi_reticle:   slit 성분 제거 후 site에 고정되어 반복되는 잔차 (nm). 레티클 좌표계.
+  delta_bias:    (ACI − ADI) 평균 − 기준 etch bias (nm).
+  delta_radial:  ΔCD를 (r/R)²로 회귀한 계수 (nm).
+  tool_drift:    monitor wafer 재측정 기준선 대비 이동량 (nm).
+  tmu_ratio:     계측 불확도 TMU가 공정 허용 예산(±6.0 nm)의 몇 %를 소비하는지.
                  TMU = RSS(dynamic precision 3sigma, tool-to-tool match).
-                 The working convention is <=20%; above that, process action based on the tool reading is withheld.
-  chamber_dev:   This chamber's windowed mean delta-CD minus the fleet mean (nm).
-  taper_dev:     Change in cross-section taper (BCD-TCD) versus baseline (nm).
+                 통상 기준은 20% 이내이며, 넘으면 그 장비 측정값으로 공정을 조치하지 않는다.
+  chamber_dev:   해당 챔버의 window ΔCD 평균 − 타 챔버 평균 (nm).
+  taper_dev:     단면 taper(BCD−TCD) 기준선 대비 변화 (nm).
 
 rules:
 
   - id: PHOTO_DOSE
-    label: Photo dose drift
+    label: 노광 dose drift
     module: Photo
-    coordinate: Wafer scalar
+    coordinate: 웨이퍼 스칼라
     when: [adi_offset_exceeds]
     require:
-      - adi_radial_within_limit      # if radial also grows, a Track cause may be more plausible
+      - adi_radial_within_limit      # 반경 성분이 함께 커졌다면 track 원인일 수 있다
       - adi_reticle_within_limit
     cause: >
-      Wafer-mean ADI CD shifted as a whole, while the radial component, slit fingerprint,
-      and reticle-repeat component remain within control limits. The excursion is not
-      concentrated at a wafer location; it is a uniform wafer-mean shift, the fingerprint
-      of a factor acting across the full wafer. Exposure dose fits this pattern. If the
-      recipe Setting stayed constant while only the Energy Sensor readback moved, effective
-      dose and Setting have separated, which points first to Dose Mapper / Energy Sensor
-      Calibration.
+      웨이퍼 평균 ADI CD가 통째로 이동했고, 반경 성분·슬릿 지문·레티클 반복 성분은
+      모두 관리 한계 안이다. 즉 어긋남이 웨이퍼 특정 위치에 몰리지 않고 전면에
+      균일하게 걸린 형태(wafer mean shift)이며, 이는 웨이퍼 전체에 동일하게 작용하는
+      인자의 지문이다. 노광량(dose)이 여기에 해당한다.
+      Setting값(Recipe Input)은 유지되어 있는데 Energy Sensor 실측값만 이탈했다면
+      실효 dose와 Setting 사이에 괴리가 생긴 것이고, 이는 Dose Mapper /
+      Energy Sensor Calibration 이탈을 먼저 의심해야 하는 상황이다.
     action: >
-      Order matters. (1) Check the gap between the recipe Setting and Energy Sensor readback.
-      If a gap exists, re-run Dose Mapper / Energy Sensor Calibration before touching the
-      recipe; changing Setting alone leaves effective dose wrong and the excursion can recur.
-      (2) Query PM / Inform history around the shift for Laser Source replacement, illuminator
-      optical-component changes, and recent calibration dates. A change point aligned with
-      the CD shift is the leading candidate. (3) Determine whether Energy Sensor behavior is
-      a one-time step or sustained drift; a step points to a change event, while drift points
-      to sensor degradation or contamination. (4) Review source characteristics including
-      Pulse Energy Stability (Energy Sigma), Bandwidth (E95), and illuminator Transmission
-      Efficiency. (5) Confirm no concurrent Track-side Develop / PEB change points as exclusion
-      evidence. (6) Verify Before/After CD recovery on a rework lot. (7) Prevent recurrence
-      with SPC on Energy Sensor readback and a calibration item in the source-replacement
-      Change Control Checklist.
-    risk: Normal
+      순서가 중요하다. (1) Setting값과 Energy Sensor 실측값의 괴리부터 확인한다.
+      괴리가 있으면 Recipe를 건드리기 전에 Dose Mapper / Energy Sensor Calibration을
+      재수행한다. Setting만 조정하면 실효 dose는 그대로여서 재발한다.
+      (2) PM / Inform 이력에서 해당 시점의 변경점을 조회한다 — Laser Source 교체,
+      조명계 광학 부품 교체, 최근 Calibration 수행 일자. CD 변화 시점과 일치하는
+      변경점이 있으면 1차 유력 원인으로 지목한다.
+      (3) Energy Sensor 시계열이 단발성 step 변화인지 지속 drift인지 구분한다.
+      step이면 변경점 연계, drift면 센서 열화·오염을 본다.
+      (4) 광원 특성 파라미터를 함께 조회한다 — Pulse Energy Stability(Energy Sigma),
+      Bandwidth(E95), 조명계 Transmission Efficiency. Source 교체 후 파장 특성이
+      달라지면 같은 Setting에서도 실효 dose가 달라진다.
+      (5) Track 측 Develop / PEB 조건에 변경점이 없음을 확인해 Photo 원인 귀속의
+      배제 근거를 확보한다.
+      (6) 조치 후 rework lot으로 Before/After CD 회복 여부를 검증한다.
+      ADI 시점이므로 스펙 이탈 웨이퍼는 아직 rework window 안에 있다.
+      (7) 재발 방지 — Energy Sensor 실측값에 SPC 관리도를 걸고 Setting 대비 편차가
+      한계를 넘으면 알람이 뜨는 OCAP을 수립한다. Source 교체를 Change Control
+      Checklist에 Calibration 필수 항목으로 반영한다.
+    risk: 정상
 
   - id: PHOTO_TRACK_RADIAL
-    label: Track/PEB radial profile shift
-    module: Photo (Track)
-    coordinate: Wafer radial
+    label: 트랙/PEB 반경 프로파일 변화
+    module: Photo(Track)
+    coordinate: 웨이퍼 반경
     when: [adi_radial_exceeds]
     require: [delta_within_limit_or_absent]
     cause: >
-      Regressing the ADI residual on (r/R)^2 places the radial coefficient outside its
-      control limit while the wafer mean itself does not move materially. A factor acting
-      uniformly across the wafer, such as dose, cannot create this shape. The fingerprint
-      points to a shift in the PEB plate temperature profile or the radial distribution of
-      coating thickness. Delta-CD remains normal, which excludes post-etch factors.
+      ADI 잔차를 (r/R)²로 회귀했을 때 반경 계수가 관리 한계를 넘었다.
+      웨이퍼 중심과 엣지의 CD 차이가 벌어진 형태이고, 웨이퍼 평균 자체는 크게
+      움직이지 않았다. dose처럼 전면에 균일하게 걸리는 인자로는 이 모양이 나오지
+      않는다. PEB plate 온도 프로파일이나 코팅 두께의 반경 분포가 바뀐 형태이며,
+      ΔCD(etch bias)는 정상이므로 Etch 이후 요인은 배제된다.
     action: >
-      (1) Query the Track PEB plate temperature map, including per-zone setpoints and readbacks,
-      for a zone-heater fault or correction-table change. (2) Review coater spin profile and
-      radial resist-thickness distribution. (3) Query Track PM / Inform history around the
-      excursion. (4) Do not compensate this radial component with scanner dose. A wafer-mean
-      R2R correction would push center and edge in opposite directions and can worsen CDU.
-    risk: Watch
+      (1) 해당 Track의 PEB plate 온도 맵(zone별 설정값과 실측값)을 조회한다.
+      zone 히터 이상이나 온도 보정 테이블 변경 이력이 있는지 본다.
+      (2) 코터 회전 프로파일과 레지스트 도포 두께의 반경 분포를 확인한다.
+      (3) Track PM / Inform 이력에서 해당 시점의 변경점을 조회한다.
+      (4) 반경 성분은 스캐너 dose 보정으로 상쇄되지 않는다. wafer mean만 맞추는
+      R2R 피드백으로 덮으면 중심과 엣지가 반대 방향으로 벌어져 CDU가 더 나빠진다.
+      dose 보정으로 대응하지 말 것.
+    risk: 주의
 
   - id: RETICLE_CD_ERROR
-    label: Reticle CD error
-    module: Photo (Reticle)
-    coordinate: Site-fixed within field
+    label: 레티클 CD 오차
+    module: Photo(Reticle)
+    coordinate: field 내 site 고정
     when: [adi_reticle_exceeds]
     require: [adi_reticle_repeats_across_fields]
     cause: >
-      The deviation appears only at specific sites and repeats identically across every field.
-      It is independent of wafer and radial coordinates, so the signature is attributed to a
-      CD error on the reticle itself.
+      특정 site에서만 편차가 나타나고 모든 field에서 동일하게 반복된다.
+      웨이퍼·반경 좌표계와 무관하므로 마스크 자체의 CD 오차로 귀속된다.
     action: >
-      (1) Expose this reticle on a different scanner and check whether the same sites reproduce
-      the deviation. If it reproduces, the error follows the reticle; if it follows the scanner,
-      it is a scanner fingerprint. (2) Review the mask CD measurement certificate and recent
-      cleaning / repair history. (3) Check for pellicle contamination or mask CD degradation.
-      (4) Do not touch scanner dose or etch recipe first; this site-fixed component cannot be
-      cancelled by a wafer-level correction.
-    risk: Watch
+      (1) 해당 레티클을 다른 스캐너에서 노광해 동일 site에서 같은 편차가 재현되는지
+      확인한다. 재현되면 레티클, 스캐너를 따라가면 스캐너 지문이다.
+      (2) 마스크 CD 측정 성적서와 최근 세정·수리 이력을 조회한다.
+      (3) Pellicle 오염이나 마스크 CD 열화 가능성을 함께 본다.
+      (4) 스캐너 dose나 Etch recipe를 먼저 건드리지 말 것. 이 성분은 site에 고정되어
+      있어 전면 보정으로는 상쇄되지 않는다.
+    risk: 주의
 
   - id: ETCH_CHAMBER
-    label: Etch chamber deviation / PM drift
+    label: 식각 챔버 편차 / PM drift
     module: Etch
-    coordinate: Wafer radial + chamber
+    coordinate: 웨이퍼 반경 + 챔버
     when: [delta_bias_exceeds]
     require:
-      - chamber_specific
-      - metrology_healthy
-      - tmu_within_budget
-      - metrology_evidence_fresh
-      - taper_not_contradicting
+      - chamber_specific            # 특정 챔버에서만 나타나야 한다
+      - metrology_healthy           # 계측이 정상이어야 공정 원인으로 귀속 가능
+      - tmu_within_budget           # 계측 불확도가 공정 예산의 20%를 넘으면 판정 근거로 못 쓴다
+      - metrology_evidence_fresh    # 계측 감시 데이터가 오래됐으면 '정상'이라 단정할 수 없다
+      - taper_not_contradicting     # 실제 식각 변화라면 단면 taper도 함께 움직여야 한다
     cause: >
-      ADI is normal but delta-CD has shifted, confined to a specific chamber and accompanied
-      by a wafer-radial component. The fingerprint is consistent with plasma uniformity,
-      gas-flow, ESC-temperature change, or cumulative drift following PM.
+      ADI는 정상인데 ΔCD가 이동했고, 특정 챔버에서만 나타나며 웨이퍼 반경 성분을 동반한다.
+      플라즈마 균일도·가스 흐름·ESC 온도 변화 또는 PM 이후 누적 drift로 귀속된다.
     action: >
-      (1) Isolate the chamber and re-measure etch bias on a chamber-matching wafer. (2) Plot
-      bias versus RF hours to distinguish seasoning drift from a one-off excursion, separating
-      the immediate post-PM first-wafer effect from slower drift. (3) Query OES / RF / pressure
-      traces for change points. (4) Cross-check chamber PM and wet-clean dates against the CD
-      shift. (5) ACI cannot be reworked; until the chamber is fixed, temporarily bias the ADI
-      target on subsequent lots to bring final CD inside spec, then revert after confirmation.
-    risk: High
+      (1) 해당 챔버를 격리하고 chamber matching 웨이퍼로 etch bias를 재측정한다.
+      (2) RF hours 대비 bias 추이를 확인해 seasoning drift인지 단발성 이상인지 가른다.
+      PM 직후 급변(first wafer effect) 구간과 그 이후 완만한 drift 구간을 구분해서 본다.
+      (3) OES / RF / 압력 트레이스에서 해당 기간의 변화점을 조회한다.
+      (4) 챔버 PM 이력과 wet clean 일자를 CD 변화 시점과 대조한다.
+      (5) ACI는 되돌릴 수 없다. 이후 로트는 ADI Target을 임시 보정해 최종 CD를
+      스펙 안으로 넣고, 챔버 조치 완료 후 원복한다.
+    risk: 위험
 
   - id: METROLOGY_TOOL_DRIFT
-    label: Metrology tool offset drift
+    label: 계측 장비 offset drift
     module: Metrology
-    coordinate: Tool-dependent
+    coordinate: 없음(측정 장비에 종속)
     when: [delta_bias_exceeds]
     require:
-      - tool_drift_exceeds
+      - tool_drift_exceeds          # monitor wafer가 같은 방향으로 이동했는지
+      # not_chamber_specific 는 보조 증거로만 본다. monitor wafer가 움직였다면
+      # 챔버 편중 여부와 무관하게 '자'를 먼저 바로잡고 재판정하는 것이 맞다.
     cause: >
-      Delta-CD has shifted, but the excursion is not concentrated in one chamber and appears
-      only in lots measured by a specific metrology tool. The monitor wafer, which the process
-      never touches, re-measured with a shift in the same direction. This supports a metrology
-      tool offset drift rather than a process change.
+      ΔCD가 이동했지만 특정 챔버에 몰리지 않고, 특정 계측 장비로 측정한 로트에서만 나타난다.
+      공정이 건드리지 않은 monitor wafer의 재측정값이 같은 방향으로 이동했으므로
+      공정 변화가 아니라 계측 장비의 offset drift다.
     action: >
-      (1) Hold process action. Changing chamber recipes in this state can mis-tune otherwise
-      healthy equipment. (2) Review the CD-SEM monitor-wafer history and most recent calibration,
-      then re-run calibration. (3) Recompute tool-to-tool matching offset. (4) Redisposition
-      every lot measured by this tool during the affected window. (5) Review whether the monitor
-      cadence should be shortened. (6) Decompose TMU into precision and tool-to-tool match; if
-      matching dominates, re-tune fleet matching, and if precision dominates, review recipe
-      parameters or tool condition.
-    risk: High
+      (1) 공정 조치를 보류한다. 이 상태에서 챔버 recipe를 건드리면 정상 설비를
+      틀어놓게 된다.
+      (2) 해당 CD-SEM의 monitor wafer 재측정 이력과 최근 calibration 일자를 조회하고
+      재캘리브레이션을 수행한다.
+      (3) 두 장비의 tool-to-tool matching offset을 재산출한다.
+      (4) 영향 기간에 해당 장비로 측정된 로트를 모두 재판정한다.
+      (5) monitor wafer 점검 주기를 단축할지 검토한다. 이번 사례에서 판정 보류가
+      발생한 원인이 감시 주기 부족이었다.
+      (6) TMU 항을 분해해 precision과 tool-to-tool match 중 어느 쪽이 예산을 먹는지 본다.
+      match가 주범이면 fleet matching 재조정, precision이 주범이면 recipe(프레임 수, 배율,
+      landing energy)나 장비 컨디션을 본다.
+    risk: 위험
 
   - id: INDETERMINATE
-    label: Disposition withheld
+    label: 판정 보류
     module: "-"
     coordinate: "-"
     when: [delta_bias_exceeds]
     require: []
     cause: >
-      An excursion was detected, but there is not enough evidence to identify a defensible
-      cause. Neither chamber concentration nor metrology drift meets its threshold, or the
-      supporting evidence is missing.
+      이상은 탐지되었으나 원인을 특정할 증거가 부족하다.
+      챔버 편중과 계측 drift가 모두 기준에 못 미치거나, 근거 데이터가 없는 경우다.
     action: >
-      Request additional measurement: a chamber-matching wafer, an ad-hoc monitor-wafer
-      re-measurement, and a cross-section taper check. Do not name a disposition target
-      without evidence.
-    risk: Watch
+      추가 측정 요청 — 해당 챔버 매칭 웨이퍼, monitor wafer 임시 재측정, 단면 taper 확인.
+      근거 없이 조치 대상을 지정하지 않는다.
+    risk: 주의
 
   - id: NORMAL
-    label: Normal
+    label: 정상
     module: "-"
     coordinate: "-"
     when: []
     require: []
-    cause: All monitored components are within their control limits.
-    action: No action required.
-    risk: Normal
+    cause: 모든 성분이 관리 한계 내에 있다.
+    action: 조치 없음.
+    risk: 정상

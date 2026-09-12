@@ -1,415 +1,1231 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>EPE-CD Attribution — Process Excursion Attribution Console</title>
-<meta name="description" content="A semiconductor process engineering console for evidence-driven ADI/ACI CD excursion attribution across Photo, Etch, and Metrology.">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CD Excursion Attribution Console — CD 이상 원인 귀속</title>
+<meta name="description" content="반도체 공정에서 선폭이 틀어졌을 때, 원인이 노광인지 식각인지 계측인지를 가려내는 AI 에이전트의 판정 결과 뷰어.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;650;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#F2EFF5;
-  --surface:#FFFFFF;
-  --surface-2:#F8F7FA;
-  --surface-3:#E7ECEC;
-  --ink:#0E0E0F;
-  --ink-2:#2E3838;
-  --muted:#667676;
-  --muted-2:#8B9999;
-  --teal:#547475;
-  --teal-soft:#A8BEBD;
-  --teal-deep:#062423;
-  --line:rgba(6,36,35,.13);
-  --line-strong:rgba(6,36,35,.24);
-  --hover:rgba(84,116,117,.08);
-  --selected:rgba(84,116,117,.14);
-  --pass:#356D61;
-  --pass-bg:#E7F1EE;
-  --watch:#8A651C;
-  --watch-bg:#F7EFD9;
-  --high:#8C3D45;
-  --high-bg:#F6E4E6;
-  --photo:#4F6F70;
-  --etch:#745A67;
-  --metro:#315F64;
-  --hold:#6B607F;
-  --normal:#647171;
-  --cold:#527E87;
-  --hot:#A35A5A;
-  --radius-sm:6px;
-  --radius:10px;
-  --radius-lg:14px;
-  --shadow:0 1px 2px rgba(14,14,15,.04),0 8px 28px rgba(6,36,35,.04);
-  --sidebar:248px;
-  --results:330px;
+  --page:#edf0f2; --panel:#fff; --sunk:#f5f7f8;
+  --ink:#10161b; --ink2:#33424c; --muted:#57676f; --line:#c8d2d8; --line2:#e2e9ec;
+  --photo:#a05c00; --etch:#8a2e68; --metro:#0b6a72; --normal:#4e5f6a; --hold:#5a4e9c;
+  --cold:#2c6da6; --hot:#bf4630; --ok:#1c6b3a; --bad:#a2321f;
+  --w:1080px;
 }
 *{box-sizing:border-box}
-html{color-scheme:light;-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:14px;line-height:1.5}
-button,input,select{font:inherit;color:inherit}
-button{cursor:pointer}
-button:disabled{cursor:not-allowed;opacity:.55}
-:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
-.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
-.num{text-align:right;font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
-.hidden,[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--ink);
+  font-family:"IBM Plex Sans KR",-apple-system,"Segoe UI",sans-serif;
+  font-weight:350;font-size:15px;line-height:1.75;overflow-wrap:break-word}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+h1,h2,h3,h4{line-height:1.35;margin:0;font-weight:600;letter-spacing:-.012em}
+p{margin:0 0 .85em}
+p:last-child{margin-bottom:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2.5px solid var(--metro);outline-offset:2px}
 
-/* Shell */
-.appbar{position:sticky;top:0;z-index:70;height:66px;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 22px;gap:22px}
-.brand{display:flex;align-items:center;gap:12px;min-width:310px}
-.brandmark{width:30px;height:30px;border-radius:8px;background:var(--teal-deep);display:grid;place-items:center;color:white;font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;letter-spacing:-.04em}
-.brandcopy strong{display:block;font-size:14px;line-height:1.2;letter-spacing:-.01em}
-.brandcopy span{display:block;font-size:11.5px;color:var(--muted);margin-top:3px}
-.global-search{flex:1;max-width:720px;position:relative}
-.global-search input{width:100%;height:38px;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface-2);padding:0 38px 0 38px;outline:none;transition:.15s}
-.global-search input:focus{background:white;border-color:var(--teal);box-shadow:0 0 0 3px rgba(84,116,117,.10)}
-.search-ico{position:absolute;left:13px;top:10px;width:17px;height:17px;color:var(--muted)}
-.kbd{position:absolute;right:9px;top:8px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;background:white;color:var(--muted);font:11px "IBM Plex Mono",monospace;padding:2px 6px}
-.topstats{margin-left:auto;display:flex;align-items:center;gap:14px;white-space:nowrap}
-.topstat{display:flex;flex-direction:column;align-items:flex-end}
-.topstat b{font:600 13px "IBM Plex Mono",monospace}
-.topstat span{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+/* 머리말과 이동 */
+.top{background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+.top .in{max-width:var(--w);margin:0 auto;padding:14px 20px 0}
+.brand{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.brand h1{font-size:17px}
+.brand span{color:var(--muted);font-size:13px}
+nav{display:flex;gap:2px;margin-top:12px;overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{background:none;border:0;border-bottom:2.5px solid transparent;
+  padding:8px 13px 10px;cursor:pointer;color:var(--muted);white-space:nowrap;font-size:14px}
+nav button[aria-current=page]{color:var(--ink);border-bottom-color:var(--ink);font-weight:500}
+nav button:hover{color:var(--ink2)}
 
-.topnav{height:42px;background:var(--surface);border-bottom:1px solid var(--line);padding:0 22px;display:flex;align-items:end;gap:4px;position:sticky;top:66px;z-index:60}
-.topnav button{height:42px;border:0;border-bottom:2px solid transparent;background:transparent;padding:0 14px;color:var(--muted);font-size:12.5px;font-weight:550}
-.topnav button:hover{color:var(--ink);background:var(--hover)}
-.topnav button[aria-current="page"]{color:var(--teal-deep);border-bottom-color:var(--teal-deep)}
+main{max-width:var(--w);margin:0 auto;padding:22px 20px 72px}
+.view[hidden]{display:none}
+.card{background:var(--panel);border:1px solid var(--line);padding:22px 24px;margin-bottom:16px}
+.card>h2{font-size:16px;margin-bottom:4px}
+.card>.lede{color:var(--muted);font-size:13.5px;margin-bottom:16px}
+@media(max-width:640px){
+  body{font-size:14.5px}
+  main{padding:16px 12px 60px}
+  .card{padding:18px 15px}
+  .top .in{padding:12px 14px 0}
+}
 
-.workspace{display:grid;grid-template-columns:var(--sidebar) var(--results) minmax(0,1fr);min-height:calc(100vh - 108px)}
-.filterrail{border-right:1px solid var(--line);background:rgba(255,255,255,.58);padding:18px 16px 36px;position:sticky;top:108px;height:calc(100vh - 108px);overflow:auto}
-.resultpane{border-right:1px solid var(--line);background:rgba(255,255,255,.35);position:sticky;top:108px;height:calc(100vh - 108px);overflow:hidden;display:flex;flex-direction:column}
-.detailpane{padding:20px 22px 56px;min-width:0}
+/* 개요 */
+.hero{background:var(--panel);border:1px solid var(--line);padding:34px 30px;margin-bottom:16px}
+.hero .q{font-size:clamp(19px,4.6vw,29px);font-weight:600;line-height:1.45;max-width:22ch;
+  letter-spacing:-.02em;margin-bottom:16px}
+.hero .q em{font-style:normal;border-bottom:3px solid var(--metro);padding-bottom:1px}
+.hero p{max-width:60ch;color:var(--ink2)}
+.flow{margin:26px 0 18px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+  background:var(--line2);border:1px solid var(--line2);margin-top:24px}
+.facts div{background:var(--panel);padding:13px 15px}
+.facts b{display:block;font-size:19px;font-weight:600}
+.facts small{color:var(--muted);font-size:12.5px}
+.steps{counter-reset:s;margin:0;padding:0;list-style:none}
+.steps li{position:relative;padding-left:38px;margin-bottom:15px}
+.steps li:last-child{margin-bottom:0}
+.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:1px;
+  width:25px;height:25px;border:1.5px solid var(--line);border-radius:50%;
+  display:grid;place-items:center;font-size:12.5px;color:var(--muted);
+  font-family:"IBM Plex Mono",monospace}
+.steps b{display:block;font-weight:600}
 
-.eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
-.filterhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.filterhead h2{font-size:14px;margin:0}
-.linkbtn{border:0;background:transparent;color:var(--teal);padding:3px 0;font-size:11.5px;font-weight:600}
-.fgroup{margin-bottom:16px}
-.fgroup label,.flabel{display:block;color:var(--muted);font-size:11px;font-weight:600;letter-spacing:.03em;margin-bottom:6px}
-.fgroup input,.fgroup select{width:100%;height:34px;border:1px solid var(--line);border-radius:6px;background:white;padding:0 9px;font-size:12px}
-.fgroup input:focus,.fgroup select:focus{border-color:var(--teal);outline:none;box-shadow:0 0 0 2px rgba(84,116,117,.08)}
-.range2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.toggleline{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:14px;margin-top:4px}
-.toggleline span{font-size:12px;font-weight:550}
-.switch{position:relative;width:34px;height:19px}
-.switch input{opacity:0;width:0;height:0}
-.slider{position:absolute;inset:0;border-radius:99px;background:#C9D2D1;border:1px solid var(--line-strong);transition:.15s}
-.slider:before{content:"";position:absolute;width:13px;height:13px;border-radius:50%;left:2px;top:2px;background:white;box-shadow:0 1px 2px rgba(0,0,0,.18);transition:.15s}
-.switch input:checked + .slider{background:var(--teal-deep)}
-.switch input:checked + .slider:before{transform:translateX(15px)}
+/* 용어 */
+/* 설명은 화면에 늘어놓지 않고 ⓘ 뒤에 둔다 */
+.hd{display:flex;align-items:center;gap:9px;margin-bottom:14px;flex-wrap:wrap}
+.hd h2{margin:0}
+.hd .sub{color:var(--muted);font-size:12.5px;margin-left:2px}
+.info{width:19px;height:19px;flex:none;border:1px solid var(--line);background:var(--panel);
+  border-radius:50%;font-size:11px;line-height:1;color:var(--muted);cursor:help;padding:0;
+  font-family:"IBM Plex Mono",monospace;font-weight:600}
+.info:hover{border-color:var(--metro);color:var(--metro);background:#e8f2f2}
+table.spec td:first-child{font-weight:500;white-space:nowrap}
+table.spec td.n{text-align:right;font-family:"IBM Plex Mono",monospace;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.tagline{color:var(--muted);font-size:12.5px}
+tr.me td{background:#e8f2f2}
+tr.me td:first-child{font-weight:600}
+.term{border-bottom:1.5px dotted var(--metro);cursor:help;font-weight:500;
+  text-underline-offset:3px;padding:0 1px}
+.term:hover{background:#e2eff0}
+.glossary{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:1px;
+  background:var(--line2);border:1px solid var(--line2)}
+.gitem{background:var(--panel);padding:16px 17px}
+.gitem h3{font-size:14.5px}
+.gitem .en{color:var(--muted);font-weight:400;font-size:12px;margin-left:5px}
+.gitem p{font-size:13.5px;color:var(--ink2);margin-top:6px;line-height:1.7}
+.gitem svg{margin-top:10px;width:100%;height:auto;max-width:230px;display:block}
 
-.results-head{padding:16px 15px 12px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.75)}
-.results-head-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
-.results-head h2{margin:0;font-size:14px}
-.results-count{font:11px "IBM Plex Mono",monospace;color:var(--muted)}
-.results-meta{margin-top:5px;color:var(--muted);font-size:10.5px}
-#lotlist{overflow:auto;flex:1;padding:6px}
-.lotrow{width:100%;border:1px solid transparent;border-radius:8px;background:transparent;padding:10px 9px;text-align:left;display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:9px;align-items:start;margin-bottom:2px}
-.lotrow:hover{background:rgba(255,255,255,.82);border-color:var(--line)}
-.lotrow[aria-selected="true"]{background:white;border-color:var(--teal-soft);box-shadow:inset 3px 0 0 var(--teal-deep),0 2px 10px rgba(6,36,35,.035)}
-.vdot{width:8px;height:8px;border-radius:50%;margin-top:5px;background:var(--normal)}
-.lotmain b{font:600 12.5px "IBM Plex Mono",monospace}
-.lotmain small{display:block;color:var(--muted);font-size:10.5px;line-height:1.45;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lotbadge{font-size:9.5px;padding:3px 6px;border:1px solid var(--line);border-radius:99px;color:var(--muted);max-width:104px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:rgba(255,255,255,.7)}
-.empty{padding:24px 12px;color:var(--muted);font-size:12px}
+#pop{position:absolute;z-index:60;max-width:330px;background:var(--panel);
+  border:1px solid var(--ink);box-shadow:0 10px 34px rgba(16,22,27,.18);
+  padding:14px 16px;font-size:13.5px;line-height:1.7;display:none}
+#pop h4{font-size:14px;margin-bottom:5px}
+#pop .en{color:var(--muted);font-weight:400;font-size:12px;margin-left:5px}
+#pop p{color:var(--ink2)}
+#pop svg{margin-top:9px;width:100%;height:auto}
 
-/* Detail workspace */
-.detail-empty{height:70vh;display:grid;place-items:center;color:var(--muted);text-align:center}
-.detail-empty .emptybox{max-width:360px}
-.detail-empty h2{color:var(--ink);font-size:16px;margin:0 0 8px}
-.detail-empty p{font-size:12px;margin:0}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden}
-.panel-head{min-height:48px;padding:12px 15px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
-.panel-head h3{margin:0;font-size:12.5px;letter-spacing:.01em}
-.panel-head .hint{margin-left:auto;color:var(--muted);font-size:10.5px}
-.panel-body{padding:15px}
-.lot-header{padding:17px 18px 16px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:start}
-.lot-titleline{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
-.lot-titleline h1{font:650 22px "IBM Plex Mono",monospace;letter-spacing:-.04em;margin:0}
-.status-badge{display:inline-flex;align-items:center;gap:6px;border-radius:99px;border:1px solid var(--line);padding:4px 8px;font-size:10.5px;font-weight:700;letter-spacing:.015em;background:var(--surface-2)}
-.status-badge:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
-.status-normal{color:var(--pass);background:var(--pass-bg);border-color:rgba(53,109,97,.22)}
-.status-watch{color:var(--watch);background:var(--watch-bg);border-color:rgba(138,101,28,.22)}
-.status-high{color:var(--high);background:var(--high-bg);border-color:rgba(140,61,69,.22)}
-.gate-pass{color:var(--pass);background:var(--pass-bg)}
-.gate-hold{color:var(--watch);background:var(--watch-bg)}
-.lot-subtitle{margin-top:7px;color:var(--ink-2);font-size:12px;font-weight:600}
-.lot-context{margin-top:11px;display:flex;gap:6px;flex-wrap:wrap}
-.context-chip{border:1px solid var(--line);border-radius:5px;background:var(--surface-2);padding:4px 7px;color:var(--muted);font:10.5px "IBM Plex Mono",monospace}
-.header-actions{display:flex;gap:6px}
-.iconbtn,.textbtn{border:1px solid var(--line);background:white;border-radius:6px;min-height:32px;padding:0 9px;font-size:11px;color:var(--ink-2)}
-.iconbtn:hover,.textbtn:hover{background:var(--hover);border-color:var(--line-strong)}
+/* 로트 목록 / 상세 */
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.tools input{border:1px solid var(--line);padding:8px 11px;font:inherit;font-size:14px;
+  width:170px;background:var(--panel)}
+.chip{border:1px solid var(--line);background:var(--panel);padding:6px 12px;cursor:pointer;
+  color:var(--muted);font-size:13.5px}
+.chip[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.count{color:var(--muted);font-size:13px;margin-left:auto}
+#lotlist{border-top:1px solid var(--line2);max-height:62vh;overflow:auto}
+.lot{display:grid;grid-template-columns:11px 1fr auto;gap:11px;align-items:center;
+  padding:11px 6px;border-bottom:1px solid var(--line2);cursor:pointer;background:none;
+  border-left:0;border-right:0;border-top:0;width:100%;text-align:left}
+.lot:hover{background:var(--sunk)}
+.dot{width:10px;height:10px;border-radius:50%}
+.lot small{display:block;color:var(--muted);font-size:12px;line-height:1.5}
+.lot .tag{font-size:12.5px;color:var(--muted);text-align:right}
+.empty{padding:30px 4px;color:var(--muted)}
 
-.summary-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(260px,.8fr);gap:14px;margin-bottom:14px}
-.signature-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-.metric-card{border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--surface-2);min-width:0}
-.metric-card .mk{font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.metric-card .mv{font:600 15px "IBM Plex Mono",monospace;margin-top:5px;white-space:nowrap}
-.metric-card .ml{color:var(--muted);font-size:9.5px;margin-top:3px}
-.metric-card.hit{background:var(--high-bg);border-color:rgba(140,61,69,.25)}
-.metric-card.hit .mv{color:var(--high)}
-.attrbox{display:flex;flex-direction:column;height:100%}
-.attr-verdict{font-size:17px;font-weight:650;letter-spacing:-.015em}
-.attr-reason{font-size:11.5px;color:var(--muted);margin-top:7px;line-height:1.55}
-.attr-meta{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:auto;padding-top:12px}
-.attr-meta div{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:8px}
-.attr-meta span{display:block;color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:.05em}
-.attr-meta b{display:block;margin-top:3px;font-size:11.5px}
+.back{background:none;border:1px solid var(--line);padding:7px 13px;cursor:pointer;
+  font-size:13.5px;color:var(--ink2)}
+.back:hover{background:var(--sunk)}
+.detailbar{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.detailbar .navs{margin-left:auto;display:flex;gap:6px}
+.verdict{border-left:6px solid var(--normal);padding:4px 0 4px 16px}
+.verdict h2{font-size:clamp(19px,4.4vw,25px)}
+.verdict .meta{color:var(--muted);font-size:12.5px;margin-top:5px;line-height:1.65}
+.risk{display:inline-block;padding:1px 9px;border:1.5px solid currentColor;font-size:12px;
+  margin-left:9px;vertical-align:3px;font-weight:500}
+.plain{background:var(--sunk);border:1px solid var(--line2);padding:16px 18px;margin-top:16px}
+.plain h3{font-size:13.5px;color:var(--muted);font-weight:500;margin-bottom:6px}
+.plain p{font-size:14.5px}
+.act{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
 
-.split{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr);gap:14px;margin-bottom:14px}
-.wafer-wrap{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.wafer-card{border:1px solid var(--line);border-radius:8px;background:var(--surface-2);padding:10px;min-width:0}
-.wafer-card figcaption{font-size:10.5px;font-weight:650;color:var(--ink-2);margin-bottom:4px}
-.wafer-card figcaption span{display:block;color:var(--muted);font-weight:400;font-size:9.5px;margin-top:2px}
-.wafer{display:block;width:100%;max-width:290px;height:auto;margin:auto}
+.acc{border:1px solid var(--line);background:var(--panel);margin-top:-1px}
+.acc>button{width:100%;display:flex;align-items:center;gap:10px;background:none;border:0;
+  padding:15px 18px;cursor:pointer;text-align:left;font-size:15px;font-weight:500}
+.acc>button:hover{background:var(--sunk)}
+.acc>button .mark{margin-left:auto;color:var(--muted);font-size:19px;line-height:1;
+  transition:transform .18s}
+.acc[open] .mark{transform:rotate(45deg)}
+.acc summary{display:none}
+.acc .body{padding:2px 18px 20px;border-top:1px solid var(--line2)}
+.acc:not([open]) .body{display:none}
+@media(prefers-reduced-motion:reduce){.acc>button .mark{transition:none}}
+
+/* Agent investigation trace */
+.tracehead{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin-bottom:12px;flex-wrap:wrap}
+.tracehead .stat{font-size:12.5px;color:var(--muted)}
+.trace .tracestep{border:1px solid var(--line2);margin-top:-1px;background:var(--panel)}
+.trace .tracestep>summary{display:flex;gap:10px;align-items:baseline;cursor:pointer;
+  padding:10px 12px;font-size:13.5px;list-style:none}
+.trace .tracestep>summary::-webkit-details-marker{display:none}
+.trace .tracestep>summary .n{font-family:"IBM Plex Mono",monospace;color:var(--muted);flex:none}
+.trace .tracestep>summary .tool{font-weight:600;flex:none;white-space:nowrap}
+.trace .tracestep>summary .reason{color:var(--ink2);font-weight:400}
+.trace .tracestep[open]>summary{background:var(--sunk)}
+.trace .tracestep .body{padding:2px 14px 16px 40px}
+.trace .rawjson{margin-top:10px}
+.trace .rawjson>summary{display:list-item;cursor:pointer;font-size:12.5px;color:var(--muted)}
+.trace .rawjson pre{margin:8px 0 0;padding:12px;background:var(--sunk);border:1px solid var(--line2);
+  font-size:11.5px;line-height:1.65;overflow-x:auto;white-space:pre-wrap;word-break:break-word}
+
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--line2)}
+th{color:var(--muted);font-weight:500;font-size:12.5px}
+td.num{text-align:right}
+tr.hit td{background:#fdf2ec}
+.ok{color:var(--ok);font-weight:500}.bad{color:var(--bad);font-weight:600}
+.scroller{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+.maps{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:720px){.maps{grid-template-columns:1fr}}
+figure{margin:0}
+figcaption{font-size:13px;margin-bottom:2px;font-weight:500}
+figcaption span{display:block;color:var(--muted);font-weight:400;font-size:12.5px}
+.wafer{width:100%;height:auto;max-width:400px;margin:8px auto 0;display:block;touch-action:manipulation}
 .wafer circle.spot{cursor:pointer}
-.wafer circle.spot:hover,.wafer circle.spot:focus{stroke:var(--teal-deep);stroke-width:2}
-.heatbar{height:7px;border-radius:99px;border:1px solid var(--line);background:linear-gradient(90deg,var(--cold),#F8F7FA,var(--hot));margin:8px 5px 0}
-.heatlabels{display:flex;justify-content:space-between;color:var(--muted);font:9px "IBM Plex Mono",monospace;margin:3px 5px 0}
+.wafer circle.spot:hover,.wafer circle.spot:focus{stroke:var(--ink);stroke-width:1.6}
+.scale{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--muted);
+  margin:10px auto 0;max-width:400px}
+.scale .bar{height:11px;flex:1;background:linear-gradient(90deg,var(--cold),#f2f5f6,var(--hot));
+  border:1px solid var(--line)}
+.howto{font-size:13px;color:var(--muted);margin-top:12px;line-height:1.7}
 
-.tablewrap{overflow:auto}
-table{width:100%;border-collapse:collapse;font-size:11.5px}
-th{text-align:left;color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:.055em;font-weight:650;padding:8px 9px;background:var(--surface-2);border-bottom:1px solid var(--line);white-space:nowrap}
-td{padding:9px;border-bottom:1px solid var(--line);vertical-align:top}
-tbody tr:last-child td{border-bottom:0}
-tbody tr:hover td{background:rgba(84,116,117,.025)}
-td.value,td.limit{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
-.row-alert td{background:rgba(140,61,69,.035)}
-.state{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:650;white-space:nowrap}
-.state:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
-.state-pass{color:var(--pass)}
-.state-fail{color:var(--high)}
-.state-na{color:var(--muted)}
-
-.trace-list{position:relative;padding-left:18px}
-.trace-list:before{content:"";position:absolute;left:8px;top:12px;bottom:12px;width:1px;background:var(--line-strong)}
-.trace-step{position:relative;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);margin-bottom:8px;padding:10px 11px 10px 14px}
-.trace-step:last-child{margin-bottom:0}
-.trace-step:before{content:"";position:absolute;left:-15px;top:15px;width:8px;height:8px;border-radius:50%;background:white;border:2px solid var(--teal)}
-.trace-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.trace-num{font:600 9px "IBM Plex Mono",monospace;color:var(--muted)}
-.trace-tool{font:600 10.5px "IBM Plex Mono",monospace;color:var(--teal-deep)}
-.trace-reason{font-size:10.5px;color:var(--muted);margin-top:5px;line-height:1.5}
-.trace-result{font-size:10.5px;color:var(--ink-2);margin-top:6px}
-.trace-event{margin-top:7px;border-top:1px dashed var(--line);padding-top:6px;color:var(--muted);font-size:9.5px}
-details.raw{margin-top:7px}
-details.raw summary{cursor:pointer;color:var(--teal);font-size:9.5px;font-weight:600;list-style:none}
-details.raw summary::-webkit-details-marker{display:none}
-pre.rawjson{max-height:220px;overflow:auto;background:var(--teal-deep);color:#DDE8E6;padding:10px;border-radius:6px;font:9.5px/1.5 "IBM Plex Mono",monospace;white-space:pre-wrap;word-break:break-word;margin:7px 0 0}
-
-.action-panel{border-left:4px solid var(--teal-deep)}
-.action-text{font-size:12px;line-height:1.65;color:var(--ink-2)}
-.action-extra{margin-top:10px;padding:9px 10px;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;font:10.5px/1.6 "IBM Plex Mono",monospace;color:var(--teal-deep)}
-
-.accordion{margin-bottom:14px}
-.accordion-toggle{width:100%;border:0;background:var(--surface);display:flex;align-items:center;text-align:left;padding:12px 15px;font-size:12.5px;font-weight:650}
-.accordion-toggle:hover{background:var(--hover)}
-.accordion-toggle .toggle-label{margin-left:auto;color:var(--teal);font-size:10.5px;font-weight:600}
-.accordion-toggle .chev{width:16px;height:16px;margin-left:8px;transition:transform .15s}
-.accordion-toggle[aria-expanded="true"] .chev{transform:rotate(180deg)}
-.accordion-body{border-top:1px solid var(--line);padding:14px 15px}
-
-/* Secondary views */
-.secondary-view{padding:20px 22px 56px;max-width:1480px;margin:0 auto}
-.view-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.view-grid .wide{grid-column:1/-1}
+.chartbox{background:var(--panel)}
 .chart{width:100%;height:auto;display:block;overflow:visible}
-.chart text{font-family:"IBM Plex Mono",monospace;font-size:9px;fill:var(--muted)}
-.chart .grid{stroke:var(--line);stroke-width:1}
-.chart .axis{stroke:var(--line-strong);stroke-width:1}
+.chart text{font-family:"IBM Plex Mono",monospace;font-size:11px;fill:var(--muted)}
+.chart .axt{font-family:"IBM Plex Sans KR",sans-serif;font-size:11.5px;fill:var(--ink2)}
+.chart .grid{stroke:var(--line2);stroke-width:1}
+.chart .axis{stroke:var(--line);stroke-width:1.2}
 .chart .pt{cursor:pointer}
-.chart .pt:focus{stroke:var(--teal-deep);stroke-width:2}
-.segmented{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
-.segbtn{border:1px solid var(--line);border-radius:6px;background:white;padding:6px 9px;font-size:10.5px;color:var(--muted)}
-.segbtn[aria-pressed="true"]{background:var(--teal-deep);border-color:var(--teal-deep);color:white}
-.legend{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:9.5px;margin-top:8px}
-.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:-1px}
-.ref-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.rulecard{border:1px solid var(--line);border-radius:8px;background:var(--surface-2);padding:12px;margin-bottom:8px}
-.rulecard h4{margin:0;font-size:12px}
-.rulecard .rmeta{color:var(--muted);font:9.5px "IBM Plex Mono",monospace;margin-top:4px}
-.rulecard p{font-size:10.5px;color:var(--ink-2);line-height:1.55;margin:8px 0 0}
-
-.tooltip{position:fixed;z-index:1000;pointer-events:none;background:var(--teal-deep);color:white;border-radius:7px;padding:9px 10px;font-size:10px;line-height:1.5;max-width:280px;box-shadow:0 10px 28px rgba(6,36,35,.24);display:none}
-.tooltip strong{display:block;font-size:10.5px;margin-bottom:2px}
-
-footer{border-top:1px solid var(--line);background:rgba(255,255,255,.55);padding:14px 22px;color:var(--muted);font-size:10px;display:flex;justify-content:space-between;gap:20px}
-
-@media(max-width:1180px){
-  :root{--sidebar:210px;--results:285px}
-  .topstats .topstat:nth-child(n+3){display:none}
-  .signature-grid{grid-template-columns:repeat(2,1fr)}
-  .summary-grid,.split{grid-template-columns:1fr}
-}
-@media(max-width:900px){
-  .workspace{grid-template-columns:220px minmax(0,1fr)}
-  .filterrail{display:none}
-  .resultpane{grid-column:1}
-  .detailpane{grid-column:2}
-  .brandcopy span,.topstats{display:none}
-  .brand{min-width:auto}
-  .global-search{max-width:none}
-}
-@media(max-width:680px){
-  .appbar{padding:0 12px;height:58px;gap:10px}.topnav{top:58px;padding:0 10px}.workspace{display:block}.resultpane{position:static;height:auto;max-height:42vh;border-right:0;border-bottom:1px solid var(--line)}.detailpane{padding:12px}.lot-header{grid-template-columns:1fr}.header-actions{display:none}.signature-grid{grid-template-columns:1fr 1fr}.wafer-wrap{grid-template-columns:1fr}.view-grid,.ref-grid{grid-template-columns:1fr}.view-grid .wide{grid-column:auto}.secondary-view{padding:12px}.kbd{display:none}}
-@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+.chart .pt:focus-visible{stroke:var(--ink);stroke-width:2;outline:none}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink2);margin-top:12px}
+.legend i{display:inline-block;width:14px;height:14px;vertical-align:-2px;margin-right:6px;
+  border-radius:50%}
+.legend .ln{width:22px;height:0;border-top-width:3px;border-top-style:solid;border-radius:0;
+  vertical-align:4px}
+.metricpick{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.small{font-size:13px;color:var(--muted);line-height:1.75}
+.small b{color:var(--ink2)}
+.mini{display:grid;grid-template-columns:82px 1fr;align-items:center;gap:10px;
+  padding:7px 0;border-bottom:1px solid var(--line2)}
+.mini:last-child{border-bottom:0}
+.mini .nm{font-size:13px;font-weight:500}
+.mini .nm small{display:block;color:var(--muted);font-weight:400;font-size:11.5px}
+footer{max-width:var(--w);margin:0 auto;padding:0 20px 44px;color:var(--muted);font-size:12.5px}
 </style>
 </head>
 <body>
-<header class="appbar">
-  <div class="brand" aria-label="EPE-CD Attribution">
-    <div class="brandmark">CD</div>
-    <div class="brandcopy"><strong>EPE-CD Attribution</strong><span>Process Excursion Attribution Console</span></div>
+
+<header class="top">
+  <div class="in">
+    <div class="brand">
+      <h1>CD Excursion Attribution Console</h1>
+      <span>CD 이상 원인 귀속 — 계측 데이터로 Litho · Etch · Metrology 중 원인 모듈을 판정합니다</span>
+    </div>
+    <nav id="nav" aria-label="화면 이동">
+      <button data-v="overview" aria-current="page">개요</button>
+      <button data-v="terms">용어</button>
+      <button data-v="lots">로트 판정</button>
+      <button data-v="charts">추이와 감시</button>
+      <button data-v="eval">검증 결과</button>
+    </nav>
   </div>
-  <div class="global-search">
-    <svg class="search-ico" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.7"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
-    <input id="globalSearch" type="search" placeholder="Search lot, scanner, reticle, chamber, or tool..." aria-label="Global lot search">
-    <span class="kbd">/</span>
-  </div>
-  <div class="topstats" id="topStats"></div>
 </header>
-<nav class="topnav" id="topnav" aria-label="Primary">
-  <button data-view="workspace" aria-current="page">Workspace</button>
-  <button data-view="trends">Trends</button>
-  <button data-view="validation">Validation</button>
-  <button data-view="reference">Reference</button>
-</nav>
 
-<section id="view-workspace" class="workspace">
-  <aside class="filterrail" aria-label="Lot filters">
-    <div class="filterhead"><div><div class="eyebrow">Search scope</div><h2>Filters</h2></div><button class="linkbtn" id="clearFilters">Reset</button></div>
-    <div class="fgroup"><label for="fVerdict">Verdict</label><select id="fVerdict"><option value="">All verdicts</option></select></div>
-    <div class="fgroup"><label for="fScanner">Scanner</label><select id="fScanner"><option value="">All scanners</option></select></div>
-    <div class="fgroup"><label for="fReticle">Reticle</label><select id="fReticle"><option value="">All reticles</option></select></div>
-    <div class="fgroup"><label for="fChamber">Chamber</label><select id="fChamber"><option value="">All chambers</option></select></div>
-    <div class="fgroup"><label for="fMetro">Metrology tool</label><select id="fMetro"><option value="">All tools</option></select></div>
-    <div class="fgroup"><span class="flabel">Production day</span><div class="range2"><input id="fDayMin" type="number" min="0" aria-label="Minimum production day"><input id="fDayMax" type="number" min="0" aria-label="Maximum production day"></div></div>
-    <div class="toggleline"><span>Abnormal only</span><label class="switch"><input id="fAbnormal" type="checkbox"><span class="slider"></span></label></div>
-  </aside>
+<main>
 
-  <section class="resultpane" aria-label="Lot search results">
-    <div class="results-head"><div class="results-head-top"><h2>Lots</h2><span class="results-count" id="resultCount"></span></div><div class="results-meta">Sorted by production day · click a lot to investigate</div></div>
-    <div id="lotlist" role="listbox" aria-label="Lot results"></div>
-  </section>
+<section class="view" id="v-overview">
+  <div class="hero">
+    <p class="q"><b class="term" data-t="aci">ACI</b> <b class="term" data-t="cd">CD</b>
+       <b class="term" data-t="excursion">excursion</b>.<br>
+       <em>Litho</em>인가, <em>Etch</em>인가,<br><em>Metrology</em>인가.</p>
+    <p class="tagline">ADI·ACI 계측 데이터를 좌표계 성분으로 분해해 원인 모듈을 귀속합니다.
+      근거가 부족하면 판정하지 않습니다.</p>
+    <div class="flow" id="flowdiagram"></div>
+    <div class="facts" id="facts"></div>
+  </div>
 
-  <main class="detailpane" id="detailPane">
-    <div class="detail-empty" id="detailEmpty"><div class="emptybox"><div class="eyebrow">Investigation workspace</div><h2>Select a lot to review attribution evidence</h2><p>Search or filter the production history, then open a lot to inspect signatures, tool calls, Verification Gate, and recommended action.</p></div></div>
-    <div id="lotDetail" hidden></div>
-  </main>
-</section>
+  <div class="card">
+    <div class="hd"><h2>판정 축</h2>
+      <button class="info" data-i="axes" aria-label="설명">i</button>
+      <span class="sub">CD 잔차를 네 성분으로 동시 회귀 분해</span></div>
+    <div class="scroller"><table class="spec">
+      <tr><th>성분</th><th>좌표계</th><th>귀속</th></tr>
+      <tr><td>스칼라</td><td class="mono">wafer mean</td>
+        <td><b class="term" data-t="dose">dose</b></td></tr>
+      <tr><td>반경</td><td class="mono">radial (r/R)²</td>
+        <td><b class="term" data-t="peb">PEB</b> · 코팅</td></tr>
+      <tr><td>슬릿</td><td class="mono">intra-field X</td><td>스캐너 · 조명계</td></tr>
+      <tr><td>레티클</td><td class="mono">site-fixed</td>
+        <td><b class="term" data-t="reticle">레티클</b> CD</td></tr>
+      <tr><td>ΔCD</td><td class="mono">chamber · RF hours</td>
+        <td><b class="term" data-t="chamber">Etch 챔버</b></td></tr>
+      <tr class="me"><td>없음</td><td class="mono">tool-dependent</td>
+        <td><b class="term" data-t="metro">Metrology</b> drift</td></tr>
+    </table></div>
+  </div>
 
-<section id="view-trends" class="secondary-view" hidden>
-  <div class="view-grid">
-    <article class="panel wide"><div class="panel-head"><h3>Process Metric Trend</h3><span class="hint">Lot-level points · select a metric</span></div><div class="panel-body"><div class="segmented" id="metricPick"></div><svg class="chart" id="trendChart" viewBox="0 0 900 330" role="img" aria-label="Lot-level process metric trend"></svg><div class="legend" id="trendLegend"></div></div></article>
-    <article class="panel"><div class="panel-head"><h3>CD-SEM Monitor Drift</h3><span class="hint">Golden-wafer re-measurement</span></div><div class="panel-body"><svg class="chart" id="monitorChart" viewBox="0 0 680 280" role="img" aria-label="CD-SEM monitor drift"></svg><div class="legend" id="monitorLegend"></div></div></article>
-    <article class="panel"><div class="panel-head"><h3>TMU / Process Budget</h3><span class="hint">Measurement uncertainty consumption</span></div><div class="panel-body"><svg class="chart" id="tmuChart" viewBox="0 0 680 280" role="img" aria-label="TMU versus process budget"></svg><div class="legend" id="tmuLegend"></div></div></article>
-    <article class="panel wide"><div class="panel-head"><h3>Etch Chamber Bias</h3><span class="hint">Windowed chamber fingerprint</span></div><div class="panel-body" id="chamberPanel"></div></article>
+  <div class="card">
+    <div class="hd"><h2>데이터 사양</h2>
+      <button class="info" data-i="spec" aria-label="설명">i</button>
+      <span class="sub">합성 데이터 · 앵커는 실습 실측</span></div>
+    <div class="scroller"><table class="spec">
+      <tr><th>항목</th><th>값</th><th>근거</th></tr>
+      <tr><td>ADI / ACI CD Target</td><td class="n">130 / 110 nm</td><td>실측 회귀</td></tr>
+      <tr><td>단면 BCD Target</td><td class="n">90 nm</td><td>실측 회귀</td></tr>
+      <tr><td><b class="term" data-t="delta">Etch bias</b></td><td class="n">−20 nm</td>
+        <td>실측 <button class="info" data-i="bias" aria-label="설명">i</button></td></tr>
+      <tr><td>Dose Setting</td><td class="n">32.0 mJ/cm²</td><td>문헌</td></tr>
+      <tr><td>Dose sensitivity</td><td class="n">−2.0 nm/%</td><td>EL 15.8%에서 유도</td></tr>
+      <tr><td>웨이퍼 내 <b class="term" data-t="cdu">CDU</b> 3σ</td><td class="n">4.2 nm</td><td>생성 결과</td></tr>
+      <tr><td>CD 공정 허용 반폭</td><td class="n">±6.0 nm</td><td>Cp ≈ 1.43</td></tr>
+      <tr><td>측정점</td><td class="n">41 / wafer</td>
+        <td>9 field × 5 site <button class="info" data-i="sampling" aria-label="설명">i</button></td></tr>
+      <tr><td>측정 웨이퍼</td><td class="n">3 / lot</td><td>slot 3 · 13 · 23</td></tr>
+      <tr><td>ACI 측정 비율</td><td class="n">50%</td>
+        <td><b class="term" data-t="skiplot">skip-lot</b></td></tr>
+      <tr><td>단면 / 모니터</td><td class="n">주 3회 / 주 2회</td><td>파괴 측정 · tool 감시</td></tr>
+      <tr><td>규모</td><td class="n">320 lot · 40일</td>
+        <td>SPC 20~25 subgroup <button class="info" data-i="scale" aria-label="설명">i</button></td></tr>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <div class="hd"><h2>산업 지형에서의 위치</h2>
+      <button class="info" data-i="landscape" aria-label="설명">i</button>
+      <span class="sub">기존 상용 스택과의 관계</span></div>
+    <div class="scroller"><table class="spec">
+      <tr><th>계층</th><th>대표 도구</th><th>하는 일</th><th>시점</th></tr>
+      <tr><td>설계 · 개발</td><td>PROLITH · LithoWare</td>
+        <td>조건 → CD·프로파일 예측, process window 정의</td><td>노광 전</td></tr>
+      <tr><td>장비 감시</td><td>FDC</td><td>공정 장비 센서 트레이스로 이상 탐지</td><td>실시간</td></tr>
+      <tr><td>공정 제어</td><td><b class="term" data-t="apc">APC · R2R</b></td>
+        <td>계측 결과로 다음 로트 조건 보정</td><td>로트 간</td></tr>
+      <tr><td>수율 분석</td><td>Klarity · Yield Mine</td>
+        <td>commonality · ANOVA로 원인 장비군 식별</td><td>사후</td></tr>
+      <tr><td>패터닝 제어</td><td>OVALiS</td>
+        <td>계측 + 장비 컨텍스트 결합, on-product 진단</td><td>양산</td></tr>
+      <tr class="me"><td>이 프로젝트</td><td>—</td>
+        <td><b>계측 장비를 용의선상에 포함</b> · TMU 예산 초과 시 공정 귀속 차단</td><td>양산</td></tr>
+    </table></div>
   </div>
 </section>
 
-<section id="view-validation" class="secondary-view" hidden>
-  <div class="view-grid">
-    <article class="panel wide"><div class="panel-head"><h3>Blind Evaluation Matrix</h3><span class="hint">Injected scenario × predicted disposition</span></div><div class="panel-body tablewrap"><table id="confTable"></table></div></article>
-    <article class="panel"><div class="panel-head"><h3>Evaluation Summary</h3></div><div class="panel-body" id="evalSummary"></div></article>
-    <article class="panel"><div class="panel-head"><h3>Safety-Critical Metric</h3></div><div class="panel-body"><div class="metric-card"><div class="mk">Metrology drift → Etch wrong action</div><div class="mv">0</div><div class="ml">Synthetic acceptance test</div></div><p style="font-size:10.5px;color:var(--muted);margin:10px 0 0">The project prioritizes preventing process action when the measurement system itself is not trustworthy.</p></div></article>
+<section class="view" id="v-terms" hidden>
+  <div class="card">
+    <div class="hd"><h2>용어</h2>
+      <span class="sub">본문의 점선 밑줄에 마우스를 올리면 같은 설명이 그 자리에 나옵니다</span></div>
+    <div class="glossary" id="glossary"></div>
   </div>
 </section>
 
-<section id="view-reference" class="secondary-view" hidden>
-  <div class="ref-grid">
-    <article class="panel"><div class="panel-head"><h3>Attribution Rule Catalog</h3><span class="hint">Deterministic knowledge base</span></div><div class="panel-body" id="ruleCatalog"></div></article>
-    <article class="panel"><div class="panel-head"><h3>Data & Control Limits</h3><span class="hint">Synthetic proof-of-concept</span></div><div class="panel-body tablewrap"><table id="specTable"></table></div></article>
+<section class="view" id="v-lots" hidden>
+  <div class="card" id="lotlistcard">
+    <div class="hd"><h2>로트</h2>
+      <button class="info" data-i="lots" aria-label="설명">i</button></div>
+    <div class="tools">
+      <input id="q" type="search" placeholder="로트 검색" aria-label="로트 번호 검색">
+      <button class="chip" data-f="all" aria-pressed="true">전체</button>
+      <button class="chip" data-f="abn" aria-pressed="false">이상</button>
+      <button class="chip" data-f="aci" aria-pressed="false">ACI 측정</button>
+      <span class="count" id="count"></span>
+    </div>
+    <div id="lotlist" role="listbox" aria-label="로트 목록"></div>
+  </div>
+
+  <div id="lotdetail" hidden>
+    <div class="detailbar">
+      <button class="back" id="backBtn">← 목록</button>
+      <span class="navs">
+        <button class="back" id="prevBtn">이전</button>
+        <button class="back" id="nextBtn">다음</button>
+      </span>
+    </div>
+    <div class="card">
+      <div class="verdict" id="verdict"></div>
+      <div class="plain" id="plain"></div>
+    </div>
+
+    <details class="acc" id="accMap">
+      <summary hidden></summary>
+      <button type="button" data-acc="accMap">웨이퍼 맵<span class="mark">＋</span></button>
+      <div class="body">
+        <div class="maps">
+          <figure>
+            <figcaption>ADI CD 잔차<span id="cap1s"></span></figcaption>
+            <svg class="wafer" id="map1" viewBox="-178 -178 356 356" role="img"
+                 aria-label="ADI CD 잔차의 웨이퍼 분포"></svg>
+          </figure>
+          <figure>
+            <figcaption>Etch bias 잔차<span id="cap2s"></span></figcaption>
+            <svg class="wafer" id="map2" viewBox="-178 -178 356 356" role="img"
+                 aria-label="etch bias의 웨이퍼 분포"></svg>
+          </figure>
+        </div>
+        <div class="scale"><span class="mono" id="lo"></span><span class="bar"></span>
+          <span class="mono" id="hi"></span>
+          <button class="info" data-i="map" aria-label="설명">i</button></div>
+      </div>
+    </details>
+
+    <details class="acc" id="accEv">
+      <summary hidden></summary>
+      <button type="button" data-acc="accEv">판정 근거<span class="mark">＋</span></button>
+      <div class="body">
+        <div class="scroller" style="margin-top:14px"><table id="ev"></table></div>
+      </div>
+    </details>
+
+    <details class="acc" id="accTrace">
+      <summary hidden></summary>
+      <button type="button" data-acc="accTrace">Investigation Trace<span class="mark">＋</span></button>
+      <div class="body">
+        <p class="small" style="margin-top:14px">Agent가 이 판정에 도달하기까지 실제로 호출한 조회 도구의 순서입니다.
+          각 항목을 펼치면 근거를, 그 안의 "원본 응답"을 펼치면 도구가 반환한 원시 데이터를 볼 수 있습니다.</p>
+        <div class="trace" id="trace"></div>
+      </div>
+    </details>
+
+    <details class="acc" id="accGate">
+      <summary hidden></summary>
+      <button type="button" data-acc="accGate">Verification Gate<span class="mark">＋</span></button>
+      <div class="body">
+        <div class="scroller" style="margin-top:14px"><table id="gate"></table></div>
+      </div>
+    </details>
   </div>
 </section>
 
-<div class="tooltip" id="tooltip" role="tooltip"></div>
-<footer><span>Synthetic proof-of-concept. Not validated on production fab data.</span><span class="mono">EPE-CD Attribution · deterministic gate + observable agent tools</span></footer>
+<section class="view" id="v-charts" hidden>
+  <div class="card">
+    <div class="hd"><h2>생산일별 추이</h2>
+      <button class="info" data-i="trend" aria-label="설명">i</button>
+      <span class="sub">점 = 로트 · 클릭 시 해당 판정으로 이동</span></div>
+    <div class="metricpick" id="metricpick"></div>
+    <div class="chartbox"><svg class="chart" id="trend" viewBox="0 0 780 330" role="img"
+      aria-label="생산일별 지표 추이"></svg></div>
+    <div class="legend" id="trendLegend"></div>
+  </div>
+
+  <div class="card">
+    <div class="hd"><h2>CD-SEM tool stability</h2>
+      <button class="info" data-i="mon" aria-label="설명">i</button>
+      <span class="sub"><b class="term" data-t="golden">모니터 웨이퍼</b> 주 2회 반복 측정</span></div>
+    <div class="chartbox"><svg class="chart" id="monitor" viewBox="0 0 780 300" role="img"
+      aria-label="장비별 모니터 웨이퍼 값의 이동량"></svg></div>
+    <div class="legend" id="monLegend"></div>
+  </div>
+
+  <div class="card">
+    <div class="hd"><h2><b class="term" data-t="tmu">TMU</b> / 공정 예산</h2>
+      <button class="info" data-i="tmu" aria-label="설명">i</button>
+      <span class="sub">허용 반폭 ±<span class="mono" id="cdtol"></span> nm 대비 소비율</span></div>
+    <div class="chartbox"><svg class="chart" id="tmuchart" viewBox="0 0 780 300" role="img"
+      aria-label="장비별 TMU의 공정 예산 소비율"></svg></div>
+    <div class="legend" id="tmuLegend"></div>
+    <div class="scroller" style="margin-top:16px"><table id="tmuTable"></table></div>
+  </div>
+
+  <div class="card">
+    <div class="hd"><h2>Etch 챔버별 bias</h2>
+      <button class="info" data-i="cham" aria-label="설명">i</button>
+      <span class="sub">회색 띠 = 챔버 편중 관리 한계</span></div>
+    <div id="chambers"></div>
+  </div>
+</section>
+
+<section class="view" id="v-eval" hidden>
+  <div class="card">
+    <div class="hd"><h2>블라인드 평가</h2>
+      <button class="info" data-i="eval" aria-label="설명">i</button>
+      <span class="sub">세로 = 주입한 이상 · 가로 = 판정</span></div>
+    <div class="scroller"><table id="conf"></table></div>
+  </div>
+  <div class="card">
+    <div class="hd"><h2>핵심 지표</h2>
+      <button class="info" data-i="kpi" aria-label="설명">i</button></div>
+    <div class="scroller"><table class="spec">
+      <tr><th>지표</th><th>값</th></tr>
+      <tr class="me"><td>계측 drift → Etch 오귀속</td><td class="n">0 건</td></tr>
+      <tr><td>정상 로트 오경보</td><td class="n">0 / 204</td></tr>
+      <tr><td>Litho dose 검출</td><td class="n">16 / 16</td></tr>
+      <tr><td>Track PEB 검출</td><td class="n">32 / 32</td></tr>
+      <tr><td>Reticle 검출</td><td class="n">16 / 18</td></tr>
+      <tr><td>Etch 챔버 검출 (ACI 측정 로트)</td><td class="n">13 / 13</td></tr>
+      <tr><td>Metrology drift 검출 (ACI 측정 로트)</td><td class="n">8 / 11 · 보류 3</td></tr>
+    </table></div>
+  </div>
+</section>
+
+</main>
+<footer>모의 데이터로 만든 개념 검증 프로젝트입니다. 실제 공장 데이터로 검증되지 않았습니다.</footer>
+<div id="pop" role="tooltip" aria-live="polite"></div>
 
 <script src="data.js"></script>
 <script src="investigations.js"></script>
 <script src="validation/validation.js"></script>
 <script>
-const $ = s => document.querySelector(s);
-const $$ = s => Array.from(document.querySelectorAll(s));
-const esc = v => String(v ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/* 1. 공통 상수와 도우미 ─────────────────────────── */
 const M = DATA.meta, LIM = DATA.limits;
-const VERDICT_COLOR = {NORMAL:'#647171',PHOTO_DOSE:'#4F6F70',PHOTO_TRACK_RADIAL:'#4F6F70',RETICLE_CD_ERROR:'#4F6F70',ETCH_CHAMBER:'#745A67',METROLOGY_TOOL_DRIFT:'#315F64',INDETERMINATE:'#6B607F'};
-const VERDICT_SHORT = {NORMAL:'Normal',PHOTO_DOSE:'Photo Dose',PHOTO_TRACK_RADIAL:'Track / PEB',RETICLE_CD_ERROR:'Reticle CD',ETCH_CHAMBER:'Etch Chamber',METROLOGY_TOOL_DRIFT:'Metrology Drift',INDETERMINATE:'Withheld'};
-const GATE_LABEL = {
-  adi_radial_within_limit:'ADI radial component within limit',adi_reticle_within_limit:'Reticle-repeat component within limit',adi_reticle_repeats_across_fields:'Site signature repeats across fields',delta_within_limit_or_absent:'Delta-CD within limit or unavailable',tool_drift_exceeds:'Monitor-wafer drift exceeds limit',metrology_healthy:'Metrology drift within limit',tmu_within_budget:'TMU within process budget',metrology_evidence_fresh:'Metrology monitor evidence is recent',chamber_specific:'Excursion is chamber-specific',taper_not_contradicting:'Cross-section taper does not contradict etch attribution'
+const COLOR = {NORMAL:'#4e5f6a', PHOTO_DOSE:'#a05c00', PHOTO_TRACK_RADIAL:'#a05c00',
+  RETICLE_CD_ERROR:'#a05c00', ETCH_CHAMBER:'#8a2e68', METROLOGY_TOOL_DRIFT:'#0b6a72',
+  INDETERMINATE:'#5a4e9c'};
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* 2. 용어 사전 — 말풍선과 용어 화면이 같은 자료를 씁니다 ─── */
+const TERMS = {
+  excursion:{k:'Excursion (이상)',e:'excursion',d:'공정 지표가 관리 한계를 벗어나 정상 변동으로 볼 수 없는 상태입니다. fab에서는 excursion이 뜨면 원인을 찾아 조치할 때까지 해당 설비의 로트 투입을 멈추기도 합니다. 이 프로젝트가 판정하려는 대상이 바로 이 상태입니다.',
+    s:'<svg viewBox="0 0 200 110"><line x1="16" y1="55" x2="188" y2="55" stroke="#8ea0aa" stroke-dasharray="4 3"/><line x1="16" y1="30" x2="188" y2="30" stroke="#9aa9b2" stroke-dasharray="2 3"/><line x1="16" y1="80" x2="188" y2="80" stroke="#9aa9b2" stroke-dasharray="2 3"/><polyline points="24,58 44,52 64,57 84,54 104,50 124,44 144,34 164,22" fill="none" stroke="#33424c" stroke-width="1.6"/><circle cx="164" cy="22" r="4" fill="#bf4630"/><text x="20" y="26" font-size="9" fill="#57676f">UCL</text><text x="20" y="92" font-size="9" fill="#57676f">LCL</text><text x="128" y="16" font-size="9" fill="#bf4630">excursion</text></svg>'},
+  attribution:{k:'원인 귀속',e:'attribution / disposition',d:'이상이 어느 모듈에서 비롯됐는지 판정하고 조치 대상을 정하는 일입니다. fab에서는 로트를 어떻게 처리할지 정하는 행위를 disposition이라고 부릅니다. 이 에이전트의 출력이 곧 원인 귀속과 조치 권고입니다.',
+    s:'<svg viewBox="0 0 200 110"><rect x="10" y="14" width="52" height="24" fill="none" stroke="#a05c00" stroke-width="1.4"/><text x="36" y="30" text-anchor="middle" font-size="10" fill="#a05c00">Litho</text><rect x="10" y="44" width="52" height="24" fill="none" stroke="#8a2e68" stroke-width="1.4"/><text x="36" y="60" text-anchor="middle" font-size="10" fill="#8a2e68">Etch</text><rect x="10" y="74" width="52" height="24" fill="#e3f0f1" stroke="#0b6a72" stroke-width="2"/><text x="36" y="90" text-anchor="middle" font-size="10" fill="#0b6a72">Metrology</text><path d="M68 86h34" stroke="#0b6a72" stroke-width="1.6"/><path d="M97 81l7 5-7 5" fill="#0b6a72"/><text x="108" y="82" font-size="10" fill="#33424c">조치 대상</text><text x="108" y="96" font-size="10" fill="#33424c">확정</text></svg>'},
+  wafer:{k:'웨이퍼',e:'wafer',d:'회로를 만드는 실리콘 원판입니다. 현재 양산 표준은 지름 300 mm이며, 한 장에 수백 개의 칩(die)이 격자로 배열됩니다. 아래쪽 노치(notch)는 결정 방위와 장비 내 정렬 기준으로 쓰입니다.',
+    s:'<svg viewBox="0 0 200 110"><circle cx="52" cy="55" r="42" fill="#f2f5f6" stroke="#57676f" stroke-width="1.3"/><g stroke="#c8d2d8" stroke-width=".7"><line x1="20" y1="13" x2="20" y2="97"/><line x1="31" y1="13" x2="31" y2="97"/><line x1="42" y1="13" x2="42" y2="97"/><line x1="53" y1="13" x2="53" y2="97"/><line x1="64" y1="13" x2="64" y2="97"/><line x1="75" y1="13" x2="75" y2="97"/><line x1="86" y1="13" x2="86" y2="97"/><line x1="11" y1="24" x2="93" y2="24"/><line x1="11" y1="35" x2="93" y2="35"/><line x1="11" y1="46" x2="93" y2="46"/><line x1="11" y1="57" x2="93" y2="57"/><line x1="11" y1="68" x2="93" y2="68"/><line x1="11" y1="79" x2="93" y2="79"/><line x1="11" y1="90" x2="93" y2="90"/></g><path d="M47 97h10l-5-8z" fill="#57676f"/><text x="104" y="38" font-size="10" fill="#33424c">지름 300 mm</text><text x="104" y="56" font-size="10" fill="#33424c">한 장에 die 수백 개</text><text x="104" y="74" font-size="10" fill="#57676f">아래 노치 = 정렬 기준</text></svg>'},
+  lot:{k:'로트',e:'lot',d:'웨이퍼 25장을 담아 함께 이동하는 생산 단위입니다. FOUP이라는 밀폐 용기에 담겨 공정을 거칩니다. 계측은 전수로 하지 않고 대표 슬롯만 뽑아 재며, 이 프로젝트는 앞·중간·뒤를 대표하도록 slot 3 / 13 / 23을 측정합니다.',
+    s:'<svg viewBox="0 0 200 110"><rect x="12" y="18" width="76" height="74" fill="none" stroke="#57676f" stroke-width="1.3"/><rect x="18" y="22" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="24" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="27" width="64" height="4" fill="#0b6a72" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="30" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="33" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="36" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="38" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="41" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="44" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="47" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="50" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="52" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="55" width="64" height="4" fill="#0b6a72" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="58" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="61" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="64" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="66" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="69" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="72" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="75" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="78" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="80" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="83" width="64" height="4" fill="#0b6a72" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="86" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="89" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><text x="12" y="104" font-size="9" fill="#57676f">FOUP · 25 slot</text><text x="100" y="40" font-size="10" fill="#0b6a72">진한 칸 = 측정 슬롯</text><text x="100" y="58" font-size="10" fill="#33424c">slot 3 / 13 / 23</text><text x="100" y="76" font-size="10" fill="#57676f">front / center / rear</text></svg>'},
+  photo:{k:'Litho (노광)',e:'photolithography',d:'레티클에 새겨진 회로 패턴을 빛으로 웨이퍼 위 감광막(photoresist)에 전사하는 공정입니다. 투영 렌즈가 패턴을 보통 1/4로 축소해 옮기며, 노광량(dose)과 초점(focus)이 선폭을 직접 좌우합니다. 노광 후 현상(develop)을 거치면 레지스트 패턴이 남습니다.',
+    s:'<svg viewBox="0 0 200 110"><ellipse cx="46" cy="12" rx="16" ry="5" fill="#a05c00" opacity=".85"/><path d="M32 17 L26 34 M46 17 L46 34 M60 17 L66 34" stroke="#a05c00" stroke-width="1.2"/><rect x="22" y="34" width="48" height="5" fill="none" stroke="#57676f" stroke-width="1.2"/><path d="M28 36h4M40 36h5M56 36h4" stroke="#10161b" stroke-width="2"/><path d="M24 43 L44 60 L68 43" fill="none" stroke="#0b6a72" stroke-width="1.3"/><path d="M40 62 L46 78 M52 62 L46 78" stroke="#a05c00" stroke-width="1.1"/><rect x="26" y="80" width="42" height="8" fill="#e6ecee" stroke="#57676f" stroke-width="1.1"/><text x="80" y="20" font-size="10" fill="#a05c00">조명계 (dose)</text><text x="80" y="40" font-size="10" fill="#33424c">레티클</text><text x="80" y="58" font-size="10" fill="#0b6a72">투영 렌즈 · 1/4 축소</text><text x="80" y="88" font-size="10" fill="#33424c">웨이퍼 (감광막)</text></svg>'},
+  etch:{k:'Etch (식각)',e:'plasma etch',d:'레지스트 패턴을 마스크 삼아 아래층을 플라즈마로 깎아 패턴을 전사하는 공정입니다. 챔버 압력, 가스 조성, RF 파워, ESC 온도가 깎이는 속도와 프로파일을 결정합니다. 챔버 벽 상태가 변하면 라디칼 밀도가 달라져 선폭이 함께 흔들립니다.',
+    s:'<svg viewBox="0 0 200 110"><text x="10" y="16" font-size="9" fill="#57676f">before</text><rect x="10" y="22" width="70" height="10" fill="#f4dfd8" stroke="#8a2e68" stroke-width="1.1"/><rect x="10" y="32" width="70" height="16" fill="#e6ecee" stroke="#57676f" stroke-width="1.1"/><path d="M20 54v10M45 54v10M70 54v10" stroke="#8a2e68" stroke-width="1.6"/><text x="86" y="62" font-size="9" fill="#8a2e68">플라즈마</text><text x="10" y="80" font-size="9" fill="#57676f">after</text><path d="M14 104 L20 86 L44 86 L50 104 Z" fill="#e6ecee" stroke="#57676f" stroke-width="1.1"/><path d="M56 104 L62 86 L86 86 L92 104 Z" fill="#e6ecee" stroke="#57676f" stroke-width="1.1"/><text x="104" y="92" font-size="9" fill="#33424c">측벽각(SWA)이 생김</text><text x="104" y="106" font-size="9" fill="#33424c">폭도 함께 변함</text></svg>'},
+  cd:{k:'CD (선폭)',e:'Critical Dimension',d:'패턴의 가로 방향 폭입니다. 두께(depth)가 아니라 폭이라는 점이 핵심입니다. 선(line)과 공간(space)이 반복되는 구조에서 pitch = CD + space 로 정의되며, pitch는 설계와 노광 조건이 정하는 고정값이고 CD는 공정 변동에 따라 움직이는 값입니다. 그래서 CD가 커지면 같은 pitch 안에서 space가 그만큼 줄어듭니다. 게이트 폭이 설계보다 수 nm만 좁아져도 문턱전압과 누설전류가 달라집니다.',
+    s:'<svg viewBox="0 0 200 110"><rect x="20" y="30" width="24" height="42" fill="#c9d4d9" stroke="#10161b" stroke-width="1.1"/><rect x="76" y="30" width="24" height="42" fill="#c9d4d9" stroke="#10161b" stroke-width="1.1"/><rect x="132" y="30" width="24" height="42" fill="#c9d4d9" stroke="#10161b" stroke-width="1.1"/><path d="M20 24h24" stroke="#bf4630" stroke-width="1.8"/><path d="M20 20v8M44 20v8" stroke="#bf4630" stroke-width="1.4"/><text x="24" y="16" font-size="9" fill="#bf4630">CD</text><path d="M44 82h32" stroke="#2c6da6" stroke-width="1.8"/><path d="M44 78v8M76 78v8" stroke="#2c6da6" stroke-width="1.4"/><text x="48" y="96" font-size="9" fill="#2c6da6">space</text><path d="M20 104h56" stroke="#0b6a72" stroke-width="1.8"/><path d="M20 100v8M76 100v8" stroke="#0b6a72" stroke-width="1.4"/><text x="86" y="107" font-size="9" fill="#0b6a72">pitch = CD + space (고정)</text><text x="108" y="24" font-size="9" fill="#57676f">CD가 커지면</text><text x="108" y="38" font-size="9" fill="#57676f">space가 줄어든다</text></svg>'},
+  pitch:{k:'Pitch',e:'pitch',d:'반복 패턴에서 이웃한 선의 중심 간 거리, 즉 CD + space 입니다. 설계 규칙과 노광 해상도가 정하는 값이라 공정 중에는 변하지 않습니다. 그래서 CD 변동은 곧 space 변동이며, CD가 목표를 벗어나면 이웃 패턴과의 간격이 함께 틀어집니다.',
+    s:'<svg viewBox="0 0 200 90"><rect x="18" y="26" width="22" height="34" fill="#c9d4d9" stroke="#10161b" stroke-width="1.1"/><rect x="70" y="26" width="22" height="34" fill="#c9d4d9" stroke="#10161b" stroke-width="1.1"/><rect x="122" y="26" width="22" height="34" fill="#c9d4d9" stroke="#10161b" stroke-width="1.1"/><line x1="29" y1="18" x2="29" y2="68" stroke="#0b6a72" stroke-dasharray="3 2"/><line x1="81" y1="18" x2="81" y2="68" stroke="#0b6a72" stroke-dasharray="3 2"/><path d="M29 74h52" stroke="#0b6a72" stroke-width="1.8"/><path d="M29 70v8M81 70v8" stroke="#0b6a72" stroke-width="1.4"/><text x="36" y="88" font-size="9" fill="#0b6a72">pitch (중심 간 거리)</text><text x="150" y="46" font-size="9" fill="#57676f">설계가 정하는</text><text x="150" y="60" font-size="9" fill="#57676f">고정값</text></svg>'},
+  adi:{k:'ADI (현상 후 측정)',e:'After Develop Inspection',d:'노광·현상을 마치고 식각 전 레지스트 패턴을 재는 측정입니다. 이 시점에는 레지스트를 벗기고 재노광하는 rework가 가능하고, 측정값이 스캐너 보정(APC)으로 되먹임되므로 actionable 측정으로 분류됩니다. 그래서 현업에서도 매 로트 또는 거의 매 로트 측정합니다.',
+    s:'<svg viewBox="0 0 200 100"><rect x="16" y="30" width="20" height="26" fill="#f4dfd8" stroke="#8a2e68" stroke-width="1.1"/><rect x="52" y="30" width="20" height="26" fill="#f4dfd8" stroke="#8a2e68" stroke-width="1.1"/><rect x="10" y="56" width="72" height="16" fill="#e6ecee" stroke="#57676f" stroke-width="1.1"/><text x="10" y="24" font-size="9" fill="#8a2e68">레지스트 패턴 (미식각)</text><text x="10" y="86" font-size="9" fill="#1c6b3a">rework 가능 · APC 피드백</text><path d="M92 50h22" stroke="#57676f" stroke-width="1.3"/><path d="M109 45l7 5-7 5" fill="#57676f"/><text x="122" y="46" font-size="9" fill="#33424c">Etch 단계로</text><text x="122" y="60" font-size="9" fill="#33424c">진행</text></svg>'},
+  aci:{k:'ACI (식각 후 측정)',e:'After Clean Inspection · AEI',d:'식각과 세정을 마친 뒤 재는 측정입니다. After Etch Inspection(AEI)이라고도 씁니다. 실제 소자 구조를 재므로 최종 결과에 가깝고 식각이 유발한 오차까지 잡아내지만, 그 로트는 되돌릴 수 없습니다. 목적이 rework가 아니라 etch bias 특성화와 검증이어서 skip-lot으로 저빈도 측정합니다.',
+    s:'<svg viewBox="0 0 200 100"><path d="M14 72 L19 40 L39 40 L44 72 Z" fill="#e6ecee" stroke="#57676f" stroke-width="1.1"/><path d="M56 72 L61 40 L81 40 L86 72 Z" fill="#e6ecee" stroke="#57676f" stroke-width="1.1"/><text x="10" y="30" font-size="9" fill="#57676f">레지스트 제거 · 소자 구조</text><text x="10" y="88" font-size="9" fill="#a2321f">되돌릴 수 없음 · skip-lot 측정</text><text x="100" y="52" font-size="9" fill="#33424c">최종 결과에 가장 가까움</text></svg>'},
+  epe:{k:'EPE',e:'Edge Placement Error',d:'패턴의 가장자리가 있어야 할 위치에서 얼마나 벗어났는지를 나타내는 종합 지표입니다. 오버레이 오차와 CD 변동이 함께 기여합니다. 노드가 미세해질수록 예산이 줄어 조금만 벗어나도 인접 패턴과 닿거나 떨어지는 불량이 됩니다. 이 프로젝트는 EPE 중 CD 성분에 한정했습니다.',
+    s:'<svg viewBox="0 0 200 100"><rect x="18" y="26" width="56" height="18" fill="#c9d4d9" stroke="#10161b" stroke-width="1.1"/><rect x="34" y="58" width="56" height="18" fill="none" stroke="#2c6da6" stroke-width="1.4" stroke-dasharray="4 2"/><path d="M74 44 L74 58" stroke="#bf4630" stroke-width="2"/><path d="M74 44h16" stroke="#bf4630" stroke-width="2"/><text x="96" y="30" font-size="9" fill="#10161b">위층 패턴</text><text x="96" y="50" font-size="9" fill="#bf4630">EPE = 가장자리 어긋남</text><text x="96" y="70" font-size="9" fill="#2c6da6">아래층 패턴</text><text x="18" y="94" font-size="9" fill="#57676f">EPE = 오버레이 오차 + CD 변동</text></svg>'},
+  overlay:{k:'오버레이',e:'overlay',d:'위층 패턴과 아래층 패턴이 얼마나 정확히 겹쳤는지입니다. 수십 층을 쌓아 만들기 때문에 층 간 정렬이 어긋나면 콘택이 배선에 닿지 못합니다. 스크라이브 라인의 전용 target으로 측정하며, 실제 소자와 크기·밀도가 달라 생기는 차이를 device-to-target bias라고 부릅니다.',
+    s:'<svg viewBox="0 0 200 100"><rect x="24" y="34" width="44" height="34" fill="none" stroke="#2c6da6" stroke-width="1.4"/><rect x="34" y="42" width="44" height="34" fill="none" stroke="#bf4630" stroke-width="1.4"/><path d="M46 51h10M51 46v10" stroke="#2c6da6"/><path d="M56 59h10M61 54v10" stroke="#bf4630"/><path d="M51 51 L61 59" stroke="#10161b" stroke-width="1.6"/><text x="92" y="42" font-size="9" fill="#2c6da6">아래층 target</text><text x="92" y="58" font-size="9" fill="#bf4630">위층 target</text><text x="92" y="74" font-size="9" fill="#10161b">둘의 차이 = overlay</text></svg>'},
+  reticle:{k:'레티클',e:'reticle / photomask',d:'회로 패턴이 크롬 등으로 새겨진 석영 원판입니다. 투영 렌즈가 보통 1/4로 축소해 웨이퍼에 전사하므로 레티클 위 패턴은 웨이퍼보다 4배 큽니다. 레티클 자체에 CD 오차가 있으면 모든 웨이퍼의 같은 field 내 위치에서 동일한 오차가 반복되며, 이 반복성이 레티클 원인의 지문입니다.',
+    s:'<svg viewBox="0 0 200 100"><rect x="14" y="20" width="62" height="46" fill="#f2f5f6" stroke="#57676f" stroke-width="1.2"/><path d="M24 32h12M42 32h12M24 44h12M42 44h8M24 56h20" stroke="#10161b" stroke-width="2.4"/><text x="14" y="80" font-size="9" fill="#57676f">레티클 (4배 크기)</text><path d="M84 44h20" stroke="#0b6a72" stroke-width="1.3"/><path d="M99 39l7 5-7 5" fill="#0b6a72"/><text x="86" y="34" font-size="9" fill="#0b6a72">1/4 축소</text><rect x="112" y="32" width="30" height="22" fill="#f2f5f6" stroke="#57676f" stroke-width="1.2"/><path d="M117 38h6M126 38h6M117 46h6M126 46h4" stroke="#10161b" stroke-width="1.4"/><text x="112" y="70" font-size="9" fill="#57676f">웨이퍼 field</text></svg>'},
+  field:{k:'Field (노광 영역)',e:'exposure field',d:'한 번의 노광으로 패턴이 전사되는 사각 영역입니다. 웨이퍼 전면을 한 번에 찍을 수 없어 스텝-앤-스캔 방식으로 이 영역을 격자처럼 옮겨가며 반복 노광합니다. 이 프로젝트의 field 크기는 26 × 33 mm이고, 웨이퍼 한 장에서 반경 방향으로 펼친 9개 field를 골라 측정합니다.',
+    s:'<svg viewBox="0 0 200 110"><circle cx="50" cy="55" r="42" fill="#f7f9f9" stroke="#c8d2d8"/><rect x="13" y="30" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="13" y="47" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="13" y="64" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="28" y="13" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="28" y="30" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="28" y="47" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="28" y="64" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="28" y="81" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="43" y="13" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="43" y="30" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="43" y="47" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="43" y="64" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="43" y="81" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="58" y="13" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="58" y="30" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="58" y="47" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="58" y="64" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="58" y="81" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="73" y="30" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="73" y="47" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="73" y="64" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><path d="M46 97h8l-4-7z" fill="#c8d2d8"/><text x="100" y="26" font-size="9" fill="#33424c">한 칸 = 1회 노광 (26×33 mm)</text><text x="100" y="42" font-size="9" fill="#0b6a72">진한 칸 = 측정 field 9개</text><text x="100" y="58" font-size="9" fill="#57676f">center–mid–edge가</text><text x="100" y="72" font-size="9" fill="#57676f">모두 표본에 들어오도록 배치</text></svg>'},
+  chamber:{k:'Etch 챔버',e:'etch chamber',d:'플라즈마 식각이 일어나는 진공 반응기입니다. RF 파워로 가스를 이온화해 라디칼을 만들고, 웨이퍼는 정전척(ESC) 위에 고정되어 온도가 제어됩니다. 챔버 벽에 반응 부산물이 쌓이면 라디칼 밀도가 달라져 식각 속도와 선폭이 함께 흔들립니다. 이 프로젝트에는 4개(CH-A~D)가 있고 로트마다 번갈아 배정됩니다.',
+    s:'<svg viewBox="0 0 200 110"><rect x="16" y="18" width="78" height="72" rx="3" fill="#fbfcfc" stroke="#57676f" stroke-width="1.3"/><path d="M24 26h62" stroke="#8a2e68" stroke-width="2"/><g fill="#8a2e68" opacity=".55"><circle cx="34" cy="42" r="2.2"/><circle cx="52" cy="38" r="2.2"/><circle cx="70" cy="44" r="2.2"/><circle cx="44" cy="52" r="2.2"/><circle cx="64" cy="54" r="2.2"/></g><rect x="30" y="64" width="50" height="5" fill="#c9d4d9" stroke="#57676f" stroke-width=".9"/><rect x="34" y="69" width="42" height="8" fill="#e6ecee" stroke="#57676f" stroke-width=".9"/><text x="102" y="30" font-size="9" fill="#8a2e68">RF · 가스 주입</text><text x="102" y="48" font-size="9" fill="#8a2e68">플라즈마 (라디칼)</text><text x="102" y="70" font-size="9" fill="#33424c">웨이퍼 / ESC (온도 제어)</text><text x="102" y="86" font-size="9" fill="#57676f">벽면 상태가 CD에 영향</text></svg>'},
+  golden:{k:'모니터 웨이퍼',e:'monitor wafer',d:'계측 장비의 안정성(stability)과 장비 간 정합(tool-to-tool matching)을 점검하려고 두는 전용 웨이퍼입니다. 이미 패턴이 형성되어 있고 공정 라인에는 다시 투입하지 않으며, 고정된 recipe로 같은 위치를 반복 측정합니다. 공정 변화가 개입하지 않으므로 값이 이동하면 그 이동분은 장비 기여로 귀속됩니다. 실제 fab에서도 CD-SEM 여러 대의 절대 선폭과 상호 정합을 이 방식으로 감시하며, 점검 주기는 일 단위인 경우도 흔합니다.',
+    s:'<svg viewBox="0 0 200 110"><circle cx="36" cy="42" r="26" fill="#f2f5f6" stroke="#0b6a72" stroke-width="1.3"/><path d="M24 34h24M24 42h24M24 50h24" stroke="#0b6a72" stroke-width="2"/><text x="10" y="80" font-size="9" fill="#57676f">패턴 고정 · 라인 미투입</text><line x1="106" y1="60" x2="188" y2="60" stroke="#c8d2d8"/><g fill="#0b6a72"><circle cx="110" cy="60" r="2.6"/><circle cx="121" cy="60" r="2.6"/><circle cx="132" cy="60" r="2.6"/><circle cx="143" cy="60" r="2.6"/><circle cx="154" cy="60" r="2.6"/><circle cx="165" cy="62" r="2.6"/><circle cx="176" cy="64" r="2.6"/><circle cx="187" cy="66" r="2.6"/></g><text x="106" y="30" font-size="9" fill="#33424c">동일 recipe 반복 측정</text><text x="106" y="88" font-size="9" fill="#0b6a72">값이 이동하면 장비 drift</text></svg>'},
+  cdsem:{k:'CD-SEM',e:'Critical Dimension SEM',d:'전자빔으로 패턴을 위에서 내려다보며 선폭을 재는 장비입니다. 서브나노미터급 정밀도를 내기 때문에 업계에서 the ruler of the fab이라고 불립니다. 2차 전자 신호의 세기 파형에서 패턴 가장자리를 찾아 두 edge 사이 거리를 CD로 산출합니다. 비파괴이지만 point 측정이라 웨이퍼당 측정 점수가 제한되며, 모던 장비 기준 대략 13~36점 수준입니다.',
+    s:'<svg viewBox="0 0 200 110"><path d="M28 10v14" stroke="#0b6a72" stroke-width="2.2"/><path d="M18 24h20l-10 20z" fill="none" stroke="#0b6a72" stroke-width="1.3"/><rect x="10" y="52" width="38" height="9" fill="#e6ecee" stroke="#57676f" stroke-width="1"/><text x="10" y="76" font-size="9" fill="#33424c">전자빔 · top-down</text><polyline points="66,74 78,74 84,44 92,44 98,74 118,74 124,44 132,44 138,74 152,74" fill="none" stroke="#10161b" stroke-width="1.4"/><path d="M84 84h14" stroke="#bf4630" stroke-width="1.8"/><path d="M84 80v8M98 80v8" stroke="#bf4630" stroke-width="1.2"/><text x="80" y="98" font-size="9" fill="#bf4630">edge 사이 = CD</text><text x="66" y="32" font-size="9" fill="#57676f">2차 전자 신호 파형</text></svg>'},
+  xsem:{k:'단면 측정',e:'X-SEM / cross-section',d:'웨이퍼를 절단해 단면을 관찰하는 측정입니다. 프로파일의 아래폭(BCD)·중간폭(MCD)·위폭(TCD)과 측벽각을 모두 볼 수 있어 절대 기준으로 쓰입니다. 파괴 측정이라 극소 표본으로만 수행하며, 이 프로젝트에서는 주 3회 5점입니다. BCD 90 nm가 이 프로젝트의 최종 목표값입니다.',
+    s:'<svg viewBox="0 0 200 110"><path d="M22 84 L34 26 L66 26 L78 84 Z" fill="#eef2f3" stroke="#57676f" stroke-width="1.2"/><path d="M34 22h32" stroke="#2c6da6" stroke-width="2"/><path d="M28 55h44" stroke="#8a2e68" stroke-width="2"/><path d="M22 90h56" stroke="#bf4630" stroke-width="2"/><text x="86" y="26" font-size="9" fill="#2c6da6">TCD (위폭)</text><text x="86" y="59" font-size="9" fill="#8a2e68">MCD (중간폭)</text><text x="86" y="94" font-size="9" fill="#bf4630">BCD (아래폭) · 목표 90 nm</text></svg>'},
+  dose:{k:'Dose (노광량)',e:'exposure dose',d:'감광막에 전달되는 빛의 총량입니다. Positive tone 레지스트에서는 dose가 커질수록 선이 가늘어집니다. 웨이퍼 전면에 동일하게 걸리는 성분이므로, 웨이퍼 평균 CD가 통째로 이동하면 dose 계열을 먼저 의심합니다. dose 1% 변화가 CD 몇 nm에 해당하는지를 dose sensitivity라고 부르고, 이 값으로 보정량을 계산합니다.',
+    s:'<svg viewBox="0 0 200 110"><line x1="30" y1="20" x2="30" y2="86" stroke="#c8d2d8"/><line x1="30" y1="86" x2="176" y2="86" stroke="#c8d2d8"/><polyline points="40,30 70,42 100,54 130,66 164,78" fill="none" stroke="#a05c00" stroke-width="2"/><text x="6" y="30" font-size="9" fill="#57676f">CD</text><text x="140" y="102" font-size="9" fill="#57676f">dose</text><text x="86" y="34" font-size="9" fill="#a05c00">dose ↑ → CD ↓</text><text x="52" y="70" font-size="9" fill="#33424c">기울기 = dose sensitivity</text></svg>'},
+  peb:{k:'PEB (노광 후 열처리)',e:'Post Exposure Bake',d:'노광 후 웨이퍼를 가열판에서 굽는 단계입니다. 화학증폭형 레지스트에서는 이때 산 촉매 반응이 진행되어 잠상이 완성되므로, 판의 온도가 몇 십분의 1도만 달라져도 선폭이 바뀝니다. 가열판의 온도 분포는 중심-엣지 형태를 띠기 때문에 웨이퍼 반경 방향 지문으로 나타납니다.',
+    s:'<svg viewBox="0 0 200 110"><circle cx="48" cy="50" r="34" fill="#f7e9dd" stroke="#a05c00" stroke-width="1.2"/><circle cx="48" cy="50" r="22" fill="#f2ddc9" stroke="#c99a5e" stroke-width=".9"/><circle cx="48" cy="50" r="10" fill="#eccfae" stroke="#c99a5e" stroke-width=".9"/><text x="34" y="96" font-size="9" fill="#a05c00">가열판 온도 분포</text><text x="94" y="38" font-size="9" fill="#33424c">중심과 엣지의</text><text x="94" y="54" font-size="9" fill="#33424c">온도 차이가</text><text x="94" y="70" font-size="9" fill="#a05c00">반경 방향 CD 지문으로</text></svg>'},
+  delta:{k:'Etch bias (ΔCD)',e:'etch bias',d:'ACI CD에서 ADI CD를 뺀 값으로, 식각을 거치며 선폭이 가로 방향으로 얼마나 변했는지를 뜻합니다. 깎인 깊이(etch depth)와는 다른 값입니다. 음수면 식각이 선을 좁힌 것이고, 이 프로젝트의 기준값은 −20 nm입니다. ADI가 정상인데 이 값만 흐르면 원인 후보는 Etch 또는 Metrology로 좁혀집니다.',
+    s:'<svg viewBox="0 0 200 110"><rect x="18" y="30" width="34" height="40" fill="#f4dfd8" stroke="#8a2e68" stroke-width="1.2"/><text x="16" y="24" font-size="9" fill="#8a2e68">ADI CD</text><path d="M64 50h20" stroke="#57676f" stroke-width="1.3"/><path d="M79 45l7 5-7 5" fill="#57676f"/><rect x="96" y="30" width="22" height="40" fill="#e6ecee" stroke="#57676f" stroke-width="1.2"/><text x="94" y="24" font-size="9" fill="#57676f">ACI CD</text><path d="M96 80h22" stroke="#bf4630" stroke-width="1.6"/><path d="M118 80h12" stroke="#bf4630" stroke-width="1.6" stroke-dasharray="3 2"/><text x="100" y="96" font-size="9" fill="#bf4630">가로 폭이 좁아진 양</text><text x="136" y="46" font-size="9" fill="#33424c">깊이 변화가</text><text x="136" y="60" font-size="9" fill="#33424c">아님</text></svg>'},
+  pm:{k:'PM · 챔버 시즈닝',e:'Preventive Maintenance / seasoning',d:'설비를 정기적으로 열어 세정하고 부품을 교체하는 작업입니다. 세정 직후에는 챔버 벽면 상태가 리셋되어 식각 특성이 크게 달라지고(first wafer effect), 이후 반응 부산물이 벽에 쌓이면서 라디칼 밀도가 서서히 변해 etch bias가 완만하게 흐릅니다. 이 현상을 chamber seasoning이라 부르며, 실제 fab에서 CD 드리프트의 대표적 원인 중 하나입니다.',
+    s:'<svg viewBox="0 0 200 110"><line x1="24" y1="86" x2="182" y2="86" stroke="#c8d2d8"/><line x1="24" y1="18" x2="24" y2="86" stroke="#c8d2d8"/><polyline points="30,32 36,58 48,64 66,68 88,72 110,76" fill="none" stroke="#8a2e68" stroke-width="1.8"/><polyline points="120,30 126,56 138,62 156,66 176,72" fill="none" stroke="#8a2e68" stroke-width="1.8"/><line x1="115" y1="18" x2="115" y2="86" stroke="#0b6a72" stroke-dasharray="3 2"/><text x="98" y="14" font-size="9" fill="#0b6a72">PM</text><text x="30" y="24" font-size="9" fill="#8a2e68">세정 직후 급변</text><text x="52" y="102" font-size="9" fill="#57676f">PM 후 경과 시간 (RF hours)</text><text x="2" y="52" font-size="9" fill="#57676f">bias</text></svg>'},
+  limit:{k:'관리 한계',e:'control limit',d:'정상 변동으로 인정하는 범위입니다. 이 프로젝트에서는 이상 주입 이전 기준선 10일 데이터의 평균 ± 3σ로 엔진이 스스로 계산하며, 사람이 임의로 정하지 않습니다. SPC 관례상 관리 한계를 안정적으로 추정하려면 20~25개 이상의 표본군이 필요해 기준선 구간을 그만큼 확보했습니다.',
+    s:'<svg viewBox="0 0 200 100"><line x1="18" y1="50" x2="186" y2="50" stroke="#8ea0aa" stroke-dasharray="4 3"/><rect x="18" y="30" width="168" height="40" fill="#eef1f3"/><line x1="18" y1="30" x2="186" y2="30" stroke="#9aa9b2" stroke-dasharray="2 3"/><line x1="18" y1="70" x2="186" y2="70" stroke="#9aa9b2" stroke-dasharray="2 3"/><g fill="#4e5f6a"><circle cx="26" cy="52" r="2.4"/><circle cx="37" cy="48" r="2.4"/><circle cx="48" cy="53" r="2.4"/><circle cx="59" cy="47" r="2.4"/><circle cx="70" cy="51" r="2.4"/><circle cx="81" cy="49" r="2.4"/><circle cx="92" cy="54" r="2.4"/><circle cx="103" cy="46" r="2.4"/><circle cx="114" cy="50" r="2.4"/><circle cx="125" cy="52" r="2.4"/><circle cx="136" cy="48" r="2.4"/><circle cx="147" cy="51" r="2.4"/><circle cx="158" cy="47" r="2.4"/><circle cx="169" cy="53" r="2.4"/><circle cx="180" cy="49" r="2.4"/></g><circle cx="170" cy="22" r="4" fill="#bf4630"/><text x="22" y="26" font-size="9" fill="#57676f">평균 + 3σ</text><text x="22" y="84" font-size="9" fill="#57676f">평균 − 3σ</text><text x="126" y="16" font-size="9" fill="#bf4630">한계 이탈</text></svg>'},
+  rework:{k:'Rework (재작업)',e:'rework',d:'레지스트를 벗겨내고 노광부터 다시 하는 것입니다. 식각 전 ADI 시점에만 가능하며, 식각이 끝나면 구조가 확정되어 되돌릴 수 없습니다. 그래서 원인 판정이 빠를수록 살릴 수 있는 웨이퍼가 늘어납니다. 이 프로젝트가 ADI 계열 판정을 먼저 수행하는 이유입니다.',
+    s:'<svg viewBox="0 0 200 100"><rect x="14" y="34" width="42" height="24" fill="none" stroke="#a05c00" stroke-width="1.2"/><text x="35" y="50" text-anchor="middle" font-size="9" fill="#a05c00">노광</text><path d="M60 46h20" stroke="#57676f"/><path d="M75 41l7 5-7 5" fill="#57676f"/><rect x="84" y="34" width="42" height="24" fill="none" stroke="#0b6a72" stroke-width="1.2"/><text x="105" y="50" text-anchor="middle" font-size="9" fill="#0b6a72">ADI</text><path d="M130 46h20" stroke="#57676f"/><path d="M145 41l7 5-7 5" fill="#57676f"/><rect x="154" y="34" width="36" height="24" fill="none" stroke="#8a2e68" stroke-width="1.2"/><text x="172" y="50" text-anchor="middle" font-size="9" fill="#8a2e68">Etch</text><path d="M105 62 L105 78 L35 78 L35 62" fill="none" stroke="#1c6b3a" stroke-width="1.4"/><path d="M30 67l5-7 5 7" fill="#1c6b3a"/><text x="60" y="92" font-size="9" fill="#1c6b3a">rework (ADI에서만 가능)</text></svg>'},
+  metro:{k:'Metrology (계측)',e:'metrology',d:'형성된 구조의 치수를 재는 일과 그 장비를 통칭합니다. 이 프로젝트에는 CD-SEM 2대(CDSEM-A, CDSEM-B)가 있고 로트마다 둘 중 하나가 측정을 맡습니다. 어느 장비가 쟀는지를 데이터에 기록해 두는 것이 계측 원인 판정의 열쇠입니다. 이 컬럼이 없으면 어떤 알고리즘을 써도 장비 drift를 공정 이상과 구분할 수 없습니다.',
+    s:'<svg viewBox="0 0 200 100"><rect x="16" y="24" width="42" height="30" rx="2" fill="none" stroke="#8b98a3" stroke-width="1.3"/><text x="37" y="43" text-anchor="middle" font-size="9" fill="#57676f">CDSEM-A</text><rect x="16" y="60" width="42" height="30" rx="2" fill="none" stroke="#0b6a72" stroke-width="1.6"/><text x="37" y="79" text-anchor="middle" font-size="9" fill="#0b6a72">CDSEM-B</text><path d="M64 39h26M64 75h26" stroke="#57676f"/><text x="96" y="42" font-size="9" fill="#33424c">같은 구조를 재도</text><text x="96" y="58" font-size="9" fill="#33424c">장비마다 offset이 다르다</text><text x="96" y="78" font-size="9" fill="#0b6a72">→ 측정 장비 ID 기록 필수</text></svg>'},
+  skiplot:{k:'Skip-lot 샘플링',e:'skip-lot sampling',d:'모든 로트를 측정하지 않고 일정 비율만 골라 재는 방식입니다. 계측은 장비 투자비와 사이클 타임을 동시에 소모하므로, 공정 능력지수(Cp/Cpk)가 좋을수록 skip 비율을 높입니다. 이 프로젝트는 ADI를 전 로트, ACI를 절반 로트에서 측정합니다.',
+    s:'<svg viewBox="0 0 200 90"><rect x="14" y="30" width="14" height="18" fill="#0b6a72" stroke="#57676f" stroke-width=".8"/><rect x="31" y="30" width="14" height="18" fill="#ffffff" stroke="#57676f" stroke-width=".8"/><rect x="48" y="30" width="14" height="18" fill="#0b6a72" stroke="#57676f" stroke-width=".8"/><rect x="65" y="30" width="14" height="18" fill="#ffffff" stroke="#57676f" stroke-width=".8"/><rect x="82" y="30" width="14" height="18" fill="#0b6a72" stroke="#57676f" stroke-width=".8"/><rect x="99" y="30" width="14" height="18" fill="#ffffff" stroke="#57676f" stroke-width=".8"/><rect x="116" y="30" width="14" height="18" fill="#0b6a72" stroke="#57676f" stroke-width=".8"/><rect x="133" y="30" width="14" height="18" fill="#ffffff" stroke="#57676f" stroke-width=".8"/><rect x="150" y="30" width="14" height="18" fill="#0b6a72" stroke="#57676f" stroke-width=".8"/><rect x="167" y="30" width="14" height="18" fill="#ffffff" stroke="#57676f" stroke-width=".8"/><text x="14" y="72" font-size="9" fill="#0b6a72">■ 측정</text><text x="62" y="72" font-size="9" fill="#8b98a3">□ skip</text><text x="120" y="72" font-size="9" fill="#57676f">skip 비율은</text><text x="120" y="86" font-size="9" fill="#57676f">Cp/Cpk로 결정</text></svg>'},
+  apc:{k:'APC · R2R 제어',e:'Advanced Process Control, run-to-run',d:'앞 로트의 계측 결과로 다음 로트의 공정 조건을 자동 보정하는 제어 방식입니다. ADI에서 잰 CD와 오버레이가 스캐너 보정값으로 되먹임되는 것이 대표적입니다. 그래서 ADI는 actionable 측정, ACI는 검증 측정으로 구분합니다.',
+    s:'<svg viewBox="0 0 200 100"><rect x="16" y="30" width="44" height="26" fill="none" stroke="#a05c00" stroke-width="1.2"/><text x="38" y="47" text-anchor="middle" font-size="9" fill="#a05c00">스캐너</text><path d="M64 43h24" stroke="#57676f"/><path d="M83 38l7 5-7 5" fill="#57676f"/><rect x="92" y="30" width="44" height="26" fill="none" stroke="#0b6a72" stroke-width="1.2"/><text x="114" y="47" text-anchor="middle" font-size="9" fill="#0b6a72">ADI 계측</text><path d="M114 60 L114 78 L38 78 L38 60" fill="none" stroke="#1c6b3a" stroke-width="1.4"/><path d="M33 65l5-7 5 7" fill="#1c6b3a"/><text x="46" y="92" font-size="9" fill="#1c6b3a">보정값 되먹임 (run-to-run)</text></svg>'},
+  tmu:{k:'TMU (총 측정 불확도)',e:'Total Measurement Uncertainty',d:'계측 장비가 만들어내는 오차의 총량을 나타내는 업계 표준 KPI입니다. 오버레이에서는 TIS-mean, TIS-3σ, dynamic precision, tool-to-tool match를 제곱합 제곱근으로 합쳐 정의합니다. 이 프로젝트는 CD를 다루므로 TIS 항(0도/180도 회전으로 정의되는 오버레이 전용 항)은 제외하고 precision과 match 두 항만 씁니다. 측정 불확도는 공정 허용 예산의 20% 이내여야 한다는 것이 통상 기준입니다.',
+    s:'<svg viewBox="0 0 200 110"><rect x="18" y="70" width="34" height="24" fill="#c9d4d9" stroke="#57676f" stroke-width="1"/><text x="18" y="106" font-size="9" fill="#57676f">precision</text><rect x="62" y="46" width="34" height="48" fill="#c9d4d9" stroke="#57676f" stroke-width="1"/><text x="62" y="106" font-size="9" fill="#57676f">match</text><text x="102" y="72" font-size="13" fill="#33424c">=</text><rect x="120" y="34" width="34" height="60" fill="#e3f0f1" stroke="#0b6a72" stroke-width="1.6"/><text x="122" y="106" font-size="9" fill="#0b6a72">TMU</text><text x="118" y="26" font-size="9" fill="#0b6a72">RSS 합성</text><line x1="164" y1="34" x2="186" y2="34" stroke="#bf4630" stroke-dasharray="3 2"/><text x="160" y="28" font-size="8" fill="#bf4630">예산 20%</text></svg>'},
+  precision:{k:'Dynamic precision',e:'dynamic precision',d:'같은 지점을 같은 조건으로 여러 번 반복 측정했을 때 값이 얼마나 흩어지는지입니다. 보통 3σ로 표기하며, 장비 자체의 재현성을 뜻합니다. 이 프로젝트에서는 모니터 웨이퍼의 각 site를 5회씩 반복 측정해 산출합니다. 참값은 변하지 않으므로 흩어짐은 전부 장비 기여입니다.',
+    s:'<svg viewBox="0 0 200 90"><line x1="26" y1="45" x2="176" y2="45" stroke="#c8d2d8"/><g fill="#0b6a72"><circle cx="86" cy="45" r="3"/><circle cx="94" cy="45" r="3"/><circle cx="78" cy="45" r="3"/><circle cx="99" cy="45" r="3"/><circle cx="83" cy="45" r="3"/></g><path d="M74 60h30" stroke="#bf4630" stroke-width="1.6"/><path d="M74 56v8M104 56v8" stroke="#bf4630" stroke-width="1.2"/><text x="66" y="78" font-size="9" fill="#bf4630">반복 측정의 3σ</text><text x="30" y="30" font-size="9" fill="#57676f">같은 site · 같은 recipe · 5회</text></svg>'},
+  match:{k:'Tool-to-tool match',e:'tool matching',d:'같은 구조를 서로 다른 장비로 쟀을 때 값이 얼마나 다른지입니다. 로트마다 어느 장비가 측정을 맡을지 달라지므로, 장비 간 차이가 크면 공정이 변한 것인지 장비가 바뀐 것인지 구분할 수 없게 됩니다. 이 프로젝트는 두 장비가 모니터 웨이퍼의 같은 site를 잰 평균의 차이로 산출합니다.',
+    s:'<svg viewBox="0 0 200 100"><line x1="26" y1="40" x2="176" y2="40" stroke="#e2e9ec"/><line x1="26" y1="66" x2="176" y2="66" stroke="#e2e9ec"/><g fill="#8b98a3"><circle cx="70" cy="40" r="3.4"/><circle cx="96" cy="40" r="3.4"/><circle cx="122" cy="40" r="3.4"/></g><g fill="#0b6a72"><circle cx="82" cy="66" r="3.4"/><circle cx="108" cy="66" r="3.4"/><circle cx="134" cy="66" r="3.4"/></g><text x="26" y="34" font-size="9" fill="#8b98a3">CDSEM-A</text><text x="26" y="82" font-size="9" fill="#0b6a72">CDSEM-B</text><path d="M150 40 L150 66" stroke="#bf4630" stroke-width="1.8"/><text x="154" y="56" font-size="9" fill="#bf4630">match</text></svg>'},
+  tolerance:{k:'공정 허용 예산',e:'process tolerance',d:'CD가 벗어나도 되는 폭입니다. 이 프로젝트에서는 웨이퍼 내 CDU 3σ 4.2 nm에서 공정 능력지수 Cp가 약 1.43이 되도록 ±6.0 nm로 설정했습니다. 계측 불확도는 이 예산의 20% 이내, 즉 1.2 nm 이내여야 한다는 것이 통상 기준입니다.'},
+  setting:{k:'Setting값',e:'Recipe Input / setpoint',d:'Recipe에 적혀 있어 장비에 지시되는 값입니다. 노광량 Setting 32.0 mJ/cm2는 이만큼 조사하라는 지시일 뿐, 실제로 그만큼 조사되었는지를 보장하지 않습니다. Setting은 변경 이력이 남으므로, 이슈 시점과 Setting 변경 시점이 어긋나면 그 항목은 원인 후보에서 배제할 수 있습니다.',
+    s:'<svg viewBox="0 0 200 100"><rect x="14" y="26" width="80" height="44" fill="#fbfcfc" stroke="#57676f" stroke-width="1.2"/><text x="22" y="44" font-size="10" fill="#33424c">Recipe</text><text x="22" y="61" font-size="11" fill="#10161b" font-family="IBM Plex Mono">dose = 32.0</text><text x="14" y="86" font-size="9" fill="#57676f">장비에 내리는 지시값</text><text x="106" y="42" font-size="9" fill="#a2321f">지시했다는 뜻일 뿐</text><text x="106" y="58" font-size="9" fill="#a2321f">그대로 조사됐다는</text><text x="106" y="74" font-size="9" fill="#a2321f">보장은 아니다</text></svg>'},
+  sensor:{k:'Energy Sensor 실측값',e:'energy sensor readback',d:'스캐너 내부 에너지 센서가 실제로 조사된 광량을 적산해 읽은 값입니다. CD가 반응하는 것은 Setting이 아니라 이 실효 dose입니다. Setting은 그대로인데 이 값만 이동했다면 광원 교체 후 Dose Mapper Calibration 누락, 센서 열화·오염, 조명계 투과율 변화를 의심합니다. 이 경우 Recipe를 고쳐도 실효 dose는 그대로여서 재발합니다.',
+    s:'<svg viewBox="0 0 200 110"><line x1="26" y1="86" x2="182" y2="86" stroke="#c8d2d8"/><line x1="26" y1="20" x2="26" y2="86" stroke="#c8d2d8"/><line x1="26" y1="58" x2="182" y2="58" stroke="#8b98a3" stroke-dasharray="5 3"/><text x="32" y="54" font-size="9" fill="#57676f">Setting 32.0 (고정)</text><polyline points="34,60 62,58 90,59 112,50 134,40 160,34" fill="none" stroke="#a05c00" stroke-width="2"/><text x="106" y="28" font-size="9" fill="#a05c00">Sensor 실측</text><path d="M160 34 L160 58" stroke="#bf4630" stroke-width="1.6"/><text x="104" y="76" font-size="9" fill="#bf4630">이 괴리가 실효 dose 오차</text><text x="46" y="104" font-size="9" fill="#57676f">시간</text></svg>'},
+  dosemapper:{k:'Dose Mapper Calibration',e:'dose sensor calibration',d:'에너지 센서가 읽는 값과 웨이퍼 면에 실제 도달하는 광량 사이의 변환 관계를 다시 맞추는 작업입니다. 광원(Laser Source)을 교체하면 파장 대역폭(E95)과 pulse energy 특성이 달라지므로 같은 Setting에서도 실효 dose가 달라질 수 있습니다. 그래서 Source 교체는 Calibration 재수행을 필수 절차로 Change Control Checklist에 넣습니다.'},
+  changepoint:{k:'변경점 · PM/Inform 이력',e:'change point / maintenance log',d:'설비에 가해진 모든 변경의 기록입니다. 부품 교체, PM, Recipe 변경, Calibration 수행 이력이 시점과 함께 남습니다. 이상 분석의 출발점은 항상 이상이 시작된 시점과 일치하는 변경점이 있는가이며, 시점이 어긋나면 그 항목은 원인 후보에서 배제합니다.'},
+  ocap:{k:'SPC 관리도 · OCAP',e:'Statistical Process Control / Out of Control Action Plan',d:'지표를 관리 한계와 함께 시계열로 관리하고(SPC 관리도), 한계를 벗어났을 때 누가 무엇을 하는지 사전에 정해두는 절차(OCAP)입니다. Setting값만 감시하면 Setting과 실측의 괴리를 놓치므로, Sensor 실측값 자체에 관리도를 거는 것이 재발 방지의 핵심입니다.'},
+  tmu:{k:'TMU (계측 불확도)',e:'Total Measurement Uncertainty',d:'계측 장비가 만들어내는 오차의 총량을 나타내는 업계 표준 지표입니다. 오버레이에서는 TIS-mean, TIS-3σ, dynamic precision, tool-to-tool match 네 항의 제곱합 제곱근으로 정의합니다. 이 값이 공정 허용 예산의 20%를 넘으면 측정값으로 공정을 판단하기 어려워집니다. 공정이 정상인지 아닌지가 측정 오차에 묻혀버리기 때문입니다.',
+    s:'<svg viewBox="0 0 200 110"><rect x="18" y="30" width="150" height="30" fill="#f2f5f6" stroke="#c8d2d8"/><rect x="18" y="30" width="30" height="30" fill="#cfe3e4" stroke="#0b6a72"/><text x="20" y="24" font-size="9" fill="#0b6a72">계측 몫 (TMU)</text><text x="80" y="50" font-size="9" fill="#57676f">공정에 남는 몫</text><path d="M18 70h150" stroke="#33424c" stroke-width="1.4"/><path d="M18 66v8M168 66v8" stroke="#33424c" stroke-width="1.2"/><text x="52" y="86" font-size="9" fill="#33424c">공정 허용 예산 T</text><text x="18" y="104" font-size="9" fill="#0b6a72">계측 몫은 20% 이내여야 한다</text></svg>'},
+  precision:{k:'Dynamic precision',e:'dynamic precision',d:'같은 위치를 여러 번 반복 측정했을 때 값이 얼마나 흩어지는지입니다. 보통 3σ로 표기합니다. 웨이퍼를 내렸다 다시 올리지 않고 연속 측정하므로 순수하게 장비의 반복성만 봅니다. 이 프로젝트는 모니터 웨이퍼의 각 site를 3회씩 반복 측정해 산출합니다.',
+    s:'<svg viewBox="0 0 200 100"><line x1="24" y1="50" x2="176" y2="50" stroke="#c8d2d8"/><g fill="#0b6a72"><circle cx="70" cy="46" r="3"/><circle cx="78" cy="52" r="3"/><circle cx="86" cy="48" r="3"/><circle cx="94" cy="54" r="3"/><circle cx="102" cy="47" r="3"/></g><path d="M68 68h38" stroke="#bf4630" stroke-width="1.6"/><path d="M68 64v8M106 64v8" stroke="#bf4630" stroke-width="1.2"/><text x="66" y="84" font-size="9" fill="#bf4630">이 흩어짐이 precision</text><text x="24" y="30" font-size="9" fill="#57676f">같은 자리를 3회 반복 측정</text></svg>'},
+  match:{k:'Tool-to-tool match',e:'tool-to-tool matching',d:'같은 구조를 서로 다른 장비로 쟀을 때 값이 얼마나 다른지입니다. 로트마다 측정 장비가 바뀌므로, 장비 간 차이가 크면 공정이 변한 것처럼 보입니다. 그래서 fab에서는 여러 대의 CD-SEM을 하나의 fleet으로 묶어 상시 정합을 관리합니다.',
+    s:'<svg viewBox="0 0 200 100"><line x1="26" y1="70" x2="176" y2="70" stroke="#c8d2d8"/><circle cx="78" cy="44" r="4" fill="#8b98a3"/><circle cx="112" cy="44" r="4" fill="#0b6a72"/><path d="M78 54h34" stroke="#bf4630" stroke-width="1.6"/><path d="M78 50v8M112 50v8" stroke="#bf4630" stroke-width="1.2"/><text x="52" y="36" font-size="9" fill="#8b98a3">CDSEM-A</text><text x="118" y="36" font-size="9" fill="#0b6a72">CDSEM-B</text><text x="66" y="88" font-size="9" fill="#bf4630">같은 자리, 다른 값 = match 오차</text></svg>'},
+  tis:{k:'TIS',e:'Tool Induced Shift',d:'측정 대상을 0°와 180°로 회전시켜 두 번 잰 값의 차이로 정의되는 장비 고유의 비대칭 오차입니다. 오버레이 계측에서 정확도를 평가하는 표준 항목이며, 광학계의 비대칭에서 비롯됩니다. 회전 측정으로 정의되는 항이라 top-down CD 측정에는 그대로 적용되지 않아, 이 프로젝트의 TMU 계산에서는 제외했습니다.'},
+  cdu:{k:'CDU',e:'CD Uniformity',d:'웨이퍼 안에서 선폭이 얼마나 고른지를 나타내는 지표로 보통 3σ로 표기합니다. 평균이 목표에 맞아도 CDU가 나쁘면 웨이퍼 일부는 스펙을 벗어납니다. 이 데이터의 웨이퍼 내 CDU는 3σ 기준 약 4.2 nm입니다.',
+    s:'<svg viewBox="0 0 200 100"><g fill="#c9d4d9" stroke="#57676f" stroke-width=".8"><rect x="62" y="74" width="9" height="8"/><rect x="72" y="62" width="9" height="20"/><rect x="82" y="44" width="9" height="38"/><rect x="92" y="27" width="9" height="55"/><rect x="102" y="20" width="9" height="62"/><rect x="112" y="27" width="9" height="55"/><rect x="122" y="44" width="9" height="38"/><rect x="132" y="62" width="9" height="20"/><rect x="142" y="74" width="9" height="8"/></g><line x1="100" y1="18" x2="100" y2="82" stroke="#0b6a72" stroke-dasharray="3 2"/><path d="M62 88h76" stroke="#bf4630" stroke-width="1.6"/><path d="M62 84v8M138 84v8" stroke="#bf4630" stroke-width="1.2"/><text x="82" y="100" font-size="9" fill="#bf4630">3σ</text><text x="146" y="34" font-size="9" fill="#0b6a72">평균</text></svg>'}
 };
-const TOOL_LABEL = {get_lot_context:'Lot context',decompose_cd:'CD decomposition',get_metrology_health:'Metrology health',compare_chambers:'Chamber comparison',get_equipment_events:'Equipment events',verify_disposition:'Verification Gate'};
 
-let state={query:'',verdict:'',scanner:'',reticle:'',chamber:'',metro:'',dayMin:0,dayMax:M.days-1,abnormal:false,current:null,view:'workspace'};
-let chartsDrawn=false, metricKey='dbias';
 
-function riskClass(r){return r==='High'?'status-high':r==='Watch'?'status-watch':'status-normal'}
-function gateStatus(l){const inv=INVESTIGATIONS?.[l.lot];return inv && inv.status==='DISPOSITION_READY'?'PASS':'HOLD'}
-function unique(key){return [...new Set(DATA.lots.map(l=>l[key]).filter(Boolean))].sort()}
-function optionize(sel,arr){sel.insertAdjacentHTML('beforeend',arr.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join(''))}
-function initFilters(){
-  optionize($('#fVerdict'),Object.keys(VERDICT_SHORT)); optionize($('#fScanner'),unique('scanner')); optionize($('#fReticle'),unique('reticle')); optionize($('#fChamber'),unique('chamber'));
-  optionize($('#fMetro'),[...new Set(DATA.lots.flatMap(l=>[l.adiTool,l.aciTool]).filter(Boolean))].sort());
-  $('#fDayMin').value=0; $('#fDayMax').value=M.days-1;
-  ['fVerdict','fScanner','fReticle','fChamber','fMetro','fDayMin','fDayMax'].forEach(id=>$('#'+id).addEventListener('change',readFilters));
-  $('#fAbnormal').addEventListener('change',readFilters); $('#globalSearch').addEventListener('input',e=>{state.query=e.target.value.trim().toLowerCase();renderLots()});
-  $('#clearFilters').onclick=()=>{state={...state,query:'',verdict:'',scanner:'',reticle:'',chamber:'',metro:'',dayMin:0,dayMax:M.days-1,abnormal:false};$('#globalSearch').value='';$('#fVerdict').value='';$('#fScanner').value='';$('#fReticle').value='';$('#fChamber').value='';$('#fMetro').value='';$('#fDayMin').value=0;$('#fDayMax').value=M.days-1;$('#fAbnormal').checked=false;renderLots()};
+/* 화면에서 걷어낸 설명은 전부 여기 ⓘ 뒤에 둔다 */
+const INFO = {
+axes:{k:'판정 축',d:'41개 측정점의 CD 잔차를 하나의 설계행렬로 동시 회귀해 성분을 분리한다. 성분을 순차적으로 빼면 서로를 오염시키므로 함께 푼다. 어긋남이 어느 좌표계에 사는지가 곧 원인의 지문이다. 스칼라 성분만 한계를 넘고 나머지가 정상이면 웨이퍼 전면이 통째로 이동한 것이므로 dose 계열로 좁혀진다. 마지막 행이 이 프로젝트의 핵심이다. 계측 장비 drift는 어느 좌표계에도 살지 않아 원시 데이터만으로는 식각 이상과 구분되지 않는다.'},
+spec:{k:'데이터 사양',d:'실제 fab 데이터가 아니라 현업의 계측 구조를 본떠 만든 합성 데이터다. 계측 정합성 실습의 3-way CD split에서 직접 측정해 얻은 ADI-ACI-단면 회귀식을 앵커로 삼고, 물리적으로 타당한 변동 성분을 쌓아 생성했다. 모든 상수에 measured / literature / assumed 등급을 붙였다. 측정이 없는 구간은 판정하지 않는다.'},
+bias:{k:'Etch bias −20 nm의 근거',d:'실습 3-way CD split 원자료에서 ADI 140/148/125 → ACI 120/128/105로 세 조건 모두 정확히 20 nm 차이를 유지했다(회귀 기울기 1.0). 가정이 아니라 실측이다. 물리적으로도 타당하다. 레지스트 선폭을 패턴 전사 전에 좁히는 trim etch가 표준 기법이며 문헌에 30 nm 수준의 trim이 보고되어 있다. 130 nm급 L/S에서 −20 nm(약 15% 축소)는 그 범위 안이다. 변동 항도 실제 현상과 대응된다. PM 후 drift는 chamber seasoning, 챔버별 offset은 chamber matching, 반경 성분은 플라즈마 균일도와 ESC 온도, 패턴 밀도 의존은 loading effect다. 다만 실제 seasoning은 PM 직후 급변(first wafer effect) 후 안정화, 이후 완만한 drift의 3단계인데 이 모델은 선형 drift + PM 리셋으로 단순화했다.'},
+sampling:{k:'41점 샘플링의 근거',d:'분해하려는 성분이 세 종류이고 각각 사는 좌표계가 다르다. 반경 성분을 2차항으로 추정하려면 center-mid-edge가 모두 표본에 있어야 하고, intra-field 성분(슬릿 지문과 레티클 오차)을 분리하려면 한 field 안에 여러 site가 필요하다. 그래서 field를 웨이퍼 전면에 9개 펼치고 각 field 안에 중심 1점 + 모서리 4점을 뒀다. 모던 CD-SEM의 웨이퍼당 측정 능력이 대략 13~36점 수준이므로 41점은 그 상단이며, 루틴 모니터링이 아니라 characterization 급 플랜이다. 한계로 명시한다.'},
+scale:{k:'320 로트 · 8주의 근거',d:'세 제약이 동시에 걸린다. 첫째, 관리 한계 추정에는 SPC 관례상 20~25개 이상의 표본군이 필요해 기준선 10일(80 로트)을 확보했다. 둘째, PM 주기(RF hours 0→600)가 최소 한 바퀴 돌아야 PM drift를 관측할 수 있다. 셋째, 5개 시나리오를 서로 겹치지 않게 배치하려면 최소 6~8주가 필요하다. 이 셋을 만족하는 최소 기간이 8주다.'},
+landscape:{k:'산업 지형',d:'PROLITH는 노광 전 process window를 정의하는 forward 시뮬레이터이고 이 프로젝트는 양산 데이터에서 원인을 역추적하는 inverse 문제라 방향이 다르다. 다만 원인 귀속 자체는 새로운 것이 아니다. equipment commonality analysis와 one-way ANOVA로 어느 장비군이 excursion에 기여했는지 식별하는 기능이 상용 수율 분석 도구에 이미 있고, lot disposition과 excursion 알림도 마찬가지다. 계측 데이터와 장비 컨텍스트를 결합해 on-product 성능을 진단하는 제품군도 있다. 이 프로젝트가 다르게 둔 지점은 하나다. 기존 분석은 공정 장비를 용의선상에 올리고 측정값은 참으로 둔다. 여기서는 측정한 장비를 같은 선상에 올렸고, TMU가 공정 예산의 20%를 넘으면 공정 귀속을 차단하도록 게이트를 걸었다.'},
+lots:{k:'로트 목록',d:'로트 하나를 고르면 그 로트의 판정만 따로 보여준다. ACI skip 표시는 skip-lot sampling으로 식각 후 측정을 건너뛴 로트라는 뜻이며, 이 경우 etch bias를 계산할 수 없어 Litho 계열까지만 판정한다. ADI는 rework와 스캐너 APC 피드백이 걸린 actionable 측정이라 매 로트 측정하지만, ACI는 그 로트를 되돌릴 수 없어 etch bias 특성화가 목적이므로 저빈도로 간다. 실제 skip 비율은 공정 능력지수(Cp/Cpk)로 정해진다.'},
+map:{k:'웨이퍼 맵 읽는 법',d:'점 하나가 CD-SEM 측정 site다. 점에 마우스를 올리면 실측 CD, 목표 대비 편차, 소속 field 좌표, 정규화 반경, 측정 장비가 나온다. 회색 사각형은 실제 노광 field 크기(26 × 33 mm)이고 아래쪽 노치는 웨이퍼 정렬 기준이다. 파란색이 목표보다 좁고 붉은색이 넓다. 두 지도 모두 가로 방향 CD이며 두께가 아니다. field는 웨이퍼 중심·중간·엣지가 모두 표본에 들어오도록 반경 방향으로 펼쳐 배치했다. 반경 방향 표본이 한쪽에 몰리면 PEB 온도 분포나 플라즈마 균일도가 만드는 성분을 추정할 수 없기 때문이다.'},
+trend:{k:'추이 읽는 법',d:'회색 띠가 관리 한계(기준선 평균 ± 3σ) 범위다. 띠 안의 점은 옅게, 벗어난 점은 진하고 크게 그렸다. 점의 색은 귀속된 원인 모듈이고, 점을 누르면 그 로트의 판정 화면으로 이동한다. 관리 한계는 사람이 정한 값이 아니라 이상 주입 이전 기준선 10일 데이터에서 엔진이 스스로 계산한 값이다. Etch bias 편차는 ACI가 측정된 로트에서만 계산되므로 점의 수가 320개가 아니라 160개다.'},
+mon:{k:'tool stability 읽는 법',d:'세로축은 기준선 대비 이동량, 가로축은 생산일이다. 모니터 웨이퍼는 패턴이 이미 형성되어 있고 공정 라인에 다시 투입하지 않으므로 패턴 자체가 변할 수 없다. 따라서 값이 이동했다면 그 이동분은 전부 장비 기여다. 선이 회색 띠를 벗어나 한쪽으로 흐르면 해당 장비로 측정한 CD는 신뢰할 수 없는 상태이며, 그 장비가 측정한 로트의 판정은 재캘리브레이션 후 다시 내려야 한다. 실제 fab의 점검 주기는 일 단위인 경우도 흔하나 이 데이터는 주 2회로 보수적으로 낮췄고, 그래서 이상 발생 첫날 판정 보류가 발생한다. 샘플링 주기가 판정 능력을 제약하는 것을 그대로 드러내려고 조정하지 않았다.'},
+tmu:{k:'TMU',d:'TMU = RSS(dynamic precision 3σ, tool-to-tool match). 세로축은 이 값이 공정 허용 반폭의 몇 %를 소비하는지다. 측정 불확도는 공정 허용 예산의 20% 이내여야 한다는 것이 업계 통상 기준이다. 허용 반폭 ±6.0 nm는 웨이퍼 내 CDU 3σ에서 공정능력 Cp가 약 1.43이 되도록 역산한 값이다. 정상 구간에서도 소비율이 15~19%로 예산 경계에 붙어 있는데, precision 항 하나만으로 예산의 약 4분의 3을 쓰기 때문이다. 여유가 없어 tool matching이 조금만 흔들려도 예산을 넘는다. 이 지표는 판정에 실제로 걸린다. Etch 챔버 귀속 규칙이 tmu_within_budget을 요구 조건으로 갖는다. 본래 정의에 포함되는 TIS 항은 target을 0°와 180°로 회전시켜 정의하는 오버레이 전용 항이라 top-down CD 측정에는 적용되지 않아 제외했고, 따라서 이 값은 실제 TMU의 하한이다.'},
+cham:{k:'챔버 비교 읽는 법',d:'세로축은 etch bias가 기준에서 벗어난 양(nm), 가로축은 생산일이다. 한 챔버만 흐르면 Etch, 네 챔버가 함께 흐르면 Metrology다. 챔버는 각각 독립된 진공 반응기이고 PM 이력도 따로 관리되므로 동시에 같은 방향으로 어긋날 물리적 이유가 없다. 반대로 계측 장비 drift는 그 장비가 측정한 모든 로트에 똑같이 실리므로 챔버와 무관하게 전면적으로 나타난다.'},
+eval:{k:'블라인드 평가',d:'데이터를 만들 때 어떤 이상을 어디에 넣었는지는 별도 파일에 기록해 두고, 판정 엔진은 그 파일을 읽지 못하게 막았다. 판정이 끝난 뒤에만 대조했다. 대각선이 정답이다.'},
+kpi:{k:'핵심 지표',d:'대표 지표는 첫 행이다. Metrology drift를 Etch 원인으로 오귀속하면 정상 챔버의 recipe를 건드리게 되고 멀쩡하던 공정이 흔들린다. 그 사례가 0건이다. 대신 3건은 판정 보류로 처리했다. 모니터 웨이퍼 점검이 주 2회라 이상 발생 첫날에는 감시 데이터가 이틀 이상 묵어 있었고, 그때 엔진은 계측이 정상이라고 단정할 근거가 없다며 Etch 귀속을 기각했다. Etch 챔버 이상 26건 중 13건이 정상으로 나온 것도 같은 맥락이다. 그 13건은 skip-lot으로 ACI를 측정하지 않은 로트라 etch bias 자체를 계산할 수 없다. 없는 측정을 추정으로 메우지 않는다.'}
+};
+
+const pop = $('#pop');
+function popHTML(t){
+  const x = TERMS[t]; if (!x) return '';
+  return '<h4>' + esc(x.k) + '<span class="en">' + esc(x.e) + '</span></h4><p>' + esc(x.d) + '</p>' + (x.s || '');
 }
-function readFilters(){state.verdict=$('#fVerdict').value;state.scanner=$('#fScanner').value;state.reticle=$('#fReticle').value;state.chamber=$('#fChamber').value;state.metro=$('#fMetro').value;state.dayMin=+$('#fDayMin').value||0;state.dayMax=+$('#fDayMax').value||M.days-1;state.abnormal=$('#fAbnormal').checked;renderLots()}
-function filteredLots(){return DATA.lots.filter(l=>{
-  const hay=[l.lot,l.scanner,l.reticle,l.chamber,l.adiTool,l.aciTool,l.label,l.verdict].join(' ').toLowerCase();
-  return (!state.query||hay.includes(state.query))&&(!state.verdict||l.verdict===state.verdict)&&(!state.scanner||l.scanner===state.scanner)&&(!state.reticle||l.reticle===state.reticle)&&(!state.chamber||l.chamber===state.chamber)&&(!state.metro||l.adiTool===state.metro||l.aciTool===state.metro)&&(l.day>=state.dayMin&&l.day<=state.dayMax)&&(!state.abnormal||l.verdict!=='NORMAL');
-}).sort((a,b)=>b.day-a.day||b.lot.localeCompare(a.lot))}
-function renderTopStats(){const abnormal=DATA.lots.filter(l=>l.verdict!=='NORMAL').length;const ready=DATA.lots.filter(l=>gateStatus(l)==='PASS').length;$('#topStats').innerHTML=`<div class="topstat"><b>${DATA.lots.length}</b><span>Total lots</span></div><div class="topstat"><b>${abnormal}</b><span>Abnormal</span></div><div class="topstat"><b>${ready}</b><span>Gate ready</span></div>`}
-function renderLots(){const rows=filteredLots();$('#resultCount').textContent=`${rows.length} / ${DATA.lots.length}`;const box=$('#lotlist');if(!rows.length){box.innerHTML='<div class="empty">No lots match the current filters.</div>';return}box.innerHTML=rows.map(l=>`<button class="lotrow" role="option" aria-selected="${state.current===l.lot}" data-lot="${l.lot}"><span class="vdot" style="background:${VERDICT_COLOR[l.verdict]}"></span><span class="lotmain"><b>${l.lot}</b><small>${l.date} · ${l.scanner} · ${l.chamber}<br>${l.aciMean===null?'ADI only / ACI skip':`ACI ${l.aciTool}`}</small></span><span class="lotbadge">${esc(VERDICT_SHORT[l.verdict])}</span></button>`).join('');box.querySelectorAll('.lotrow').forEach(b=>{b.onclick=()=>openLot(b.dataset.lot);b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openLot(b.dataset.lot)}}})}
+function showPop(html, anchor){
+  pop.innerHTML = html; pop.style.display = 'block';
+  const r = anchor.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+  let left = r.left + scrollX + r.width / 2 - w / 2;
+  left = Math.max(10, Math.min(left, scrollX + innerWidth - w - 10));
+  let top = r.bottom + scrollY + 9;
+  if (r.bottom + h + 20 > innerHeight) top = r.top + scrollY - h - 9;
+  pop.style.left = left + 'px';
+  pop.style.top = Math.max(scrollY + 6, top) + 'px';
+}
+const hidePop = () => { pop.style.display = 'none'; };
+function infoHTML(k){
+  const x = INFO[k]; if (!x) return '';
+  return '<h4>' + esc(x.k) + '</h4><p>' + esc(x.d) + '</p>';
+}
+/* 본문에 흩어진 용어(.term)는 마우스뿐 아니라 키보드로도 열 수 있어야 한다.
+   버튼 시맨틱을 부여하고, 포커스를 hover와 동일하게 취급한다. */
+document.querySelectorAll('.term').forEach(t => {
+  t.tabIndex = 0;
+  t.setAttribute('role', 'button');
+  t.setAttribute('aria-haspopup', 'true');
+});
+document.addEventListener('mouseover', e => {
+  const t = e.target.closest('.term'); if (t) { showPop(popHTML(t.dataset.t), t); return; }
+  const i = e.target.closest('.info'); if (i) showPop(infoHTML(i.dataset.i), i);
+});
+document.addEventListener('mouseout', e => {
+  if ((e.target.closest('.term') || e.target.closest('.info')) &&
+      !(e.relatedTarget && e.relatedTarget.closest('#pop'))) hidePop();
+});
+document.addEventListener('focusin', e => {
+  const t = e.target.closest('.term'); if (t) showPop(popHTML(t.dataset.t), t);
+});
+document.addEventListener('focusout', e => {
+  if (e.target.closest('.term') && !(e.relatedTarget && e.relatedTarget.closest('#pop'))) hidePop();
+});
+document.addEventListener('click', e => {
+  const t = e.target.closest('.term'), i = e.target.closest('.info');
+  if (t) { e.preventDefault(); showPop(popHTML(t.dataset.t), t); }
+  else if (i) { e.preventDefault(); showPop(infoHTML(i.dataset.i), i); }
+  else if (!e.target.closest('#pop')) hidePop();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { hidePop(); return; }
+  if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){
+    const t = e.target.closest('.term');
+    if (t) { e.preventDefault(); showPop(popHTML(t.dataset.t), t); }
+  }
+});
+addEventListener('scroll', hidePop, {passive:true});
 
-function metricCard(label,value,limit,hit=false){return `<div class="metric-card ${hit?'hit':''}"><div class="mk">${esc(label)}</div><div class="mv">${esc(value)}</div><div class="ml">Reference ${esc(limit)}</div></div>`}
-function evidenceForGate(l,cond){const rows=l.ev||[];const find=s=>rows.find(e=>e.k.toLowerCase().includes(s));let e=null,ref='';switch(cond){case'adi_radial_within_limit':e=find('radial');break;case'adi_reticle_within_limit':case'adi_reticle_repeats_across_fields':e=find('reticle');break;case'delta_within_limit_or_absent':e=find('delta-cd');break;case'tool_drift_exceeds':case'metrology_healthy':e=find('monitor wafer drift');break;case'tmu_within_budget':e=find('measurement uncertainty');break;case'chamber_specific':e=find('chamber deviation');break;case'taper_not_contradicting':e=find('taper');break;case'metrology_evidence_fresh':e=find('monitor wafer drift');ref='≤2 days old';break}return {actual:e?.v||'—',reference:ref||e?.lim||'—'} }
-function eventSummary(step){const r=step.result||{};if(step.tool==='get_lot_context')return `${r.scanner||'—'} · ${r.reticle||'—'} · ${r.chamber||'—'}`;if(step.tool==='decompose_cd'){const m=r.metrics||{};return `offset ${fmt(m.offset)} · radial ${fmt(m.radial)} · reticle ${fmt(m.reticle)} · ΔCD ${fmt(m.dbias)}`};if(step.tool==='get_metrology_health'){const mon=r.monitor?.series||[],tmu=r.tmu?.series||[];const md=mon.length?mon[mon.length-1].drift:null,tr=tmu.length?tmu[tmu.length-1].ratio:null;return `monitor ${fmt(md)} nm · TMU ${tr==null?'—':tr+'%'}`};if(step.tool==='compare_chambers'){const c=r.chambers||{};return Object.keys(c).length?Object.entries(c).map(([k,v])=>`${k} ${fmt(v)} nm`).join(' · '):'No chamber evidence in window'}if(step.tool==='get_equipment_events'){const ev=r.events||[];return `${ev.length} event${ev.length===1?'':'s'} found around day ${r.day??'—'}`};if(step.tool==='verify_disposition')return `${r.passed?'PASS':'HOLD'} · ${VERDICT_SHORT[r.verdict]||r.verdict}`;return 'Result captured'}
-function fmt(v,d=2){return v==null||Number.isNaN(+v)?'—':(+v).toFixed(d)}
-function renderTrace(inv){if(!inv?.trace?.length)return '<div class="empty">No investigation trace is available for this lot.</div>';return `<div class="trace-list">${inv.trace.map((s,i)=>{const events=s.tool==='get_equipment_events'?(s.result?.events||[]):[];return `<div class="trace-step"><div class="trace-top"><span class="trace-num">${String(i+1).padStart(2,'0')}</span><span class="trace-tool">${esc(TOOL_LABEL[s.tool]||s.tool)}</span></div><div class="trace-reason">${esc(s.reason)}</div><div class="trace-result">${esc(eventSummary(s))}</div>${events.length?`<div class="trace-event">${events.slice(0,3).map(e=>`<div><span class="mono">D${e.day_index}</span> · ${esc(e.event_type)} · ${esc(e.component||'')} — ${esc(e.description||'')}</div>`).join('')}${events.length>3?`<div>+ ${events.length-3} more event(s)</div>`:''}</div>`:''}<details class="raw"><summary>View raw result</summary><pre class="rawjson">${esc(JSON.stringify(s.result,null,2))}</pre></details></div>`}).join('')}</div>`}
+/* 3. 개요 화면 ─────────────────────────────────── */
+$('#flowdiagram').innerHTML =
+'<svg viewBox="0 0 700 132" style="width:100%;height:auto" role="img" aria-label="노광에서 식각까지의 흐름과 각 단계의 측정 지점">' +
+'<rect x="8" y="34" width="150" height="52" fill="#fff" stroke="#a05c00" stroke-width="1.6"/>' +
+'<text x="83" y="58" text-anchor="middle" font-size="14" fill="#10161b" font-family="IBM Plex Sans KR">노광</text>' +
+'<text x="83" y="76" text-anchor="middle" font-size="11" fill="#57676f" font-family="IBM Plex Sans KR">빛으로 그림을 인쇄</text>' +
+'<path d="M166 60h44" stroke="#57676f" stroke-width="1.4"/><path d="M204 55l9 5-9 5" fill="#57676f"/>' +
+'<rect x="218" y="34" width="150" height="52" fill="#fff" stroke="#0b6a72" stroke-width="1.6"/>' +
+'<text x="293" y="58" text-anchor="middle" font-size="14" fill="#10161b" font-family="IBM Plex Sans KR">현상 후 측정</text>' +
+'<text x="293" y="76" text-anchor="middle" font-size="11" fill="#1c6b3a" font-family="IBM Plex Sans KR">여기까진 되돌릴 수 있다</text>' +
+'<path d="M376 60h44" stroke="#57676f" stroke-width="1.4"/><path d="M414 55l9 5-9 5" fill="#57676f"/>' +
+'<rect x="428" y="34" width="120" height="52" fill="#fff" stroke="#8a2e68" stroke-width="1.6"/>' +
+'<text x="488" y="58" text-anchor="middle" font-size="14" fill="#10161b" font-family="IBM Plex Sans KR">식각</text>' +
+'<text x="488" y="76" text-anchor="middle" font-size="11" fill="#57676f" font-family="IBM Plex Sans KR">그림대로 깎기</text>' +
+'<path d="M556 60h30" stroke="#57676f" stroke-width="1.4"/><path d="M580 55l9 5-9 5" fill="#57676f"/>' +
+'<rect x="594" y="34" width="98" height="52" fill="#fff" stroke="#0b6a72" stroke-width="1.6"/>' +
+'<text x="643" y="58" text-anchor="middle" font-size="13" fill="#10161b" font-family="IBM Plex Sans KR">식각 후 측정</text>' +
+'<text x="643" y="76" text-anchor="middle" font-size="11" fill="#a2321f" font-family="IBM Plex Sans KR">되돌릴 수 없다</text>' +
+'<text x="350" y="118" text-anchor="middle" font-size="12" fill="#33424c" font-family="IBM Plex Sans KR">두 측정값의 차이를 성분별로 쪼개면, 어느 공정이 흔들렸는지 보인다</text></svg>';
 
-function openLot(id){const l=DATA.lots.find(x=>x.lot===id);if(!l)return;state.current=id;try{history.replaceState(null,'',location.pathname+location.search+'#lot='+id)}catch(_e){location.hash='lot='+id;}$('#detailEmpty').hidden=true;$('#lotDetail').hidden=false;renderLots();const inv=INVESTIGATIONS?.[id];const gstatus=gateStatus(l);const risk=riskClass(l.risk);const meta=[];if(l.module&&l.module!=='-')meta.push(`<span class="context-chip">Module ${esc(l.module)}</span>`);if(l.coord&&l.coord!=='-')meta.push(`<span class="context-chip">Coordinate ${esc(l.coord)}</span>`);meta.push(`<span class="context-chip">Scanner ${esc(l.scanner)}</span>`,`<span class="context-chip">Reticle ${esc(l.reticle)}</span>`,`<span class="context-chip">Chamber ${esc(l.chamber)}</span>`,`<span class="context-chip">ADI ${esc(l.adiTool)}</span>`);if(l.aciTool)meta.push(`<span class="context-chip">ACI ${esc(l.aciTool)}</span>`);meta.push(`<span class="context-chip">Day ${l.day}</span>`);
-const evMap=Object.fromEntries((l.ev||[]).map(e=>[e.k,e]));
-const sigCards=[evMap['ADI scalar component'],evMap['ADI radial component'],evMap['Reticle-repeat component'],evMap['Delta-CD (etch bias) deviation']||evMap['Delta-CD']].filter(Boolean).map(e=>metricCard(e.k,e.v,e.lim,e.hit)).join('');
-const gateRows=l.gate?.length?l.gate.map(g=>{const x=evidenceForGate(l,g.c);return `<tr><td>${esc(GATE_LABEL[g.c]||g.c)}</td><td class="value">${esc(x.actual)}</td><td class="limit">${esc(x.reference)}</td><td><span class="state ${g.ok?'state-pass':'state-fail'}">${g.ok?'PASS':'FAIL'}</span></td></tr>`}).join(''):`<tr><td>Base classification requires no additional rule-specific gate.</td><td class="value">All monitored evidence</td><td class="limit">Within control limits</td><td><span class="state state-pass">PASS</span></td></tr>`;
-const evidenceRows=(l.ev||[]).map(e=>`<tr class="${e.hit?'row-alert':''}"><td>${esc(e.k)}</td><td class="value">${esc(e.v)}</td><td class="limit">${esc(e.lim)}</td><td><span class="state ${e.hit?'state-fail':'state-pass'}">${e.hit?'OUT':'WITHIN'}</span></td><td>${e.hit?'Outside reference / attribution evidence':'Within expected range'}</td></tr>`).join('');
-$('#lotDetail').innerHTML=`
-<article class="panel"><div class="lot-header"><div><div class="eyebrow">Lot investigation</div><div class="lot-titleline"><h1>${l.lot}</h1><span class="status-badge ${risk}">${esc(VERDICT_SHORT[l.verdict])}</span><span class="status-badge ${gstatus==='PASS'?'gate-pass':'gate-hold'}">Gate ${gstatus}</span></div><div class="lot-subtitle">${esc(l.label)} · ${esc(l.date)}</div><div class="lot-context">${meta.join('')}</div></div><div class="header-actions"><button class="textbtn" id="prevLot">Previous</button><button class="textbtn" id="nextLot">Next</button></div></div></article>
-<div class="summary-grid"><article class="panel"><div class="panel-head"><h3>Observed Signature</h3><span class="hint">Measured evidence versus control limits</span></div><div class="panel-body"><div class="signature-grid">${sigCards}</div><div style="margin-top:10px;color:var(--muted);font-size:10.5px">Dose Setting <span class="mono">${fmt(l.doseSet)} → ${fmt(l.doseSensor)} mJ/cm² (${l.doseGap>0?'+':''}${fmt(l.doseGap)}%)</span> · Focus Sensor <span class="mono">${l.focusSensor>0?'+':''}${fmt(l.focusSensor,0)} nm</span> · RF hours <span class="mono">${l.rf}</span></div></div></article><article class="panel"><div class="panel-head"><h3>Attribution Summary</h3></div><div class="panel-body attrbox"><div class="attr-verdict">${esc(l.label)}</div><div class="attr-reason">${esc(l.cause)}</div><div class="attr-meta"><div><span>Risk</span><b>${esc(l.risk)}</b></div><div><span>Agent tools</span><b class="mono">${inv?.tool_calls??'—'}</b></div></div></div></article></div>
-<div class="split"><article class="panel"><div class="panel-head"><h3>Wafer Signature Map</h3><span class="hint">Click or focus a site for measured value</span></div><div class="panel-body"><div class="wafer-wrap"><figure class="wafer-card"><figcaption>ADI CD residual<span>Mean ${l.adiMean} nm · ${esc(l.adiTool)}</span></figcaption><svg id="waferAdi" class="wafer" viewBox="-178 -178 356 356" role="img" aria-label="ADI CD residual wafer map"></svg><div class="heatbar"></div><div class="heatlabels"><span>-4 nm</span><span>0</span><span>+4 nm</span></div></figure><figure class="wafer-card"><figcaption>Etch-bias residual<span>${l.aciMean==null?'ACI not measured':`ACI mean ${l.aciMean} nm · ${esc(l.aciTool)}`}</span></figcaption><svg id="waferDelta" class="wafer" viewBox="-178 -178 356 356" role="img" aria-label="Etch bias residual wafer map"></svg><div class="heatbar"></div><div class="heatlabels"><span>-3 nm</span><span>0</span><span>+3 nm</span></div></figure></div></div></article><article class="panel"><div class="panel-head"><h3>Investigation Trace</h3><span class="hint">Observable tool-call sequence</span></div><div class="panel-body">${renderTrace(inv)}</div></article></div>
-<article class="panel"><div class="panel-head"><h3>Attribution Evidence</h3><span class="hint">Always shown — including NORMAL lots</span></div><div class="panel-body tablewrap"><table><thead><tr><th>Metric</th><th>Actual</th><th>Limit / Reference</th><th>Status</th><th>Interpretation</th></tr></thead><tbody>${evidenceRows}</tbody></table></div></article>
-<article class="panel"><div class="panel-head"><h3>Verification Gate</h3><span class="hint">Deterministic rule checks before disposition</span></div><div class="panel-body tablewrap"><table><thead><tr><th>Gate condition</th><th>Measured / Evidence</th><th>Threshold / Reference</th><th>Result</th></tr></thead><tbody>${gateRows}</tbody></table></div></article>
-<article class="panel action-panel"><div class="panel-head"><h3>Recommended Action</h3><span class="hint">Operational disposition guidance</span></div><div class="panel-body"><div class="action-text">${esc(l.action)}</div>${l.extra?`<div class="action-extra">${esc(l.extra)}</div>`:''}</div></article>`;
-drawWafer('waferAdi',l.adiMap,4,v=>v+M.adiTarget,l.adiTool,'ADI CD');drawWafer('waferDelta',l.deltaMap?l.deltaMap.map(v=>v-M.etchBias):null,3,v=>v+M.etchBias,l.aciTool,'Etch bias');$('#prevLot').onclick=()=>stepLot(-1);$('#nextLot').onclick=()=>stepLot(1);}
-function stepLot(delta){const rows=filteredLots();const i=rows.findIndex(l=>l.lot===state.current);if(i>=0&&rows[i+delta])openLot(rows[i+delta].lot)}
+$('#facts').innerHTML = [
+  [M.lots + '개', '분석한 로트'],
+  [M.adiRows.toLocaleString(), '현상 후 측정점'],
+  [M.sites + '군데', '웨이퍼 한 장당 측정 지점'],
+  [M.days + '일', '생산 기간(8주)']
+].map(a => '<div><b class="mono">' + a[0] + '</b><small>' + a[1] + '</small></div>').join('');
 
-function heat(v,s){const t=Math.max(-1,Math.min(1,v/s));const neg=[82,126,135],mid=[248,247,249],pos=[163,90,90];const mix=(a,b,k)=>a.map((x,i)=>Math.round(x+(b[i]-x)*k));return `rgb(${(t<0?mix(mid,neg,-t):mix(mid,pos,t)).join(',')})`}
-function drawWafer(id,vals,scale,absFn,tool,label){const g=$('#'+id);if(!g)return;if(!vals){g.innerHTML='<circle r="150" fill="#F8F7FA" stroke="rgba(6,36,35,.18)" stroke-dasharray="5 4"/><text y="-5" text-anchor="middle" font-size="11" fill="#667676" font-family="Inter">ACI skip-lot</text><text y="14" text-anchor="middle" font-size="9" fill="#8B9999" font-family="Inter">No post-etch measurement available</text>';return}let s='<circle r="150" fill="#FBFAFC" stroke="rgba(6,36,35,.18)" stroke-width="1.3"/><path d="M -10 150 L 10 150 L 0 136 Z" fill="#A8BEBD"/><line x1="-150" y1="0" x2="150" y2="0" stroke="rgba(6,36,35,.07)"/><line x1="0" y1="-150" x2="0" y2="150" stroke="rgba(6,36,35,.07)"/>';const seen={};DATA.sites.forEach(p=>{const k=p.field_x+','+p.field_y;if(seen[k])return;seen[k]=1;s+=`<rect x="${p.field_x*26-13}" y="${-p.field_y*33-16.5}" width="26" height="33" fill="none" stroke="rgba(6,36,35,.07)"/>`});DATA.sites.forEach((p,i)=>{s+=`<circle cx="${p.wafer_x_mm}" cy="${-p.wafer_y_mm}" r="5.3" fill="${heat(vals[i],scale)}" stroke="#fff" stroke-width=".8"/><circle class="spot" cx="${p.wafer_x_mm}" cy="${-p.wafer_y_mm}" r="10" fill="transparent" stroke="transparent" tabindex="0" role="button" data-i="${i}" aria-label="${p.site_id}, residual ${fmt(vals[i])} nm"/>`});g.innerHTML=s;g.querySelectorAll('.spot').forEach(c=>{const show=e=>{const i=+c.dataset.i,p=DATA.sites[i],v=vals[i];showTooltip(`<strong>${esc(p.site_id)} · ${esc(label)}</strong><span class="mono">Residual ${v>0?'+':''}${fmt(v)} nm</span><br><span class="mono">Measured ${fmt(absFn(v))} nm</span><br>Field (${p.field_x}, ${p.field_y}) · site ${p.site_in_field+1}<br>Tool ${esc(tool||'—')}`,e.clientX||c.getBoundingClientRect().left,e.clientY||c.getBoundingClientRect().top)};c.addEventListener('mouseenter',show);c.addEventListener('focus',()=>{const r=c.getBoundingClientRect();show({clientX:r.left+10,clientY:r.top+10})});c.addEventListener('mousemove',show);c.addEventListener('mouseleave',hideTooltip);c.addEventListener('blur',hideTooltip)})}
+/* 4. 용어 화면 ─────────────────────────────────── */
+$('#glossary').innerHTML = Object.keys(TERMS).map(k => {
+  const x = TERMS[k];
+  return '<div class="gitem"><h3>' + esc(x.k) + '<span class="en">' + esc(x.e) +
+    '</span></h3><p>' + esc(x.d) + '</p>' + (x.s || '') + '</div>';
+}).join('');
 
-const tooltip=$('#tooltip');function showTooltip(html,x,y){tooltip.innerHTML=html;tooltip.style.display='block';const pad=12,w=tooltip.offsetWidth,h=tooltip.offsetHeight;tooltip.style.left=Math.min(innerWidth-w-pad,Math.max(pad,x+12))+'px';tooltip.style.top=Math.min(innerHeight-h-pad,Math.max(pad,y+12))+'px'}function hideTooltip(){tooltip.style.display='none'}
+/* 5. 로트 목록과 상세 ──────────────────────────── */
+let filter = 'all', query = '', current = null;
 
-/* Trends */
-const METRICS=[{k:'dbias',n:'Delta-CD deviation',lim:LIM.delta_bias,cen:DATA.centers.delta_bias,unit:'nm'},{k:'offset',n:'ADI scalar shift',lim:LIM.adi_offset,cen:DATA.centers.adi_offset,unit:'nm'},{k:'radial',n:'ADI radial shift',lim:LIM.adi_radial,cen:DATA.centers.adi_radial,unit:'nm'}];
-function axes(o){const X=v=>o.x0+(v-o.xmin)/(o.xmax-o.xmin)*(o.x1-o.x0),Y=v=>o.y1-(v-o.ymin)/(o.ymax-o.ymin)*(o.y1-o.y0);let s='';o.yt.forEach(v=>s+=`<line class="grid" x1="${o.x0}" y1="${Y(v)}" x2="${o.x1}" y2="${Y(v)}"/><text x="${o.x0-7}" y="${Y(v)+3}" text-anchor="end">${o.fmt?o.fmt(v):v}</text>`);o.xt.forEach(v=>s+=`<line class="grid" x1="${X(v)}" y1="${o.y0}" x2="${X(v)}" y2="${o.y1}"/><text x="${X(v)}" y="${o.y1+16}" text-anchor="middle">${v}</text>`);s+=`<line class="axis" x1="${o.x0}" y1="${o.y0}" x2="${o.x0}" y2="${o.y1}"/><line class="axis" x1="${o.x0}" y1="${o.y1}" x2="${o.x1}" y2="${o.y1}"/>`;return {X,Y,s}}
-function initMetricPick(){const p=$('#metricPick');p.innerHTML=METRICS.map(m=>`<button class="segbtn" data-k="${m.k}" aria-pressed="${m.k===metricKey}">${m.n}</button>`).join('');p.onclick=e=>{const b=e.target.closest('[data-k]');if(!b)return;metricKey=b.dataset.k;$$('#metricPick .segbtn').forEach(x=>x.setAttribute('aria-pressed',x===b));drawTrend()}}
-function drawTrend(){const m=METRICS.find(x=>x.k===metricKey),rows=DATA.lots.filter(l=>l.m[m.k]!=null),vals=rows.map(l=>l.m[m.k]-m.cen),span=Math.max(m.lim*2.1,...vals.map(v=>Math.abs(v)*1.08));const A=axes({x0:52,x1:875,y0:18,y1:286,xmin:0,xmax:M.days-1,ymin:-span,ymax:span,xt:[0,5,10,15,20,25,30,35,39],yt:[-m.lim,0,m.lim].map(v=>+v.toFixed(2)),fmt:v=>v.toFixed(2)});let s=`<rect x="52" y="${A.Y(m.lim)}" width="823" height="${A.Y(-m.lim)-A.Y(m.lim)}" fill="rgba(168,190,189,.14)"/>${A.s}`;rows.forEach(l=>{const v=l.m[m.k]-m.cen;s+=`<circle class="pt" tabindex="0" role="button" aria-label="${l.lot} ${m.n} ${fmt(v)} ${m.unit}" data-lot="${l.lot}" cx="${A.X(l.day)}" cy="${A.Y(v)}" r="${Math.abs(v)>m.lim?3.8:2.4}" fill="${VERDICT_COLOR[l.verdict]}"/>`});const g=$('#trendChart');g.innerHTML=s;g.querySelectorAll('.pt').forEach(c=>{c.onclick=()=>{showView('workspace');openLot(c.dataset.lot)};c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();c.click()}}});$('#trendLegend').innerHTML=`<span><i style="background:var(--teal-soft)"></i>Control band ±${m.lim.toFixed(2)} ${m.unit}</span><span><i style="background:var(--photo)"></i>Photo</span><span><i style="background:var(--etch)"></i>Etch</span><span><i style="background:var(--metro)"></i>Metrology</span>`}
-function drawMonitor(){const ys=DATA.monitor.map(d=>d.drift),span=Math.max(1.4,...ys.map(Math.abs))*1.2,A=axes({x0:46,x1:660,y0:18,y1:236,xmin:0,xmax:M.days-1,ymin:-span,ymax:span,xt:[0,10,20,30,39],yt:[-LIM.tool_drift,0,LIM.tool_drift].map(v=>+v.toFixed(2)),fmt:v=>v.toFixed(1)});let s=`<rect x="46" y="${A.Y(LIM.tool_drift)}" width="614" height="${A.Y(-LIM.tool_drift)-A.Y(LIM.tool_drift)}" fill="rgba(168,190,189,.14)"/>${A.s}`;const st={'CDSEM-A':'#8A9998','CDSEM-B':'#315F64'};Object.keys(st).forEach(t=>{const r=DATA.monitor.filter(x=>x.tool===t);s+=`<polyline points="${r.map(d=>A.X(d.day)+','+A.Y(d.drift)).join(' ')}" fill="none" stroke="${st[t]}" stroke-width="1.8"/>`;r.forEach(d=>s+=`<circle cx="${A.X(d.day)}" cy="${A.Y(d.drift)}" r="2.8" fill="${Math.abs(d.drift)>LIM.tool_drift?'#8C3D45':st[t]}"/>`)});$('#monitorChart').innerHTML=s;$('#monitorLegend').innerHTML='<span><i style="background:#8A9998"></i>CDSEM-A</span><span><i style="background:#315F64"></i>CDSEM-B</span><span><i style="background:var(--teal-soft)"></i>Healthy band</span>'}
-function drawTmu(){const B=M.tmuBudget,max=Math.max(B*1.6,...DATA.tmu.map(t=>t.ratio))*1.08,A=axes({x0:46,x1:660,y0:18,y1:236,xmin:0,xmax:M.days-1,ymin:0,ymax:max,xt:[0,10,20,30,39],yt:[0,B,Math.round(max)],fmt:v=>v+'%'});let s=`<rect x="46" y="${A.Y(B)}" width="614" height="${A.Y(0)-A.Y(B)}" fill="rgba(168,190,189,.14)"/>${A.s}<line x1="46" y1="${A.Y(B)}" x2="660" y2="${A.Y(B)}" stroke="#8C3D45" stroke-dasharray="5 4"/>`;const st={'CDSEM-A':'#8A9998','CDSEM-B':'#315F64'};Object.keys(st).forEach(t=>{const r=DATA.tmu.filter(x=>x.tool===t);s+=`<polyline points="${r.map(d=>A.X(d.day)+','+A.Y(d.ratio)).join(' ')}" fill="none" stroke="${st[t]}" stroke-width="1.8"/>`;r.forEach(d=>s+=`<circle cx="${A.X(d.day)}" cy="${A.Y(d.ratio)}" r="${d.ratio>B?3.8:2.6}" fill="${d.ratio>B?'#8C3D45':st[t]}"/>`)});$('#tmuChart').innerHTML=s;$('#tmuLegend').innerHTML=`<span><i style="background:#8A9998"></i>CDSEM-A</span><span><i style="background:#315F64"></i>CDSEM-B</span><span><i style="background:#8C3D45"></i>Over ${B}% budget</span>`}
-function drawChambers(){const by={};DATA.chamberSeries.forEach(r=>(by[r.chamber]=by[r.chamber]||[]).push(r));$('#chamberPanel').innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px">'+Object.keys(by).sort().map(ch=>{const r=by[ch].sort((a,b)=>a.day-b.day),max=Math.max(LIM.chamber_dev*2,...r.map(x=>Math.abs(x.dbias))),X=d=>8+d/(M.days-1)*250,Y=v=>34-v/max*24;return `<div class="metric-card"><div class="mk">${ch}</div><svg viewBox="0 0 266 70" style="width:100%;height:auto"><rect x="8" y="${Y(LIM.chamber_dev)}" width="250" height="${Y(-LIM.chamber_dev)-Y(LIM.chamber_dev)}" fill="rgba(168,190,189,.14)"/><line x1="8" y1="34" x2="258" y2="34" stroke="rgba(6,36,35,.15)"/><polyline points="${r.map(x=>X(x.day)+','+Y(x.dbias)).join(' ')}" fill="none" stroke="#745A67" stroke-width="1.7"/></svg></div>`}).join('')+'</div>'}
-function drawTrends(){if(chartsDrawn)return;initMetricPick();drawTrend();drawMonitor();drawTmu();drawChambers();chartsDrawn=true}
+function visible(){
+  return DATA.lots.filter(l =>
+    (filter === 'all' || (filter === 'abn' ? l.verdict !== 'NORMAL' : l.m.dbias !== null)) &&
+    (!query || l.lot.toLowerCase().indexOf(query) > -1));
+}
+function renderList(){
+  const rows = visible(), box = $('#lotlist');
+  $('#count').textContent = rows.length + '개';
+  if (!rows.length){
+    box.innerHTML = '<p class="empty">조건에 맞는 로트가 없습니다. 검색어나 필터를 바꿔보세요.</p>';
+    return;
+  }
+  box.innerHTML = rows.slice(0, 400).map(l =>
+    '<button class="lot" role="option" tabindex="0" aria-selected="false" data-lot="' + l.lot + '">' +
+    '<span class="dot" style="background:' + COLOR[l.verdict] + '"></span>' +
+    '<span><span class="mono">' + l.lot + '</span><small>' + l.date + ' · ' + l.chamber + ' · ' +
+    (l.m.dbias === null ? 'ACI skip — etch bias 계산 불가' : 'ACI 측정 — 전 성분 판정 가능') + '</small></span>' +
+    '<span class="tag">' + (l.verdict === 'NORMAL' ? '정상' : esc(l.label)) + '</span></button>').join('');
+  box.querySelectorAll('.lot').forEach(b => b.onclick = () => openLot(b.dataset.lot));
+}
+$('#q').oninput = e => { query = e.target.value.trim().toLowerCase(); renderList(); };
+document.querySelectorAll('.tools .chip').forEach(c => c.onclick = () => {
+  filter = c.dataset.f;
+  document.querySelectorAll('.tools .chip').forEach(o => o.setAttribute('aria-pressed', o === c));
+  renderList();
+});
 
-function renderValidation(){const c=VALIDATION?.confusion||{},preds=[...new Set(Object.values(c).flatMap(o=>Object.keys(o)))].sort(),name={S0:'Normal',S1:'Photo dose',S2:'Track / PEB',S3:'Reticle CD',S4:'Etch chamber',S5:'Metrology drift','??':'Withheld'};$('#confTable').innerHTML='<thead><tr><th>Injected scenario</th>'+preds.map(p=>`<th>${name[p]||p}</th>`).join('')+'</tr></thead><tbody>'+Object.keys(c).sort().map(t=>`<tr><td>${name[t]||t}</td>${preds.map(p=>`<td class="num">${c[t][p]||0}</td>`).join('')}</tr>`).join('')+'</tbody>';const ev=VALIDATION?.summary||{};$('#evalSummary').innerHTML=`<div class="signature-grid" style="grid-template-columns:1fr 1fr"><div class="metric-card"><div class="mk">Evaluated lots</div><div class="mv">${ev.evaluated_lots??320}</div></div><div class="metric-card"><div class="mk">Exact matches</div><div class="mv">${ev.exact_matches??289}</div></div><div class="metric-card"><div class="mk">Abstentions</div><div class="mv">${ev.abstentions??3}</div></div><div class="metric-card"><div class="mk">Ground-truth missing</div><div class="mv">${ev.missing_ground_truth?.length??0}</div></div></div><p style="font-size:10.5px;color:var(--muted);margin:12px 0 0">This is a synthetic scenario acceptance test, not production-model accuracy.</p>`}
-function renderReference(){$('#ruleCatalog').innerHTML=DATA.rules.map(r=>`<div class="rulecard"><h4>${esc(r.label)}</h4><div class="rmeta">${esc(r.id)} · ${esc(r.module)} · ${esc(r.coord)}</div><p>${esc(r.cause)}</p></div>`).join('');const rows=[['Lots',M.lots],['Production days',M.days],['ADI / ACI target',`${M.adiTarget} / ${M.aciTarget} nm`],['Reference etch bias',`${M.etchBias} nm`],['CD tolerance',`±${M.cdTol} nm`],['TMU budget',`${M.tmuBudget}%`],['ADI scalar limit',`±${LIM.adi_offset.toFixed(2)} nm`],['ADI radial limit',`±${LIM.adi_radial.toFixed(2)} nm`],['Reticle-repeat limit',`≤${LIM.adi_reticle.toFixed(2)} nm`],['Delta-CD limit',`±${LIM.delta_bias.toFixed(2)} nm`],['Monitor drift limit',`±${LIM.tool_drift.toFixed(2)} nm`],['Chamber deviation limit',`±${LIM.chamber_dev.toFixed(2)} nm`]];$('#specTable').innerHTML='<thead><tr><th>Parameter</th><th>Value</th></tr></thead><tbody>'+rows.map(r=>`<tr><td>${r[0]}</td><td class="value">${r[1]}</td></tr>`).join('')+'</tbody>'}
+const GATE_KO = {tool_drift_exceeds:'기준 웨이퍼 값이 함께 이동했는가',
+  chamber_specific:'특정 챔버에만 몰려 있는가', metrology_healthy:'측정 장비가 정상인가',
+  metrology_evidence_fresh:'장비 감시 데이터가 최근 것인가',
+  taper_not_contradicting:'단면 모양 변화가 모순되지 않는가',
+  adi_radial_within_limit:'가장자리 성분이 정상 범위인가',
+  adi_reticle_within_limit:'레티클 반복 성분이 정상 범위인가',
+  adi_reticle_repeats_across_fields:'모든 노광 영역에서 반복되는가',
+  delta_within_limit_or_absent:'식각량이 정상이거나 측정되지 않았는가',
+  tmu_within_budget:'계측 불확도가 공정 예산 20% 이내인가'};
 
-function showView(v){state.view=v;['workspace','trends','validation','reference'].forEach(k=>$('#view-'+k).hidden=k!==v);$$('#topnav button').forEach(b=>b.toggleAttribute('aria-current',b.dataset.view===v));if(v==='trends')drawTrends();window.scrollTo({top:0,behavior:'instant'})}
-$('#topnav').onclick=e=>{const b=e.target.closest('[data-view]');if(b)showView(b.dataset.view)};
-document.addEventListener('keydown',e=>{if(e.key==='/'&&document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='SELECT'){e.preventDefault();$('#globalSearch').focus()}});
+/* Gate 조건 ↔ 근거(ev) 행 매칭 — 새 수치를 만들지 않고 이미 계산된 근거 행을
+   그대로 재사용한다. 로트마다 장비/챔버 이름이 달라 접미어로 매칭한다. */
+const GATE_EV_MATCH = {
+  adi_radial_within_limit: e => e.k === 'ADI 반경 성분',
+  adi_reticle_within_limit: e => e.k === '레티클 반복 성분',
+  adi_reticle_repeats_across_fields: e => e.k === '레티클 반복 성분',
+  chamber_specific: e => /챔버 편중$/.test(e.k),
+  delta_within_limit_or_absent: e => e.k.indexOf('ΔCD') === 0,
+  metrology_healthy: e => /monitor wafer drift$/.test(e.k),
+  metrology_evidence_fresh: e => /monitor wafer drift$/.test(e.k),
+  tool_drift_exceeds: e => /monitor wafer drift$/.test(e.k),
+  taper_not_contradicting: e => e.k === '단면 taper 변화(보조)',
+  tmu_within_budget: e => e.k.indexOf('계측 불확도 TMU') > -1
+};
+function findGateEvidence(code, ev){
+  const match = GATE_EV_MATCH[code];
+  return match ? (ev.find(match) || null) : null;
+}
 
-initFilters();renderTopStats();renderValidation();renderReference();renderLots();
-const hash=new URLSearchParams(location.hash.replace(/^#/,''));openLot(hash.get('lot')||DATA.lots.find(l=>l.verdict!=='NORMAL')?.lot||DATA.lots[0].lot);
+/* Agent investigation trace 렌더링 — investigations.js의 원시 결과를 그대로
+   보여준다. 값은 생성하지 않고 tool 응답을 사람이 읽기 좋은 표로만 옮긴다. */
+const TOOL_KO = {get_lot_context:'로트 컨텍스트 조회', decompose_cd:'CD 성분 분해',
+  get_metrology_health:'계측 장비 상태 조회', get_equipment_events:'설비 이력 조회',
+  compare_chambers:'챔버 간 비교', verify_disposition:'Verification Gate 실행'};
+const EVT_KO = {PM:'PM', CALIBRATION:'교정', COMPONENT_REPLACE:'부품 교체',
+  INSPECTION:'점검', QUALIFICATION:'정성 평가', MONITOR_ALERT:'모니터 경보'};
+
+function traceContextBody(r){
+  return '<p class="small">스캐너 ' + esc(r.scanner) + ' · 레티클 ' + esc(r.reticle) +
+    ' · 챔버 ' + esc(r.chamber) + ' · 현상 후 측정 ' + esc(r.adiTool) +
+    (r.aciMean != null ? ' · 식각 후 측정 ' + esc(r.aciTool) : ' · ACI skip-lot') + '</p>';
+}
+function traceMetrologyBody(r){
+  let s = '';
+  if (r.monitor && r.monitor.series && r.monitor.series.length){
+    s += '<p class="small"><b>모니터 웨이퍼 이동량</b> (한계 ±' + r.monitor.limit.toFixed(2) + ' nm)</p>' +
+      '<div class="scroller"><table><tr><th>생산일</th><th>이동량</th></tr>' +
+      r.monitor.series.map(row => '<tr' + (Math.abs(row.drift) > r.monitor.limit ? ' class="hit"' : '') +
+        '><td class="mono">' + row.day + '일차</td><td class="num mono">' +
+        (row.drift > 0 ? '+' : '') + row.drift.toFixed(3) + ' nm</td></tr>').join('') + '</table></div>';
+  }
+  if (r.tmu && r.tmu.series && r.tmu.series.length){
+    s += '<p class="small" style="margin-top:10px"><b>TMU / 공정 예산</b> (예산 ' + r.tmu.budget_pct +
+      '%, 공차 ±' + r.tmu.cd_tolerance_nm + ' nm)</p>' +
+      '<div class="scroller"><table><tr><th>생산일</th><th>precision</th><th>match</th><th>TMU</th>' +
+      '<th>예산 소비</th></tr>' + r.tmu.series.map(row =>
+        '<tr' + (row.ratio > r.tmu.budget_pct ? ' class="hit"' : '') + '><td class="mono">' + row.day +
+        '일차</td><td class="num mono">' + row.prec.toFixed(2) + '</td><td class="num mono">' +
+        row.match.toFixed(2) + '</td><td class="num mono">' + row.tmu.toFixed(2) +
+        '</td><td class="num mono">' + row.ratio.toFixed(0) + '%</td></tr>').join('') + '</table></div>';
+  }
+  return s || '<p class="small">조회된 계측 이력이 없습니다.</p>';
+}
+function traceEventsBody(r){
+  const events = r.events || [];
+  if (!events.length) return '<p class="small">' + esc(r.tool_id || '') +
+    ' 주변 생산일에 기록된 설비 이력이 없습니다.</p>';
+  return '<div class="scroller"><table><tr><th>일자</th><th>구분</th><th>부품</th><th>내용</th>' +
+    '<th>변화</th><th>상태</th></tr>' + events.map(e =>
+      '<tr><td class="mono">' + esc(e.date) + ' (D+' + e.day_index + ')</td>' +
+      '<td>' + esc(EVT_KO[e.event_type] || e.event_type) + '</td>' +
+      '<td>' + esc(e.component || '—') + '</td><td>' + esc(e.description || '—') + '</td>' +
+      '<td class="num mono">' + (e.before_value != null
+        ? esc(e.before_value + ' → ' + e.after_value + (e.unit ? ' ' + e.unit : '')) : '—') +
+      '</td><td>' + esc(e.status || '—') + '</td></tr>').join('') + '</table></div>';
+}
+function traceChambersBody(r){
+  const keys = Object.keys(r.chambers || {});
+  if (!keys.length) return '<p class="small">비교할 챔버 데이터가 없습니다.</p>';
+  return '<p class="small">생산일 ' + r.window[0] + '~' + r.window[1] + ' · 한계 ±' +
+    r.limit.toFixed(2) + ' nm</p><div class="scroller"><table><tr><th>챔버</th>' +
+    '<th>평균 ΔCD 편차</th></tr>' + keys.map(k =>
+      '<tr' + (Math.abs(r.chambers[k]) > r.limit ? ' class="hit"' : '') + '><td>' + esc(k) +
+      '</td><td class="num mono">' + (r.chambers[k] > 0 ? '+' : '') + r.chambers[k].toFixed(3) +
+      ' nm</td></tr>').join('') + '</table></div>';
+}
+function traceVerifyBody(r){
+  return '<p class="small">' + (r.passed
+    ? '모든 요구 조건을 충족했습니다 — 아래 <b>Verification Gate</b>에서 항목별로 확인할 수 있습니다.'
+    : '<b class="bad">미충족 조건 ' + r.unmet.length + '건: ' +
+      r.unmet.map(c => esc(GATE_KO[c] || c)).join(', ') +
+      '</b> — 아래 <b>Verification Gate</b> 참고.') + '</p>';
+}
+const TRACE_BODY = {get_lot_context:traceContextBody, decompose_cd:r =>
+    '<p class="small">위 "판정 근거" 표와 같은 성분 분해 결과를 이 시점에 조회했습니다.</p>',
+  get_metrology_health:traceMetrologyBody, get_equipment_events:traceEventsBody,
+  compare_chambers:traceChambersBody, verify_disposition:traceVerifyBody};
+
+function traceStepHTML(step, i){
+  const body = (TRACE_BODY[step.tool] || (() => ''))(step.result);
+  return '<details class="tracestep"><summary><span class="n mono">' + (i + 1) + '</span>' +
+    '<span class="tool">' + esc(TOOL_KO[step.tool] || step.tool) + '</span>' +
+    '<span class="reason">' + esc(step.reason) + '</span></summary>' +
+    '<div class="body">' + body +
+    '<details class="rawjson"><summary>원본 응답 (JSON)</summary><pre class="mono">' +
+    esc(JSON.stringify(step.result, null, 2)) + '</pre></details></div></details>';
+}
+function renderTrace(lotId){
+  const box = $('#trace');
+  const inv = (typeof INVESTIGATIONS !== 'undefined') ? INVESTIGATIONS[lotId] : null;
+  if (!inv){
+    box.innerHTML = '<p class="small">이 로트의 investigation trace를 찾을 수 없습니다. ' +
+      'python run.py로 investigations.js를 다시 생성해야 할 수 있습니다.</p>';
+    return;
+  }
+  box.innerHTML = '<div class="tracehead"><span class="stat">tool call ' + inv.tool_calls + '회 · ' +
+    (inv.status === 'DISPOSITION_READY'
+      ? '<span class="ok">판정 완료</span>'
+      : '<b class="bad">근거 부족 — 판정 보류</b>') + '</span></div>' +
+    inv.trace.map((s, i) => traceStepHTML(s, i)).join('');
+}
+
+function openLot(id){
+  const l = DATA.lots.find(x => x.lot === id); if (!l) return;
+  current = id;
+  $('#lotlistcard').hidden = true;
+  $('#lotdetail').hidden = false;
+  showView('lots');
+
+  $('#verdict').style.borderLeftColor = COLOR[l.verdict];
+  $('#verdict').innerHTML = '<h2>' + esc(l.label) +
+    '<span class="risk" style="color:' + COLOR[l.verdict] + '">' + esc(l.risk) + '</span></h2>' +
+    '<div class="meta mono">' + l.lot + ' · ' + l.date + ' · 스캐너 ' + l.scanner +
+    ' · 레티클 ' + l.reticle + ' · 챔버 ' + l.chamber + ' · 현상 후 측정 ' + l.adiTool +
+    (l.aciMean ? ' · 식각 후 측정 ' + l.aciTool : '') + '</div>' +
+    '<div class="meta">담당 모듈 ' + esc(l.module) + ' · 신호가 나타난 좌표계 ' + esc(l.coord) + '</div>' +
+    '<div class="meta mono">Dose Setting ' + l.doseSet + ' → Sensor ' + l.doseSensor +
+    ' mJ/cm² (' + (l.doseGap > 0 ? '+' : '') + l.doseGap + '%) · Focus Sensor ' +
+    (l.focusSensor > 0 ? '+' : '') + l.focusSensor + ' nm · RF hours ' + l.rf + '</div>';
+  $('#plain').innerHTML = '<h3>무엇이 관측되었나</h3><p>' + esc(l.cause) + '</p>' +
+    '<div class="act"><h3>무엇을 조치하나</h3><p>' + esc(l.action) +
+    (l.extra ? ' <b class="mono">' + esc(l.extra) + '</b>' : '') + '</p></div>';
+
+  $('#cap1s').textContent = '웨이퍼 평균 ' + l.adiMean + ' nm (목표 ' + M.adiTarget +
+    ' nm) · 측정 ' + l.adiTool;
+  $('#cap2s').textContent = l.aciMean
+    ? '웨이퍼 평균 ' + (l.deltaMap.reduce((a, b) => a + b, 0) / l.deltaMap.length).toFixed(2) +
+      ' nm (기준 ' + M.etchBias + ' nm) · 측정 ' + l.aciTool
+    : 'skip-lot으로 ACI를 측정하지 않은 로트입니다';
+  currentTool = l.adiTool;
+  drawWafer('map1', l.adiMap, 4,
+    v => '목표보다 ' + (v > 0 ? '+' : '') + v.toFixed(2) + ' nm',
+    v => (v + M.adiTarget).toFixed(2));
+  currentTool = l.aciTool;
+  drawWafer('map2', l.deltaMap ? l.deltaMap.map(v => v - M.etchBias) : null, 3,
+    v => '기준보다 ' + (v > 0 ? '+' : '') + v.toFixed(2) + ' nm',
+    v => (v + M.etchBias).toFixed(2));
+  $('#lo').textContent = '−4 nm (목표보다 좁음)';
+  $('#hi').textContent = '+4 nm (목표보다 넓음)';
+
+  $('#ev').innerHTML = '<tr><th>지표</th><th>측정값</th><th>정상 범위</th><th>상태</th></tr>' +
+    l.ev.map(e => '<tr class="' + (e.hit ? 'hit' : '') + '"><td>' + esc(e.k) +
+      '</td><td class="num mono">' + esc(e.v) + '</td><td class="num mono">' + esc(e.lim) +
+      '</td><td>' + (e.hit ? '<b class="bad">벗어남</b>' : '<span class="ok">정상</span>') +
+      '</td></tr>').join('');
+  $('#gate').innerHTML = l.gate.length
+    ? '<tr><th>요구 조건</th><th>측정값</th><th>임계값</th><th>충족</th></tr>' + l.gate.map(g => {
+        const e = findGateEvidence(g.c, l.ev);
+        return '<tr' + (e && e.hit ? ' class="hit"' : '') + '><td>' + esc(GATE_KO[g.c] || g.c) + '</td>' +
+          '<td class="num mono">' + (e ? esc(e.v) : '—') + '</td>' +
+          '<td class="num mono">' + (e ? esc(e.lim) : '—') + '</td><td>' +
+          (g.ok ? '<span class="ok">✓ 충족</span>' : '<b class="bad">✗ 미충족</b>') + '</td></tr>';
+      }).join('')
+    : '<tr><td colspan="4">이 판정에는 추가 요구 조건이 없습니다.</td></tr>';
+  renderTrace(l.lot);
+
+  document.querySelectorAll('#lotdetail details').forEach((d, i) => d.open = i === 0);
+  scrollTo({top:0, behavior:'smooth'});
+}
+$('#backBtn').onclick = () => {
+  $('#lotdetail').hidden = true; $('#lotlistcard').hidden = false; current = null;
+};
+function step(d){
+  const rows = visible();
+  let i = -1;
+  rows.forEach((x, k) => { if (x.lot === current) i = k; });
+  if (i > -1 && rows[i + d]) openLot(rows[i + d].lot);
+}
+$('#prevBtn').onclick = () => step(-1);
+$('#nextBtn').onclick = () => step(1);
+document.querySelectorAll('[data-acc]').forEach(b => b.onclick = () => {
+  const d = $('#' + b.dataset.acc), was = d.open;
+  document.querySelectorAll('#lotdetail details').forEach(x => x.open = false);
+  d.open = !was;
+});
+
+/* 6. 웨이퍼 지도 ───────────────────────────────── */
+function heat(v, s){
+  const t = Math.max(-1, Math.min(1, v / s));
+  const a = [44,109,166], b = [242,245,246], c = [191,70,48];
+  const mix = (x, y, k) => x.map((n, i) => Math.round(n + (y[i] - n) * k));
+  return 'rgb(' + (t < 0 ? mix(b, a, -t) : mix(b, c, t)).join(',') + ')';
+}
+let currentTool = '';
+function drawWafer(id, vals, scale, fmtDelta, fmtAbs){
+  const g = $('#' + id);
+  if (!vals){
+    g.innerHTML = '<circle r="150" fill="#f5f7f8" stroke="#c8d2d8" stroke-dasharray="5 4"/>' +
+      '<text y="-4" text-anchor="middle" font-size="13" fill="#57676f" ' +
+      'font-family="IBM Plex Sans KR">ACI skip-lot — 측정 없음</text>' +
+      '<text y="18" text-anchor="middle" font-size="11" fill="#8a95a0" ' +
+      'font-family="IBM Plex Sans KR">etch bias를 계산할 수 없어 판정하지 않습니다</text>';
+    return;
+  }
+  const seen = {};
+  let s = '<circle r="150" fill="#fafbfb" stroke="#c8d2d8" stroke-width="1.4"/>' +
+    '<path d="M -10 150 L 10 150 L 0 136 Z" fill="#c8d2d8"/>' +
+    '<line x1="-150" y1="0" x2="150" y2="0" stroke="#e2e9ec"/>' +
+    '<line x1="0" y1="-150" x2="0" y2="150" stroke="#e2e9ec"/>';
+  DATA.sites.forEach(p => {
+    const key = p.field_x + ',' + p.field_y;
+    if (seen[key]) return;
+    seen[key] = 1;
+    s += '<rect x="' + (p.field_x * 26 - 13) + '" y="' + (-p.field_y * 33 - 16.5) +
+      '" width="26" height="33" fill="none" stroke="#dfe6ea" stroke-width="1"/>';
+  });
+  DATA.sites.forEach((p, i) => {
+    s += '<circle cx="' + p.wafer_x_mm + '" cy="' + (-p.wafer_y_mm) +
+      '" r="5.4" fill="' + heat(vals[i], scale) + '" stroke="#ffffff" stroke-width="0.9"/>' +
+      '<circle class="spot" cx="' + p.wafer_x_mm + '" cy="' + (-p.wafer_y_mm) +
+      '" r="10" fill="transparent" stroke="transparent" stroke-width="1.6" ' +
+      'tabindex="0" role="img" data-i="' + i + '" aria-label="' + p.site_id + ' ' +
+      esc(fmtDelta(vals[i])) + '"/>';
+  });
+  g.innerHTML = s;
+  g.querySelectorAll('.spot').forEach(c => {
+    const shw = () => {
+      const i = +c.dataset.i, p = DATA.sites[i], v = vals[i];
+      showPop('<h4>측정 지점 ' + p.site_id + '</h4><p>' +
+        '<b>실측 선폭</b> <span class="mono">' + fmtAbs(v) + ' nm</span><br>' +
+        '<b>목표 대비</b> <span class="mono">' + fmtDelta(v) + '</span><br>' +
+        '<b>노광 영역</b> <span class="mono">(' + p.field_x + ', ' + p.field_y + ')</span> 안의 ' +
+        (p.site_in_field + 1) + '번 점<br>' +
+        '<b>웨이퍼 좌표</b> <span class="mono">(' + p.wafer_x_mm + ', ' + p.wafer_y_mm + ') mm</span><br>' +
+        '<b>중심에서</b> <span class="mono">r/R = ' + p.r_norm.toFixed(2) + '</span><br>' +
+        '<b>측정 장비</b> <span class="mono">' + (currentTool || 'CD-SEM') + '</span></p>', c);
+    };
+    c.addEventListener('mouseenter', shw);
+    c.addEventListener('focus', shw);
+    c.addEventListener('click', e => { e.stopPropagation(); shw(); });
+  });
+}
+
+/* 7. 차트 ──────────────────────────────────────── */
+const METRICS = [
+  {k:'dbias', n:'Etch bias 편차', unit:'nm', lim:LIM.delta_bias, cen:DATA.centers.delta_bias,
+   help:'ACI CD − ADI CD, 즉 식각을 거치며 선폭이 변한 양이 기준(−20 nm)에서 얼마나 벗어났는지를 봅니다. 가로 방향 CD 변화이며 깎인 깊이가 아닙니다.'},
+  {k:'offset', n:'ADI CD 이동', unit:'nm', lim:LIM.adi_offset, cen:DATA.centers.adi_offset,
+   help:'웨이퍼 평균 ADI CD가 목표에서 얼마나 이동했는지를 봅니다. 웨이퍼 전면에 균일하게 걸리는 성분이므로 dose 계열 원인의 지문입니다.'},
+  {k:'radial', n:'ADI CD 반경 성분', unit:'nm', lim:LIM.adi_radial, cen:DATA.centers.adi_radial,
+   help:'웨이퍼 중심과 엣지의 CD 차이입니다. PEB plate 온도 분포나 코팅 두께의 반경 분포가 바뀌면 이 성분이 커집니다.'}
+];
+let metric = METRICS[0];
+$('#metricpick').innerHTML = METRICS.map((m, i) =>
+  '<button class="chip" data-m="' + i + '" aria-pressed="' + (i === 0) + '">' + m.n + '</button>').join('');
+$('#metricpick').onclick = e => {
+  const b = e.target.closest('[data-m]'); if (!b) return;
+  metric = METRICS[+b.dataset.m];
+  Array.prototype.forEach.call($('#metricpick').children,
+    o => o.setAttribute('aria-pressed', o === b));
+  drawTrend();
+};
+
+function axes(o){
+  const X = v => o.x0 + (v - o.xmin) / (o.xmax - o.xmin) * (o.x1 - o.x0);
+  const Y = v => o.y1 - (v - o.ymin) / (o.ymax - o.ymin) * (o.y1 - o.y0);
+  const fmt = o.fmt || (v => v);
+  let s = '';
+  o.yt.forEach(v => {
+    s += '<line class="grid" x1="' + o.x0 + '" y1="' + Y(v) + '" x2="' + o.x1 + '" y2="' + Y(v) + '"/>' +
+      '<text x="' + (o.x0 - 8) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' + fmt(v) + '</text>';
+  });
+  o.xt.forEach(v => {
+    s += '<line class="grid" x1="' + X(v) + '" y1="' + o.y0 + '" x2="' + X(v) + '" y2="' + o.y1 + '"/>' +
+      '<text x="' + X(v) + '" y="' + (o.y1 + 18) + '" text-anchor="middle">' + v + '</text>';
+  });
+  s += '<line class="axis" x1="' + o.x0 + '" y1="' + o.y0 + '" x2="' + o.x0 + '" y2="' + o.y1 + '"/>' +
+    '<line class="axis" x1="' + o.x0 + '" y1="' + o.y1 + '" x2="' + o.x1 + '" y2="' + o.y1 + '"/>' +
+    '<text class="axt" x="' + ((o.x0 + o.x1) / 2) + '" y="' + (o.y1 + 42) + '" text-anchor="middle">' +
+    o.xlab + '</text>' +
+    '<text class="axt" x="' + (-(o.y0 + o.y1) / 2) + '" y="16" text-anchor="middle" ' +
+    'transform="rotate(-90)">' + o.ylab + '</text>';
+  return {X:X, Y:Y, s:s};
+}
+
+function drawTrend(){
+  const key = metric.k;
+  const pts = DATA.lots.map(l => ({d:l.day, v:l.m[key], lot:l.lot, ver:l.verdict, lab:l.label}))
+                       .filter(p => p.v !== null && p.v !== undefined);
+  const dev = pts.map(p => p.v - metric.cen);
+  const span = Math.max(metric.lim * 2.2, Math.max.apply(null, dev.map(Math.abs))) * 1.12;
+  const A = axes({x0:58, x1:748, y0:22, y1:268, xmin:0, xmax:M.days - 1, ymin:-span, ymax:span,
+    xt:[0,5,10,15,20,25,30,35,39],
+    yt:[-span, -metric.lim, 0, metric.lim, span].map(v => +v.toFixed(2)),
+    xlab:'생산일 (0일 = 첫 생산일, 총 ' + M.days + '일)',
+    ylab:metric.n + ' (' + metric.unit + ')', fmt:v => v.toFixed(1)});
+  let s = '<rect x="58" y="' + A.Y(metric.lim) + '" width="690" height="' +
+    (A.Y(-metric.lim) - A.Y(metric.lim)) + '" fill="#eef1f3"/>' + A.s;
+  s += '<line x1="58" y1="' + A.Y(0) + '" x2="748" y2="' + A.Y(0) +
+    '" stroke="#8ea0aa" stroke-dasharray="4 3"/>';
+  [metric.lim, -metric.lim].forEach(v => {
+    s += '<line x1="58" y1="' + A.Y(v) + '" x2="748" y2="' + A.Y(v) +
+      '" stroke="#9aa9b2" stroke-dasharray="2 3"/>';
+  });
+  s += '<text x="752" y="' + (A.Y(metric.lim) + 4) + '" font-size="10">한계</text>';
+  s += '<text x="752" y="' + (A.Y(-metric.lim) + 4) + '" font-size="10">한계</text>';
+  pts.forEach(p => {
+    const d = p.v - metric.cen, out = Math.abs(d) > metric.lim;
+    const label = p.lot + ', 생산일 ' + p.d + '일차, ' + metric.n + ' ' +
+      (d > 0 ? '+' : '') + d.toFixed(2) + ' ' + metric.unit + ', 판정 ' + p.lab + ' — 눌러서 로트 판정 보기';
+    s += '<circle class="pt" cx="' + A.X(p.d) + '" cy="' + A.Y(d) + '" r="' + (out ? 4.6 : 3) +
+      '" fill="' + COLOR[p.ver] + '" fill-opacity="' + (p.ver === 'NORMAL' ? .32 : .95) +
+      '" stroke="' + (out ? '#fff' : 'none') + '" stroke-width="1.2" data-lot="' + p.lot +
+      '" data-d="' + d.toFixed(2) + '" data-day="' + p.d + '" data-lab="' + esc(p.lab) +
+      '" tabindex="0" role="button" aria-label="' + esc(label) + '"/>';
+  });
+  const g = $('#trend'); g.innerHTML = s;
+  g.querySelectorAll('.pt').forEach(c => {
+    const shw = () => showPop('<h4>' + c.dataset.lot + '</h4><p>' +
+      '<b>' + esc(metric.n) + '</b> <span class="mono">' + c.dataset.d + ' ' + metric.unit + '</span><br>' +
+      '<b>정상 범위</b> <span class="mono">±' + metric.lim.toFixed(2) + '</span><br>' +
+      '<b>생산일</b> <span class="mono">' + c.dataset.day + '일차</span><br>' +
+      '<b>판정</b> ' + esc(c.dataset.lab) + '</p>' +
+      '<p style="margin-top:6px;color:#0b6a72">눌러서 이 로트의 판정 보기</p>', c);
+    const go = () => { hidePop(); openLot(c.dataset.lot); };
+    c.addEventListener('mouseenter', shw);
+    c.addEventListener('focus', shw);
+    c.addEventListener('click', e => { e.stopPropagation(); go(); });
+    c.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){ e.preventDefault(); go(); }
+    });
+  });
+  $('#trendLegend').innerHTML = '<span class="small" style="width:100%">' + metric.help + '</span>' +
+    [['정상','NORMAL'],['Litho (dose·track·reticle)','PHOTO_DOSE'],['Etch 챔버','ETCH_CHAMBER'],
+     ['Metrology 장비 drift','METROLOGY_TOOL_DRIFT'],['판정 보류','INDETERMINATE']]
+    .map(a => '<span><i style="background:' + COLOR[a[1]] + '"></i>' + a[0] + '</span>').join('');
+}
+
+function drawMonitor(){
+  const ys = DATA.monitor.map(d => d.drift);
+  const span = Math.max(1.4, Math.max.apply(null, ys.map(Math.abs))) * 1.2;
+  const A = axes({x0:58, x1:748, y0:22, y1:236, xmin:0, xmax:M.days - 1, ymin:-span, ymax:span,
+    xt:[0,5,10,15,20,25,30,35,39],
+    yt:[-span, -LIM.tool_drift, 0, LIM.tool_drift, span].map(v => +v.toFixed(2)),
+    xlab:'생산일', ylab:'기준 웨이퍼 값의 이동량 (nm)', fmt:v => v.toFixed(1)});
+  let s = '<rect x="58" y="' + A.Y(LIM.tool_drift) + '" width="690" height="' +
+    (A.Y(-LIM.tool_drift) - A.Y(LIM.tool_drift)) + '" fill="#eef1f3"/>' + A.s;
+  const ST = {'CDSEM-A':{c:'#8b98a3', d:''}, 'CDSEM-B':{c:'#0b6a72', d:'6 4'}};
+  ['CDSEM-A','CDSEM-B'].forEach(t => {
+    const rows = DATA.monitor.filter(d => d.tool === t);
+    s += '<polyline points="' + rows.map(d => A.X(d.day) + ',' + A.Y(d.drift)).join(' ') +
+      '" fill="none" stroke="' + ST[t].c + '" stroke-width="2.2" stroke-dasharray="' + ST[t].d + '"/>';
+    rows.forEach(d => {
+      const out = Math.abs(d.drift) > LIM.tool_drift;
+      const label = t + ', 생산일 ' + d.day + '일차, 기준선 대비 ' + (d.drift > 0 ? '+' : '') +
+        d.drift.toFixed(2) + ' nm' + (out ? ' — 정상 범위 벗어남' : '');
+      s += '<circle class="pt" cx="' + A.X(d.day) + '" cy="' + A.Y(d.drift) + '" r="3.4" fill="' +
+        ST[t].c + '" data-t="' + t + '" data-v="' + d.drift.toFixed(2) + '" data-day="' + d.day +
+        '" tabindex="0" role="button" aria-label="' + esc(label) + '"/>';
+    });
+  });
+  const g = $('#monitor'); g.innerHTML = s;
+  g.querySelectorAll('.pt').forEach(c => {
+    const shw = () => {
+      const v = +c.dataset.v;
+      showPop('<h4>' + c.dataset.t + '</h4><p>' +
+        '<b>기준선 대비</b> <span class="mono">' + (v > 0 ? '+' : '') + c.dataset.v + ' nm</span><br>' +
+        '<b>생산일</b> <span class="mono">' + c.dataset.day + '일차</span><br>' +
+        '<b>정상 범위</b> <span class="mono">±' + LIM.tool_drift.toFixed(2) + ' nm</span></p>' +
+        '<p style="margin-top:6px">' + (Math.abs(v) > LIM.tool_drift
+          ? '<b style="color:#a2321f">범위를 벗어났습니다. 이 장비로 측정한 값은 신뢰할 수 없습니다.</b>'
+          : '정상 범위 안입니다.') + '</p>', c);
+    };
+    c.addEventListener('mouseenter', shw);
+    c.addEventListener('focus', shw);
+    c.addEventListener('click', e => { e.stopPropagation(); shw(); });
+    c.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){ e.preventDefault(); shw(); }
+    });
+  });
+  if ($('#tdlim')) $('#tdlim').textContent = LIM.tool_drift.toFixed(2);
+  $('#monLegend').innerHTML =
+    '<span><i class="ln" style="border-color:#8b98a3"></i>CDSEM-A (실선)</span>' +
+    '<span><i class="ln" style="border-color:#0b6a72;border-top-style:dashed"></i>CDSEM-B (점선)</span>' +
+    '<span><i style="background:#eef1f3;border:1px solid #c8d2d8;border-radius:0"></i>정상 범위 ±' +
+    LIM.tool_drift.toFixed(2) + ' nm</span>';
+}
+
+function drawTmu(){
+  const B = M.tmuBudget, T = M.cdTol;
+  const max = Math.max(B * 1.6, Math.max.apply(null, DATA.tmu.map(t => t.ratio))) * 1.08;
+  const A = axes({x0:58, x1:748, y0:22, y1:236, xmin:0, xmax:M.days - 1, ymin:0, ymax:max,
+    xt:[0,5,10,15,20,25,30,35,39],
+    yt:[0, B, Math.round(max / 2), Math.round(max)],
+    xlab:'생산일', ylab:'TMU / 공정 허용 예산 (%)', fmt:v => v + '%'});
+  // 예산 이내 구간을 회색 띠로
+  let s = '<rect x="58" y="' + A.Y(B) + '" width="690" height="' + (A.Y(0) - A.Y(B)) +
+    '" fill="#eef1f3"/>' + A.s;
+  s += '<line x1="58" y1="' + A.Y(B) + '" x2="748" y2="' + A.Y(B) +
+    '" stroke="#bf4630" stroke-width="1.6" stroke-dasharray="5 3"/>' +
+    '<text x="752" y="' + (A.Y(B) + 4) + '" font-size="10" fill="#bf4630">예산 ' + B + '%</text>';
+  const ST = {'CDSEM-A':{c:'#8b98a3', d:''}, 'CDSEM-B':{c:'#0b6a72', d:'6 4'}};
+  ['CDSEM-A','CDSEM-B'].forEach(t => {
+    const rows = DATA.tmu.filter(d => d.tool === t);
+    s += '<polyline points="' + rows.map(d => A.X(d.day) + ',' + A.Y(d.ratio)).join(' ') +
+      '" fill="none" stroke="' + ST[t].c + '" stroke-width="2.2" stroke-dasharray="' + ST[t].d + '"/>';
+    rows.forEach(d => {
+      const over = d.ratio > B;
+      const label = t + ', 생산일 ' + d.day + '일차, TMU 공정 예산 소비 ' + d.ratio + '%' +
+        (over ? ' — 예산 초과' : '');
+      s += '<circle class="pt" cx="' + A.X(d.day) + '" cy="' + A.Y(d.ratio) + '" r="' +
+        (over ? 4.6 : 3.2) + '" fill="' + (over ? '#bf4630' : ST[t].c) + '" data-t="' + t +
+        '" data-day="' + d.day + '" data-r="' + d.ratio + '" data-p="' + d.prec +
+        '" data-m="' + d.match + '" data-u="' + d.tmu +
+        '" tabindex="0" role="button" aria-label="' + esc(label) + '"/>';
+    });
+  });
+  const g = $('#tmuchart'); g.innerHTML = s;
+  g.querySelectorAll('.pt').forEach(c => {
+    const shw = () => {
+      const over = +c.dataset.r > B;
+      showPop('<h4>' + c.dataset.t + ' · ' + c.dataset.day + '일차</h4><p>' +
+        '<b>dynamic precision 3σ</b> <span class="mono">' + c.dataset.p + ' nm</span><br>' +
+        '<b>tool-to-tool match</b> <span class="mono">' + c.dataset.m + ' nm</span><br>' +
+        '<b>TMU (RSS)</b> <span class="mono">' + c.dataset.u + ' nm</span><br>' +
+        '<b>공정 예산 소비</b> <span class="mono">' + c.dataset.r + '% of ±' + T + ' nm</span></p>' +
+        '<p style="margin-top:6px">' + (over
+          ? '<b style="color:#a2321f">예산 초과. 이 장비 측정값을 근거로 한 공정 조치는 보류해야 합니다.</b>'
+          : '예산 이내입니다.') + '</p>', c);
+    };
+    c.addEventListener('mouseenter', shw);
+    c.addEventListener('focus', shw);
+    c.addEventListener('click', e => { e.stopPropagation(); shw(); });
+    c.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){ e.preventDefault(); shw(); }
+    });
+  });
+  $('#tmuLegend').innerHTML =
+    '<span><i class="ln" style="border-color:#8b98a3"></i>CDSEM-A (실선)</span>' +
+    '<span><i class="ln" style="border-color:#0b6a72;border-top-style:dashed"></i>CDSEM-B (점선)</span>' +
+    '<span><i style="background:#bf4630"></i>예산 초과 시점</span>' +
+    '<span><i style="background:#eef1f3;border:1px solid #c8d2d8;border-radius:0"></i>예산 이내</span>';
+  if ($('#cdtol')) $('#cdtol').textContent = T.toFixed(1);
+  // 기준선 / 이탈 구간 요약표
+  const base = DATA.tmu.filter(t => t.day < 10), bad = DATA.tmu.filter(t => t.ratio > B);
+  const avg = a => (a.reduce((x, y) => x + y, 0) / a.length);
+  $('#tmuTable').innerHTML =
+    '<tr><th>구간</th><th>precision 3σ</th><th>tool match</th><th>TMU</th><th>예산 소비</th></tr>' +
+    '<tr><td>기준선 (0~9일)</td><td class="num mono">' + avg(base.map(t => t.prec)).toFixed(2) +
+    ' nm</td><td class="num mono">' + avg(base.map(t => t.match)).toFixed(2) +
+    ' nm</td><td class="num mono">' + avg(base.map(t => t.tmu)).toFixed(2) +
+    ' nm</td><td class="num mono">' + avg(base.map(t => t.ratio)).toFixed(0) + '%</td></tr>' +
+    (bad.length ? '<tr class="hit"><td>예산 초과 시점 ' + bad.length + '건</td><td class="num mono">' +
+      avg(bad.map(t => t.prec)).toFixed(2) + ' nm</td><td class="num mono">' +
+      avg(bad.map(t => t.match)).toFixed(2) + ' nm</td><td class="num mono">' +
+      avg(bad.map(t => t.tmu)).toFixed(2) + ' nm</td><td class="num mono"><b>' +
+      avg(bad.map(t => t.ratio)).toFixed(0) + '%</b></td></tr>' : '');
+}
+
+function drawChambers(){
+  const byCh = {};
+  DATA.chamberSeries.forEach(r => { (byCh[r.chamber] = byCh[r.chamber] || []).push(r); });
+  const span = Math.max.apply(null, DATA.chamberSeries.map(r => Math.abs(r.dbias))) * 1.15;
+  $('#chambers').innerHTML = Object.keys(byCh).sort().map(ch => {
+    const rows = byCh[ch].slice().sort((a, b) => a.day - b.day);
+    const X = d => 6 + d / (M.days - 1) * 288, Y = v => 30 - v / span * 23;
+    const worst = rows.reduce((a, b) => Math.abs(b.dbias) > Math.abs(a.dbias) ? b : a);
+    return '<div class="mini"><div class="nm">' + ch + '<small>최대 ' +
+      (worst.dbias > 0 ? '+' : '') + worst.dbias.toFixed(2) + ' nm</small></div>' +
+      '<svg viewBox="0 0 300 60" style="width:100%;height:auto" role="img" aria-label="' + ch +
+      ' 챔버의 etch bias 편차 추이"><rect x="6" y="' + Y(LIM.chamber_dev) + '" width="288" height="' +
+      (Y(-LIM.chamber_dev) - Y(LIM.chamber_dev)) + '" fill="#eef1f3"/>' +
+      '<line x1="6" y1="30" x2="294" y2="30" stroke="#c8d2d8"/>' +
+      '<polyline points="' + rows.map(r => X(r.day) + ',' + Y(r.dbias)).join(' ') +
+      '" fill="none" stroke="#8a2e68" stroke-width="1.6"/>' +
+      '<text x="6" y="55" font-size="9" font-family="IBM Plex Mono" fill="#57676f">0일</text>' +
+      '<text x="264" y="55" font-size="9" font-family="IBM Plex Mono" fill="#57676f">' +
+      (M.days - 1) + '일</text>' +
+      '<text x="150" y="55" font-size="9" text-anchor="middle" font-family="IBM Plex Mono" ' +
+      'fill="#8a95a0">회색 띠 = ±' + LIM.chamber_dev.toFixed(2) + ' nm</text></svg></div>';
+  }).join('');
+}
+
+/* 8. 검증 결과 표 ──────────────────────────────── */
+(function(){
+  const c = (typeof VALIDATION !== 'undefined' && VALIDATION.confusion) ? VALIDATION.confusion : {}, set = {};
+  Object.keys(c).forEach(t => Object.keys(c[t]).forEach(p => set[p] = 1));
+  const preds = Object.keys(set).sort();
+  const NAME = {S0:'정상', S1:'Litho dose', S2:'Track PEB 반경', S3:'Reticle CD',
+    S4:'Etch 챔버', S5:'Metrology drift', '??':'판정 보류'};
+  let s = '<tr><th>실제로 넣은 이상</th>' +
+    preds.map(p => '<th>' + (NAME[p] || p) + '</th>').join('') + '</tr>';
+  Object.keys(c).sort().forEach(t => {
+    s += '<tr><th>' + (NAME[t] || t) + '</th>' + preds.map(p => {
+      const v = c[t][p] || 0;
+      const st = t === p ? 'font-weight:700' : (v ? 'color:#a2321f' : 'color:#b7c0c7');
+      return '<td class="num mono" style="' + st + '">' + v + '</td>';
+    }).join('') + '</tr>';
+  });
+  $('#conf').innerHTML = s;
+})();
+
+/* 9. 화면 전환 ─────────────────────────────────── */
+const VIEWS = ['overview','terms','lots','charts','eval'];
+let chartsDrawn = false;
+function showView(v){
+  VIEWS.forEach(k => { $('#v-' + k).hidden = k !== v; });
+  document.querySelectorAll('#nav button').forEach(b => {
+    if (b.dataset.v === v) b.setAttribute('aria-current', 'page');
+    else b.removeAttribute('aria-current');
+  });
+  if (v === 'charts' && !chartsDrawn){ drawTrend(); drawMonitor(); drawTmu(); drawChambers(); chartsDrawn = true; }
+  hidePop();
+}
+$('#nav').onclick = e => {
+  const b = e.target.closest('button');
+  if (b) { showView(b.dataset.v); scrollTo({top:0, behavior:'smooth'}); }
+};
+renderList();
+showView('overview');
 </script>
 </body>
 </html>
