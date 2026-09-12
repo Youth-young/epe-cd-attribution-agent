@@ -218,11 +218,11 @@ def attribute(r):
     checks["adi_reticle_within_limit"] = abs(ret) <= LIM["adi_reticle"]
     checks["adi_reticle_repeats_across_fields"] = abs(ret) > LIM["adi_reticle"]
 
-    ev.append(dict(k="ADI 스칼라 성분", v=f"{o:+.2f} nm", lim=f"±{LIM['adi_offset']:.2f}",
+    ev.append(dict(k="ADI scalar component", v=f"{o:+.2f} nm", lim=f"±{LIM['adi_offset']:.2f}",
                    hit=bool(checks["adi_offset_exceeds"])))
-    ev.append(dict(k="ADI 반경 성분", v=f"{rad:+.2f} nm", lim=f"±{LIM['adi_radial']:.2f}",
+    ev.append(dict(k="ADI radial component", v=f"{rad:+.2f} nm", lim=f"±{LIM['adi_radial']:.2f}",
                    hit=bool(checks["adi_radial_exceeds"])))
-    ev.append(dict(k="레티클 반복 성분", v=f"{ret:+.2f} nm", lim=f"≤{LIM['adi_reticle']:.2f}",
+    ev.append(dict(k="Reticle-repeat component", v=f"{ret:+.2f} nm", lim=f"≤{LIM['adi_reticle']:.2f}",
                    hit=bool(checks["adi_reticle_exceeds"])))
 
     # Setting값(Recipe Input) vs Energy Sensor 실측값 — Photo 원인 분기의 핵심
@@ -236,7 +236,7 @@ def attribute(r):
     _t = tmu_at(_tool, r.day_index)
     if _t:
         checks["tmu_within_budget"] = _t["ratio"] <= TMU_BUDGET
-        ev.append(dict(k=f"{_tool} 계측 불확도 TMU / 공정 예산",
+        ev.append(dict(k=f"{_tool} measurement uncertainty TMU / process budget",
                        v=f"{_t['tmu']:.2f} nm / ±{CD_TOL:.1f} nm = {_t['ratio']:.0f}%"
                          f"  (precision {_t['prec']:.2f} · match {_t['match']:.2f})",
                        lim=f"≤{TMU_BUDGET:.0f}%",
@@ -262,17 +262,17 @@ def attribute(r):
         checks["taper_not_contradicting"] = (tdev is None) or (abs(tdev) > 0.35)
         checks["chamber_specific"] = cdev is not None and abs(cdev) > LIM["chamber_dev"]
         checks["not_chamber_specific"] = cdev is None or abs(cdev) <= LIM["chamber_dev"]
-        ev.append(dict(k="ΔCD(etch bias) 편차", v=f"{dbias:+.2f} nm",
+        ev.append(dict(k="Delta-CD (etch bias) deviation", v=f"{dbias:+.2f} nm",
                        lim=f"±{LIM['delta_bias']:.2f}", hit=bool(checks["delta_bias_exceeds"])))
-        ev.append(dict(k=f"{r.aci_meas_tool} monitor wafer drift", v=f"{td:+.2f} nm ({td_age}일 전 측정)",
+        ev.append(dict(k=f"{r.aci_meas_tool} monitor wafer drift", v=f"{td:+.2f} nm (measured {td_age}d ago)",
                        lim=f"±{LIM['tool_drift']:.2f}", hit=bool(checks["tool_drift_exceeds"])))
-        ev.append(dict(k=f"{r.etch_chamber} 챔버 편중", v=("N/A" if cdev is None else f"{cdev:+.2f} nm"),
+        ev.append(dict(k=f"{r.etch_chamber} chamber deviation", v=("N/A" if cdev is None else f"{cdev:+.2f} nm"),
                        lim=f"±{LIM['chamber_dev']:.2f}", hit=bool(checks["chamber_specific"])))
-        ev.append(dict(k="단면 taper 변화(보조)", v=("N/A" if tdev is None else f"{tdev:+.2f} nm"),
-                       lim="참고", hit=bool(tdev is not None and abs(tdev) > 0.8)))
+        ev.append(dict(k="Cross-section taper shift (supporting)", v=("N/A" if tdev is None else f"{tdev:+.2f} nm"),
+                       lim="reference", hit=bool(tdev is not None and abs(tdev) > 0.8)))
     else:
         checks["delta_within_limit_or_absent"] = True
-        ev.append(dict(k="ΔCD", v="ACI 미측정", lim="-", hit=False))
+        ev.append(dict(k="Delta-CD", v="ACI not measured", lim="-", hit=False))
 
     # 규칙 선택 — ADI(되돌릴 수 있는 시점)를 먼저 본다
     order = []
@@ -309,13 +309,13 @@ def attribute(r):
         cur_sen = float(r.dose_sensor_mJcm2)
         tgt = cur_set * (1 + need_pct / 100)
         if checks["dose_gap_exceeds"]:
-            extra = (f"Setting {cur_set:.2f} mJ/cm²는 유지되어 있으나 Energy Sensor 실측이 "
-                     f"{cur_sen:.2f} mJ/cm² ({gap:+.2f}%)로 이탈. Recipe를 건드리기 전에 "
-                     f"Dose Mapper / Energy Sensor Calibration을 먼저 재수행할 것. "
-                     f"Calibration 후에도 CD가 남으면 Setting {cur_set:.2f} → {tgt:.2f} mJ/cm² "
+            extra = (f"Setting {cur_set:.2f} mJ/cm² held steady, but the Energy Sensor readback "
+                     f"deviated to {cur_sen:.2f} mJ/cm² ({gap:+.2f}%). Re-run Dose Mapper / "
+                     f"Energy Sensor Calibration before touching the recipe. "
+                     f"If CD residual remains after calibration, target Setting {cur_set:.2f} → {tgt:.2f} mJ/cm² "
                      f"({tgt - cur_set:+.2f} mJ/cm², {need_pct:+.2f}%)")
         else:
-            extra = (f"Setting–Sensor 괴리는 정상. Recipe 보정 대상. "
+            extra = (f"Setting-Sensor gap is normal. Recipe correction is the target. "
                      f"Dose Setting {cur_set:.2f} → {tgt:.2f} mJ/cm² "
                      f"({tgt - cur_set:+.2f} mJ/cm², {need_pct:+.2f}%)")
     return verdict, ev, gate, extra, dict(tool_drift=td, chamber_dev=cdev, taper_dev=tdev)
