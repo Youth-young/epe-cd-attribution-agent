@@ -153,6 +153,24 @@ tr.me td:first-child{font-weight:600}
 .acc:not([open]) .body{display:none}
 @media(prefers-reduced-motion:reduce){.acc>button .mark{transition:none}}
 
+/* Agent investigation trace */
+.tracehead{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin-bottom:12px;flex-wrap:wrap}
+.tracehead .stat{font-size:12.5px;color:var(--muted)}
+.trace .tracestep{border:1px solid var(--line2);margin-top:-1px;background:var(--panel)}
+.trace .tracestep>summary{display:flex;gap:10px;align-items:baseline;cursor:pointer;
+  padding:10px 12px;font-size:13.5px;list-style:none}
+.trace .tracestep>summary::-webkit-details-marker{display:none}
+.trace .tracestep>summary .n{font-family:"IBM Plex Mono",monospace;color:var(--muted);flex:none}
+.trace .tracestep>summary .tool{font-weight:600;flex:none;white-space:nowrap}
+.trace .tracestep>summary .reason{color:var(--ink2);font-weight:400}
+.trace .tracestep[open]>summary{background:var(--sunk)}
+.trace .tracestep .body{padding:2px 14px 16px 40px}
+.trace .rawjson{margin-top:10px}
+.trace .rawjson>summary{display:list-item;cursor:pointer;font-size:12.5px;color:var(--muted)}
+.trace .rawjson pre{margin:8px 0 0;padding:12px;background:var(--sunk);border:1px solid var(--line2);
+  font-size:11.5px;line-height:1.65;overflow-x:auto;white-space:pre-wrap;word-break:break-word}
+
 table{border-collapse:collapse;width:100%;font-size:13.5px}
 th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--line2)}
 th{color:var(--muted);font-weight:500;font-size:12.5px}
@@ -182,6 +200,7 @@ figcaption span{display:block;color:var(--muted);font-weight:400;font-size:12.5p
 .chart .grid{stroke:var(--line2);stroke-width:1}
 .chart .axis{stroke:var(--line);stroke-width:1.2}
 .chart .pt{cursor:pointer}
+.chart .pt:focus-visible{stroke:var(--ink);stroke-width:2;outline:none}
 .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink2);margin-top:12px}
 .legend i{display:inline-block;width:14px;height:14px;vertical-align:-2px;margin-right:6px;
   border-radius:50%}
@@ -360,6 +379,16 @@ footer{max-width:var(--w);margin:0 auto;padding:0 20px 44px;color:var(--muted);f
       </div>
     </details>
 
+    <details class="acc" id="accTrace">
+      <summary hidden></summary>
+      <button type="button" data-acc="accTrace">Investigation Trace<span class="mark">＋</span></button>
+      <div class="body">
+        <p class="small" style="margin-top:14px">Agent가 이 판정에 도달하기까지 실제로 호출한 조회 도구의 순서입니다.
+          각 항목을 펼치면 근거를, 그 안의 "원본 응답"을 펼치면 도구가 반환한 원시 데이터를 볼 수 있습니다.</p>
+        <div class="trace" id="trace"></div>
+      </div>
+    </details>
+
     <details class="acc" id="accGate">
       <summary hidden></summary>
       <button type="button" data-acc="accGate">Verification Gate<span class="mark">＋</span></button>
@@ -436,6 +465,7 @@ footer{max-width:var(--w);margin:0 auto;padding:0 20px 44px;color:var(--muted);f
 <div id="pop" role="tooltip" aria-live="polite"></div>
 
 <script src="data.js"></script>
+<script src="investigations.js"></script>
 <script src="validation/validation.js"></script>
 <script>
 /* 1. 공통 상수와 도우미 ─────────────────────────── */
@@ -566,6 +596,13 @@ function infoHTML(k){
   const x = INFO[k]; if (!x) return '';
   return '<h4>' + esc(x.k) + '</h4><p>' + esc(x.d) + '</p>';
 }
+/* 본문에 흩어진 용어(.term)는 마우스뿐 아니라 키보드로도 열 수 있어야 한다.
+   버튼 시맨틱을 부여하고, 포커스를 hover와 동일하게 취급한다. */
+document.querySelectorAll('.term').forEach(t => {
+  t.tabIndex = 0;
+  t.setAttribute('role', 'button');
+  t.setAttribute('aria-haspopup', 'true');
+});
 document.addEventListener('mouseover', e => {
   const t = e.target.closest('.term'); if (t) { showPop(popHTML(t.dataset.t), t); return; }
   const i = e.target.closest('.info'); if (i) showPop(infoHTML(i.dataset.i), i);
@@ -574,13 +611,25 @@ document.addEventListener('mouseout', e => {
   if ((e.target.closest('.term') || e.target.closest('.info')) &&
       !(e.relatedTarget && e.relatedTarget.closest('#pop'))) hidePop();
 });
+document.addEventListener('focusin', e => {
+  const t = e.target.closest('.term'); if (t) showPop(popHTML(t.dataset.t), t);
+});
+document.addEventListener('focusout', e => {
+  if (e.target.closest('.term') && !(e.relatedTarget && e.relatedTarget.closest('#pop'))) hidePop();
+});
 document.addEventListener('click', e => {
   const t = e.target.closest('.term'), i = e.target.closest('.info');
   if (t) { e.preventDefault(); showPop(popHTML(t.dataset.t), t); }
   else if (i) { e.preventDefault(); showPop(infoHTML(i.dataset.i), i); }
   else if (!e.target.closest('#pop')) hidePop();
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') hidePop(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { hidePop(); return; }
+  if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){
+    const t = e.target.closest('.term');
+    if (t) { e.preventDefault(); showPop(popHTML(t.dataset.t), t); }
+  }
+});
 addEventListener('scroll', hidePop, {passive:true});
 
 /* 3. 개요 화면 ─────────────────────────────────── */
@@ -657,6 +706,118 @@ const GATE_KO = {tool_drift_exceeds:'기준 웨이퍼 값이 함께 이동했는
   delta_within_limit_or_absent:'식각량이 정상이거나 측정되지 않았는가',
   tmu_within_budget:'계측 불확도가 공정 예산 20% 이내인가'};
 
+/* Gate 조건 ↔ 근거(ev) 행 매칭 — 새 수치를 만들지 않고 이미 계산된 근거 행을
+   그대로 재사용한다. 로트마다 장비/챔버 이름이 달라 접미어로 매칭한다. */
+const GATE_EV_MATCH = {
+  adi_radial_within_limit: e => e.k === 'ADI 반경 성분',
+  adi_reticle_within_limit: e => e.k === '레티클 반복 성분',
+  adi_reticle_repeats_across_fields: e => e.k === '레티클 반복 성분',
+  chamber_specific: e => /챔버 편중$/.test(e.k),
+  delta_within_limit_or_absent: e => e.k.indexOf('ΔCD') === 0,
+  metrology_healthy: e => /monitor wafer drift$/.test(e.k),
+  metrology_evidence_fresh: e => /monitor wafer drift$/.test(e.k),
+  tool_drift_exceeds: e => /monitor wafer drift$/.test(e.k),
+  taper_not_contradicting: e => e.k === '단면 taper 변화(보조)',
+  tmu_within_budget: e => e.k.indexOf('계측 불확도 TMU') > -1
+};
+function findGateEvidence(code, ev){
+  const match = GATE_EV_MATCH[code];
+  return match ? (ev.find(match) || null) : null;
+}
+
+/* Agent investigation trace 렌더링 — investigations.js의 원시 결과를 그대로
+   보여준다. 값은 생성하지 않고 tool 응답을 사람이 읽기 좋은 표로만 옮긴다. */
+const TOOL_KO = {get_lot_context:'로트 컨텍스트 조회', decompose_cd:'CD 성분 분해',
+  get_metrology_health:'계측 장비 상태 조회', get_equipment_events:'설비 이력 조회',
+  compare_chambers:'챔버 간 비교', verify_disposition:'Verification Gate 실행'};
+const EVT_KO = {PM:'PM', CALIBRATION:'교정', COMPONENT_REPLACE:'부품 교체',
+  INSPECTION:'점검', QUALIFICATION:'정성 평가', MONITOR_ALERT:'모니터 경보'};
+
+function traceContextBody(r){
+  return '<p class="small">스캐너 ' + esc(r.scanner) + ' · 레티클 ' + esc(r.reticle) +
+    ' · 챔버 ' + esc(r.chamber) + ' · 현상 후 측정 ' + esc(r.adiTool) +
+    (r.aciMean != null ? ' · 식각 후 측정 ' + esc(r.aciTool) : ' · ACI skip-lot') + '</p>';
+}
+function traceMetrologyBody(r){
+  let s = '';
+  if (r.monitor && r.monitor.series && r.monitor.series.length){
+    s += '<p class="small"><b>모니터 웨이퍼 이동량</b> (한계 ±' + r.monitor.limit.toFixed(2) + ' nm)</p>' +
+      '<div class="scroller"><table><tr><th>생산일</th><th>이동량</th></tr>' +
+      r.monitor.series.map(row => '<tr' + (Math.abs(row.drift) > r.monitor.limit ? ' class="hit"' : '') +
+        '><td class="mono">' + row.day + '일차</td><td class="num mono">' +
+        (row.drift > 0 ? '+' : '') + row.drift.toFixed(3) + ' nm</td></tr>').join('') + '</table></div>';
+  }
+  if (r.tmu && r.tmu.series && r.tmu.series.length){
+    s += '<p class="small" style="margin-top:10px"><b>TMU / 공정 예산</b> (예산 ' + r.tmu.budget_pct +
+      '%, 공차 ±' + r.tmu.cd_tolerance_nm + ' nm)</p>' +
+      '<div class="scroller"><table><tr><th>생산일</th><th>precision</th><th>match</th><th>TMU</th>' +
+      '<th>예산 소비</th></tr>' + r.tmu.series.map(row =>
+        '<tr' + (row.ratio > r.tmu.budget_pct ? ' class="hit"' : '') + '><td class="mono">' + row.day +
+        '일차</td><td class="num mono">' + row.prec.toFixed(2) + '</td><td class="num mono">' +
+        row.match.toFixed(2) + '</td><td class="num mono">' + row.tmu.toFixed(2) +
+        '</td><td class="num mono">' + row.ratio.toFixed(0) + '%</td></tr>').join('') + '</table></div>';
+  }
+  return s || '<p class="small">조회된 계측 이력이 없습니다.</p>';
+}
+function traceEventsBody(r){
+  const events = r.events || [];
+  if (!events.length) return '<p class="small">' + esc(r.tool_id || '') +
+    ' 주변 생산일에 기록된 설비 이력이 없습니다.</p>';
+  return '<div class="scroller"><table><tr><th>일자</th><th>구분</th><th>부품</th><th>내용</th>' +
+    '<th>변화</th><th>상태</th></tr>' + events.map(e =>
+      '<tr><td class="mono">' + esc(e.date) + ' (D+' + e.day_index + ')</td>' +
+      '<td>' + esc(EVT_KO[e.event_type] || e.event_type) + '</td>' +
+      '<td>' + esc(e.component || '—') + '</td><td>' + esc(e.description || '—') + '</td>' +
+      '<td class="num mono">' + (e.before_value != null
+        ? esc(e.before_value + ' → ' + e.after_value + (e.unit ? ' ' + e.unit : '')) : '—') +
+      '</td><td>' + esc(e.status || '—') + '</td></tr>').join('') + '</table></div>';
+}
+function traceChambersBody(r){
+  const keys = Object.keys(r.chambers || {});
+  if (!keys.length) return '<p class="small">비교할 챔버 데이터가 없습니다.</p>';
+  return '<p class="small">생산일 ' + r.window[0] + '~' + r.window[1] + ' · 한계 ±' +
+    r.limit.toFixed(2) + ' nm</p><div class="scroller"><table><tr><th>챔버</th>' +
+    '<th>평균 ΔCD 편차</th></tr>' + keys.map(k =>
+      '<tr' + (Math.abs(r.chambers[k]) > r.limit ? ' class="hit"' : '') + '><td>' + esc(k) +
+      '</td><td class="num mono">' + (r.chambers[k] > 0 ? '+' : '') + r.chambers[k].toFixed(3) +
+      ' nm</td></tr>').join('') + '</table></div>';
+}
+function traceVerifyBody(r){
+  return '<p class="small">' + (r.passed
+    ? '모든 요구 조건을 충족했습니다 — 아래 <b>Verification Gate</b>에서 항목별로 확인할 수 있습니다.'
+    : '<b class="bad">미충족 조건 ' + r.unmet.length + '건: ' +
+      r.unmet.map(c => esc(GATE_KO[c] || c)).join(', ') +
+      '</b> — 아래 <b>Verification Gate</b> 참고.') + '</p>';
+}
+const TRACE_BODY = {get_lot_context:traceContextBody, decompose_cd:r =>
+    '<p class="small">위 "판정 근거" 표와 같은 성분 분해 결과를 이 시점에 조회했습니다.</p>',
+  get_metrology_health:traceMetrologyBody, get_equipment_events:traceEventsBody,
+  compare_chambers:traceChambersBody, verify_disposition:traceVerifyBody};
+
+function traceStepHTML(step, i){
+  const body = (TRACE_BODY[step.tool] || (() => ''))(step.result);
+  return '<details class="tracestep"><summary><span class="n mono">' + (i + 1) + '</span>' +
+    '<span class="tool">' + esc(TOOL_KO[step.tool] || step.tool) + '</span>' +
+    '<span class="reason">' + esc(step.reason) + '</span></summary>' +
+    '<div class="body">' + body +
+    '<details class="rawjson"><summary>원본 응답 (JSON)</summary><pre class="mono">' +
+    esc(JSON.stringify(step.result, null, 2)) + '</pre></details></div></details>';
+}
+function renderTrace(lotId){
+  const box = $('#trace');
+  const inv = (typeof INVESTIGATIONS !== 'undefined') ? INVESTIGATIONS[lotId] : null;
+  if (!inv){
+    box.innerHTML = '<p class="small">이 로트의 investigation trace를 찾을 수 없습니다. ' +
+      'python run.py로 investigations.js를 다시 생성해야 할 수 있습니다.</p>';
+    return;
+  }
+  box.innerHTML = '<div class="tracehead"><span class="stat">tool call ' + inv.tool_calls + '회 · ' +
+    (inv.status === 'DISPOSITION_READY'
+      ? '<span class="ok">판정 완료</span>'
+      : '<b class="bad">근거 부족 — 판정 보류</b>') + '</span></div>' +
+    inv.trace.map((s, i) => traceStepHTML(s, i)).join('');
+}
+
 function openLot(id){
   const l = DATA.lots.find(x => x.lot === id); if (!l) return;
   current = id;
@@ -701,11 +862,15 @@ function openLot(id){
       '</td><td>' + (e.hit ? '<b class="bad">벗어남</b>' : '<span class="ok">정상</span>') +
       '</td></tr>').join('');
   $('#gate').innerHTML = l.gate.length
-    ? '<tr><th>요구 조건</th><th>충족</th></tr>' + l.gate.map(g =>
-        '<tr><td>' + esc(GATE_KO[g.c] || g.c) + '</td><td>' +
-        (g.ok ? '<span class="ok">✓ 충족</span>' : '<b class="bad">✗ 미충족</b>') +
-        '</td></tr>').join('')
-    : '<tr><td>이 판정에는 추가 요구 조건이 없습니다.</td></tr>';
+    ? '<tr><th>요구 조건</th><th>측정값</th><th>임계값</th><th>충족</th></tr>' + l.gate.map(g => {
+        const e = findGateEvidence(g.c, l.ev);
+        return '<tr' + (e && e.hit ? ' class="hit"' : '') + '><td>' + esc(GATE_KO[g.c] || g.c) + '</td>' +
+          '<td class="num mono">' + (e ? esc(e.v) : '—') + '</td>' +
+          '<td class="num mono">' + (e ? esc(e.lim) : '—') + '</td><td>' +
+          (g.ok ? '<span class="ok">✓ 충족</span>' : '<b class="bad">✗ 미충족</b>') + '</td></tr>';
+      }).join('')
+    : '<tr><td colspan="4">이 판정에는 추가 요구 조건이 없습니다.</td></tr>';
+  renderTrace(l.lot);
 
   document.querySelectorAll('#lotdetail details').forEach((d, i) => d.open = i === 0);
   scrollTo({top:0, behavior:'smooth'});
@@ -849,10 +1014,13 @@ function drawTrend(){
   s += '<text x="752" y="' + (A.Y(-metric.lim) + 4) + '" font-size="10">한계</text>';
   pts.forEach(p => {
     const d = p.v - metric.cen, out = Math.abs(d) > metric.lim;
+    const label = p.lot + ', 생산일 ' + p.d + '일차, ' + metric.n + ' ' +
+      (d > 0 ? '+' : '') + d.toFixed(2) + ' ' + metric.unit + ', 판정 ' + p.lab + ' — 눌러서 로트 판정 보기';
     s += '<circle class="pt" cx="' + A.X(p.d) + '" cy="' + A.Y(d) + '" r="' + (out ? 4.6 : 3) +
       '" fill="' + COLOR[p.ver] + '" fill-opacity="' + (p.ver === 'NORMAL' ? .32 : .95) +
       '" stroke="' + (out ? '#fff' : 'none') + '" stroke-width="1.2" data-lot="' + p.lot +
-      '" data-d="' + d.toFixed(2) + '" data-day="' + p.d + '" data-lab="' + esc(p.lab) + '"/>';
+      '" data-d="' + d.toFixed(2) + '" data-day="' + p.d + '" data-lab="' + esc(p.lab) +
+      '" tabindex="0" role="button" aria-label="' + esc(label) + '"/>';
   });
   const g = $('#trend'); g.innerHTML = s;
   g.querySelectorAll('.pt').forEach(c => {
@@ -862,8 +1030,13 @@ function drawTrend(){
       '<b>생산일</b> <span class="mono">' + c.dataset.day + '일차</span><br>' +
       '<b>판정</b> ' + esc(c.dataset.lab) + '</p>' +
       '<p style="margin-top:6px;color:#0b6a72">눌러서 이 로트의 판정 보기</p>', c);
+    const go = () => { hidePop(); openLot(c.dataset.lot); };
     c.addEventListener('mouseenter', shw);
-    c.addEventListener('click', e => { e.stopPropagation(); hidePop(); openLot(c.dataset.lot); });
+    c.addEventListener('focus', shw);
+    c.addEventListener('click', e => { e.stopPropagation(); go(); });
+    c.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){ e.preventDefault(); go(); }
+    });
   });
   $('#trendLegend').innerHTML = '<span class="small" style="width:100%">' + metric.help + '</span>' +
     [['정상','NORMAL'],['Litho (dose·track·reticle)','PHOTO_DOSE'],['Etch 챔버','ETCH_CHAMBER'],
@@ -886,8 +1059,12 @@ function drawMonitor(){
     s += '<polyline points="' + rows.map(d => A.X(d.day) + ',' + A.Y(d.drift)).join(' ') +
       '" fill="none" stroke="' + ST[t].c + '" stroke-width="2.2" stroke-dasharray="' + ST[t].d + '"/>';
     rows.forEach(d => {
+      const out = Math.abs(d.drift) > LIM.tool_drift;
+      const label = t + ', 생산일 ' + d.day + '일차, 기준선 대비 ' + (d.drift > 0 ? '+' : '') +
+        d.drift.toFixed(2) + ' nm' + (out ? ' — 정상 범위 벗어남' : '');
       s += '<circle class="pt" cx="' + A.X(d.day) + '" cy="' + A.Y(d.drift) + '" r="3.4" fill="' +
-        ST[t].c + '" data-t="' + t + '" data-v="' + d.drift.toFixed(2) + '" data-day="' + d.day + '"/>';
+        ST[t].c + '" data-t="' + t + '" data-v="' + d.drift.toFixed(2) + '" data-day="' + d.day +
+        '" tabindex="0" role="button" aria-label="' + esc(label) + '"/>';
     });
   });
   const g = $('#monitor'); g.innerHTML = s;
@@ -903,7 +1080,11 @@ function drawMonitor(){
           : '정상 범위 안입니다.') + '</p>', c);
     };
     c.addEventListener('mouseenter', shw);
+    c.addEventListener('focus', shw);
     c.addEventListener('click', e => { e.stopPropagation(); shw(); });
+    c.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){ e.preventDefault(); shw(); }
+    });
   });
   if ($('#tdlim')) $('#tdlim').textContent = LIM.tool_drift.toFixed(2);
   $('#monLegend').innerHTML =
@@ -933,10 +1114,13 @@ function drawTmu(){
       '" fill="none" stroke="' + ST[t].c + '" stroke-width="2.2" stroke-dasharray="' + ST[t].d + '"/>';
     rows.forEach(d => {
       const over = d.ratio > B;
+      const label = t + ', 생산일 ' + d.day + '일차, TMU 공정 예산 소비 ' + d.ratio + '%' +
+        (over ? ' — 예산 초과' : '');
       s += '<circle class="pt" cx="' + A.X(d.day) + '" cy="' + A.Y(d.ratio) + '" r="' +
         (over ? 4.6 : 3.2) + '" fill="' + (over ? '#bf4630' : ST[t].c) + '" data-t="' + t +
         '" data-day="' + d.day + '" data-r="' + d.ratio + '" data-p="' + d.prec +
-        '" data-m="' + d.match + '" data-u="' + d.tmu + '"/>';
+        '" data-m="' + d.match + '" data-u="' + d.tmu +
+        '" tabindex="0" role="button" aria-label="' + esc(label) + '"/>';
     });
   });
   const g = $('#tmuchart'); g.innerHTML = s;
@@ -953,7 +1137,11 @@ function drawTmu(){
           : '예산 이내입니다.') + '</p>', c);
     };
     c.addEventListener('mouseenter', shw);
+    c.addEventListener('focus', shw);
     c.addEventListener('click', e => { e.stopPropagation(); shw(); });
+    c.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){ e.preventDefault(); shw(); }
+    });
   });
   $('#tmuLegend').innerHTML =
     '<span><i class="ln" style="border-color:#8b98a3"></i>CDSEM-A (실선)</span>' +

@@ -14,6 +14,7 @@ STEPS = [
     "generator/generate_data.py",
     "generator/generate_events.py",
     "engine/analyze.py",
+    "generator/export_investigations.py",
     "validation/evaluate.py",
 ]
 
