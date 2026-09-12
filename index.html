@@ -145,13 +145,16 @@ tr.me td:first-child{font-weight:600}
 .acc>button{width:100%;display:flex;align-items:center;gap:10px;background:none;border:0;
   padding:15px 18px;cursor:pointer;text-align:left;font-size:15px;font-weight:500}
 .acc>button:hover{background:var(--sunk)}
-.acc>button .mark{margin-left:auto;color:var(--muted);font-size:19px;line-height:1;
-  transition:transform .18s}
-.acc[open] .mark{transform:rotate(45deg)}
+.acc>button .mark{margin-left:auto;color:var(--muted);font-size:13px;line-height:1;
+  font-weight:500;display:flex;align-items:center;gap:7px;white-space:nowrap}
+.acc>button .mark::after{content:'';width:8px;height:8px;flex:none;
+  border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;
+  transform:rotate(45deg);transition:transform .18s}
+.acc[open]>button .mark::after{transform:rotate(-135deg)}
 .acc summary{display:none}
 .acc .body{padding:2px 18px 20px;border-top:1px solid var(--line2)}
 .acc:not([open]) .body{display:none}
-@media(prefers-reduced-motion:reduce){.acc>button .mark{transition:none}}
+@media(prefers-reduced-motion:reduce){.acc>button .mark::after{transition:none}}
 
 /* Agent investigation trace */
 .tracehead{display:flex;align-items:center;justify-content:space-between;gap:10px;
@@ -351,7 +354,7 @@ footer{max-width:var(--w);margin:0 auto;padding:0 20px 44px;color:var(--muted);f
 
     <details class="acc" id="accMap">
       <summary hidden></summary>
-      <button type="button" data-acc="accMap">웨이퍼 맵<span class="mark">＋</span></button>
+      <button type="button" data-acc="accMap" aria-expanded="false">웨이퍼 맵<span class="mark">펼치기</span></button>
       <div class="body">
         <div class="maps">
           <figure>
@@ -373,7 +376,7 @@ footer{max-width:var(--w);margin:0 auto;padding:0 20px 44px;color:var(--muted);f
 
     <details class="acc" id="accEv">
       <summary hidden></summary>
-      <button type="button" data-acc="accEv">판정 근거<span class="mark">＋</span></button>
+      <button type="button" data-acc="accEv" aria-expanded="false">판정 근거<span class="mark">펼치기</span></button>
       <div class="body">
         <div class="scroller" style="margin-top:14px"><table id="ev"></table></div>
       </div>
@@ -381,7 +384,7 @@ footer{max-width:var(--w);margin:0 auto;padding:0 20px 44px;color:var(--muted);f
 
     <details class="acc" id="accTrace">
       <summary hidden></summary>
-      <button type="button" data-acc="accTrace">Investigation Trace<span class="mark">＋</span></button>
+      <button type="button" data-acc="accTrace" aria-expanded="false">Investigation Trace<span class="mark">펼치기</span></button>
       <div class="body">
         <p class="small" style="margin-top:14px">Agent가 이 판정에 도달하기까지 실제로 호출한 조회 도구의 순서입니다.
           각 항목을 펼치면 근거를, 그 안의 "원본 응답"을 펼치면 도구가 반환한 원시 데이터를 볼 수 있습니다.</p>
@@ -391,7 +394,7 @@ footer{max-width:var(--w);margin:0 auto;padding:0 20px 44px;color:var(--muted);f
 
     <details class="acc" id="accGate">
       <summary hidden></summary>
-      <button type="button" data-acc="accGate">Verification Gate<span class="mark">＋</span></button>
+      <button type="button" data-acc="accGate" aria-expanded="false">Verification Gate<span class="mark">펼치기</span></button>
       <div class="body">
         <div class="scroller" style="margin-top:14px"><table id="gate"></table></div>
       </div>
@@ -827,11 +830,15 @@ function openLot(id){
 
   $('#verdict').style.borderLeftColor = COLOR[l.verdict];
   $('#verdict').innerHTML = '<h2>' + esc(l.label) +
-    '<span class="risk" style="color:' + COLOR[l.verdict] + '">' + esc(l.risk) + '</span></h2>' +
+    (l.risk !== l.label
+      ? '<span class="risk" style="color:' + COLOR[l.verdict] + '">' + esc(l.risk) + '</span>'
+      : '') + '</h2>' +
     '<div class="meta mono">' + l.lot + ' · ' + l.date + ' · 스캐너 ' + l.scanner +
     ' · 레티클 ' + l.reticle + ' · 챔버 ' + l.chamber + ' · 현상 후 측정 ' + l.adiTool +
     (l.aciMean ? ' · 식각 후 측정 ' + l.aciTool : '') + '</div>' +
-    '<div class="meta">담당 모듈 ' + esc(l.module) + ' · 신호가 나타난 좌표계 ' + esc(l.coord) + '</div>' +
+    (l.module !== '-'
+      ? '<div class="meta">담당 모듈 ' + esc(l.module) + ' · 신호가 나타난 좌표계 ' + esc(l.coord) + '</div>'
+      : '') +
     '<div class="meta mono">Dose Setting ' + l.doseSet + ' → Sensor ' + l.doseSensor +
     ' mJ/cm² (' + (l.doseGap > 0 ? '+' : '') + l.doseGap + '%) · Focus Sensor ' +
     (l.focusSensor > 0 ? '+' : '') + l.focusSensor + ' nm · RF hours ' + l.rf + '</div>';
@@ -872,7 +879,7 @@ function openLot(id){
     : '<tr><td colspan="4">이 판정에는 추가 요구 조건이 없습니다.</td></tr>';
   renderTrace(l.lot);
 
-  document.querySelectorAll('#lotdetail details').forEach((d, i) => d.open = i === 0);
+  document.querySelectorAll('#lotdetail details').forEach((d, i) => { d.open = i === 0; syncAcc(d); });
   scrollTo({top:0, behavior:'smooth'});
 }
 $('#backBtn').onclick = () => {
@@ -886,10 +893,18 @@ function step(d){
 }
 $('#prevBtn').onclick = () => step(-1);
 $('#nextBtn').onclick = () => step(1);
+function syncAcc(d){
+  const btn = d.querySelector('button[data-acc]');
+  if (!btn) return;
+  btn.setAttribute('aria-expanded', d.open ? 'true' : 'false');
+  const m = btn.querySelector('.mark');
+  if (m) m.textContent = d.open ? '접기' : '펼치기';
+}
 document.querySelectorAll('[data-acc]').forEach(b => b.onclick = () => {
   const d = $('#' + b.dataset.acc), was = d.open;
-  document.querySelectorAll('#lotdetail details').forEach(x => x.open = false);
+  document.querySelectorAll('#lotdetail details').forEach(x => { x.open = false; syncAcc(x); });
   d.open = !was;
+  syncAcc(d);
 });
 
 /* 6. 웨이퍼 지도 ───────────────────────────────── */
