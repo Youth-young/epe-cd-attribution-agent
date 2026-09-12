@@ -14,8 +14,8 @@ STEPS = [
     "generator/generate_data.py",
     "generator/generate_events.py",
     "engine/analyze.py",
-    "validation/evaluate.py",
     "generator/export_investigations.py",
+    "validation/evaluate.py",
 ]
 
 for step in STEPS:
@@ -23,7 +23,7 @@ for step in STEPS:
     if subprocess.run([sys.executable, str(ROOT / step)], cwd=ROOT).returncode:
         sys.exit(1)
 
-print("\nBuild complete.")
-print("- Static console: index.html")
+print("\n완료.")
+print("- 정적 뷰어: index.html")
 print("- API: uvicorn api.main:app --reload")
-print("- API docs: http://127.0.0.1:8000/docs")
+print("- API 문서: http://127.0.0.1:8000/docs")

@@ -77,7 +77,7 @@ class AttributionQueryService:
         return {
             "limit": self.data["limits"]["tool_drift"],
             "series": rows,
-            "note": "Monitor-wafer re-measurement. The process never touches this wafer, so movement here points to a metrology cause.",
+            "note": "monitor wafer 재측정. 공정이 건드리지 않은 웨이퍼이므로 여기서 움직였다면 계측 원인 후보다.",
         }
 
     def tmu(self, tool: str | None = None, day: int | None = None) -> dict[str, Any]:
@@ -92,8 +92,8 @@ class AttributionQueryService:
             "budget_pct": self.data["meta"]["tmuBudget"],
             "series": rows,
             "note": (
-                "When TMU exceeds budget, process action based on that tool's readings is withheld. "
-                "The TIS term is overlay-only and is excluded from CD-SEM TMU."
+                "TMU가 예산을 넘으면 그 장비의 측정값을 근거로 한 공정 조치는 보류한다. "
+                "TIS 항은 오버레이 전용이라 CD-SEM TMU에서는 제외했다."
             ),
         }
 
@@ -140,7 +140,7 @@ class AttributionQueryService:
             "day": day,
             "window": window if day is not None else None,
             "events": rows,
-            "note": "PM/Calibration/Component-change events are supporting evidence for attribution; an event alone does not confirm a cause.",
+            "note": "PM/Calibration/Component change는 attribution의 보조 근거다. event 자체만으로 원인을 확정하지 않는다.",
         }
 
     def verify(self, lot_id: str) -> dict[str, Any]:
@@ -149,5 +149,5 @@ class AttributionQueryService:
         return {
             "lot": lot["lot"], "verdict": lot["verdict"], "gate": lot["gate"],
             "passed": not fail, "unmet": fail,
-            "action": lot["action"] if not fail else "Insufficient evidence — disposition withheld.",
+            "action": lot["action"] if not fail else "근거 불충족 — 판정하지 않는다.",
         }
