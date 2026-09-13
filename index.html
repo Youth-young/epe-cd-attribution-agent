@@ -1,452 +1,353 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>EPE-CD Attribution — Process Excursion Attribution Console</title>
-<meta name="description" content="A semiconductor process engineering console for evidence-driven ADI/ACI CD excursion attribution across Photo, Etch, and Metrology.">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CD 이상 원인 판정 콘솔</title>
+<meta name="description" content="ADI·ACI 계측 데이터로 CD 이상의 원인이 노광인지 식각인지 계측인지 판정하는 에이전트 콘솔.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;650;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#F2EFF5;
-  --surface:#FFFFFF;
-  --surface-2:#F8F7FA;
-  --surface-3:#E7ECEC;
-  --ink:#0E0E0F;
-  --ink-2:#2E3838;
-  --muted:#667676;
-  --muted-2:#8B9999;
-  --teal:#547475;
-  --teal-soft:#A8BEBD;
-  --teal-deep:#062423;
-  --line:rgba(6,36,35,.13);
-  --line-strong:rgba(6,36,35,.24);
-  --hover:rgba(84,116,117,.08);
-  --selected:rgba(84,116,117,.14);
-  --pass:#356D61;
-  --pass-bg:#E7F1EE;
-  --watch:#8A651C;
-  --watch-bg:#F7EFD9;
-  --high:#8C3D45;
-  --high-bg:#F6E4E6;
-  --photo:#4F6F70;
-  --etch:#745A67;
-  --metro:#315F64;
-  --hold:#6B607F;
-  --normal:#647171;
-  --cold:#527E87;
-  --hot:#A35A5A;
-  --radius-sm:6px;
-  --radius:10px;
-  --radius-lg:14px;
-  --shadow:0 1px 2px rgba(14,14,15,.04),0 8px 28px rgba(6,36,35,.04);
-  --sidebar:248px;
-  --results:330px;
+  --ink:#1F0D1E; --ink2:#3D3140; --muted:#6B6270; --line:#DCD7DE; --line2:#EDEAEF;
+  --page:#F6F4F7; --panel:#fff; --sunk:#FAF9FB;
+  --brand:#634670; --photo:#875D33; --etch:#8C3D6B; --metro:#2F6E74;
+  --ok:#4A7052; --okbg:#EDF3EE; --bad:#A8342B; --badbg:#FBEFEE; --hold:#634670;
+  --cold:#2C6DA6; --hot:#BF4630;
+  --maxw:1580px;
 }
 *{box-sizing:border-box}
-html{color-scheme:light;-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:14px;line-height:1.5}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--ink);
+  font-family:"IBM Plex Sans KR",-apple-system,"Segoe UI",sans-serif;font-weight:350;
+  font-size:15px;line-height:1.7;overflow-wrap:break-word}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+h1,h2,h3,h4{margin:0;line-height:1.3;font-weight:600;letter-spacing:-.012em}
+p{margin:0 0 .7em}p:last-child{margin:0}
 button,input,select{font:inherit;color:inherit}
-button{cursor:pointer}
-button:disabled{cursor:not-allowed;opacity:.55}
-:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
-.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
-.num{text-align:right;font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
-.hidden,[hidden]{display:none!important}
+:focus-visible{outline:2.5px solid var(--brand);outline-offset:2px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+@media(max-width:700px){.wrap{padding:0 14px}body{font-size:14.5px}}
 
-/* Shell */
-.appbar{position:sticky;top:0;z-index:70;height:66px;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 22px;gap:22px}
-.brand{display:flex;align-items:center;gap:12px;min-width:310px}
-.brandmark{width:30px;height:30px;border-radius:8px;background:var(--teal-deep);display:grid;place-items:center;color:white;font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;letter-spacing:-.04em}
-.brandcopy strong{display:block;font-size:14px;line-height:1.2;letter-spacing:-.01em}
-.brandcopy span{display:block;font-size:11.5px;color:var(--muted);margin-top:3px}
-.global-search{flex:1;max-width:720px;position:relative}
-.global-search input{width:100%;height:38px;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface-2);padding:0 38px 0 38px;outline:none;transition:.15s}
-.global-search input:focus{background:white;border-color:var(--teal);box-shadow:0 0 0 3px rgba(84,116,117,.10)}
-.search-ico{position:absolute;left:13px;top:10px;width:17px;height:17px;color:var(--muted)}
-.kbd{position:absolute;right:9px;top:8px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;background:white;color:var(--muted);font:11px "IBM Plex Mono",monospace;padding:2px 6px}
-.topstats{margin-left:auto;display:flex;align-items:center;gap:14px;white-space:nowrap}
-.topstat{display:flex;flex-direction:column;align-items:flex-end}
-.topstat b{font:600 13px "IBM Plex Mono",monospace}
-.topstat span{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+/* ── 헤더 ── */
+header{background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50}
+.hbar{display:flex;align-items:center;gap:18px;padding:14px 0 0}
+.brand{display:flex;align-items:center;gap:11px;flex:0 0 auto}
+.mark{width:34px;height:34px;border-radius:9px;background:var(--ink);color:#fff;
+  display:grid;place-items:center;font-size:12px;font-weight:600;letter-spacing:.04em}
+.brand b{display:block;font-size:15.5px;font-weight:600}
+.brand span{display:block;font-size:11.5px;color:var(--muted);line-height:1.4}
+.search{flex:1;position:relative;min-width:120px}
+.search input{width:100%;border:1px solid var(--line);background:var(--sunk);
+  padding:9px 13px 9px 36px;font-size:14px;border-radius:9px}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;
+  height:15px;color:var(--muted)}
+.lang{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex:0 0 auto}
+.lang button{border:0;background:none;padding:7px 12px;cursor:pointer;font-size:12.5px;
+  color:var(--muted)}
+.lang button[aria-pressed=true]{background:var(--ink);color:#fff;font-weight:500}
+nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin-top:10px}
+nav::-webkit-scrollbar{display:none}
+nav button{background:none;border:0;border-bottom:2.5px solid transparent;padding:9px 14px 11px;
+  cursor:pointer;color:var(--muted);white-space:nowrap;font-size:14px}
+nav button[aria-current=page]{color:var(--ink);border-bottom-color:var(--brand);font-weight:600}
+@media(max-width:640px){.brand span{display:none}.hbar{flex-wrap:wrap;gap:10px}.search{order:3;flex-basis:100%}}
 
-.topnav{height:42px;background:var(--surface);border-bottom:1px solid var(--line);padding:0 22px;display:flex;align-items:end;gap:4px;position:sticky;top:66px;z-index:60}
-.topnav button{height:42px;border:0;border-bottom:2px solid transparent;background:transparent;padding:0 14px;color:var(--muted);font-size:12.5px;font-weight:550}
-.topnav button:hover{color:var(--ink);background:var(--hover)}
-.topnav button[aria-current="page"]{color:var(--teal-deep);border-bottom-color:var(--teal-deep)}
+main{padding:24px 0 80px}
+.view[hidden]{display:none}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:24px 26px;margin-bottom:18px}
+.panel>header{background:none;border:0;position:static;display:flex;align-items:baseline;
+  gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:0}
+.panel h2{font-size:17px}
+.panel h3{font-size:15px}
+.sub{color:var(--muted);font-size:12.5px}
+@media(max-width:700px){.panel{padding:18px 16px;border-radius:10px}}
 
-.workspace{display:grid;grid-template-columns:var(--sidebar) var(--results) minmax(0,1fr);min-height:calc(100vh - 108px)}
-.filterrail{border-right:1px solid var(--line);background:rgba(255,255,255,.58);padding:18px 16px 36px;position:sticky;top:108px;height:calc(100vh - 108px);overflow:auto}
-.resultpane{border-right:1px solid var(--line);background:rgba(255,255,255,.35);position:sticky;top:108px;height:calc(100vh - 108px);overflow:hidden;display:flex;flex-direction:column}
-.detailpane{padding:20px 22px 56px;min-width:0}
+/* ── 필터 바 ── */
+.filters{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:4px}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;
+  padding:7px 15px;cursor:pointer;font-size:13.5px;color:var(--ink2);white-space:nowrap}
+.chip[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:500}
+.chip.alarm[aria-pressed=true]{background:var(--bad);border-color:var(--bad)}
+select,.numin{border:1px solid var(--line);background:var(--panel);border-radius:8px;
+  padding:7px 11px;font-size:13.5px}
+.numin{width:74px}
+.linkbtn{background:none;border:0;color:var(--brand);cursor:pointer;font-size:13px;
+  text-decoration:underline;text-underline-offset:3px;padding:4px}
 
-.eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
-.filterhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.filterhead h2{font-size:14px;margin:0}
-.linkbtn{border:0;background:transparent;color:var(--teal);padding:3px 0;font-size:11.5px;font-weight:600}
-.fgroup{margin-bottom:16px}
-.fgroup label,.flabel{display:block;color:var(--muted);font-size:11px;font-weight:600;letter-spacing:.03em;margin-bottom:6px}
-.fgroup input,.fgroup select{width:100%;height:34px;border:1px solid var(--line);border-radius:6px;background:white;padding:0 9px;font-size:12px}
-.fgroup input:focus,.fgroup select:focus{border-color:var(--teal);outline:none;box-shadow:0 0 0 2px rgba(84,116,117,.08)}
-.range2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.toggleline{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:14px;margin-top:4px}
-.toggleline span{font-size:12px;font-weight:550}
-.switch{position:relative;width:34px;height:19px}
-.switch input{opacity:0;width:0;height:0}
-.slider{position:absolute;inset:0;border-radius:99px;background:#C9D2D1;border:1px solid var(--line-strong);transition:.15s}
-.slider:before{content:"";position:absolute;width:13px;height:13px;border-radius:50%;left:2px;top:2px;background:white;box-shadow:0 1px 2px rgba(0,0,0,.18);transition:.15s}
-.switch input:checked + .slider{background:var(--teal-deep)}
-.switch input:checked + .slider:before{transform:translateX(15px)}
+/* ── 로트 목록 ── */
+.lotrow{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:16px;align-items:center;
+  width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line2);
+  padding:15px 6px;cursor:pointer}
+.lotrow:hover{background:var(--sunk)}
+.dot{width:10px;height:10px;border-radius:50%}
+.lotid{font-size:16px;font-weight:600;font-family:"IBM Plex Mono",monospace}
+.lotmeta{color:var(--muted);font-size:12.5px;margin-top:3px}
+.lotright{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.badge{display:inline-block;padding:3px 11px;border-radius:999px;font-size:12px;font-weight:500;
+  white-space:nowrap}
+.b-ok{background:var(--okbg);color:var(--ok)}
+.b-bad{background:var(--badbg);color:var(--bad)}
+.b-watch{background:#F6F1E9;color:var(--photo)}
+.b-hold{background:#F1ECF3;color:var(--hold)}
+.b-gate{background:var(--sunk);color:var(--muted);border:1px solid var(--line)}
+.empty{padding:44px 8px;color:var(--muted);text-align:center}
 
-.results-head{padding:16px 15px 12px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.75)}
-.results-head-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
-.results-head h2{margin:0;font-size:14px}
-.results-count{font:11px "IBM Plex Mono",monospace;color:var(--muted)}
-.results-meta{margin-top:5px;color:var(--muted);font-size:10.5px}
-#lotlist{overflow:auto;flex:1;padding:6px}
-.lotrow{width:100%;border:1px solid transparent;border-radius:8px;background:transparent;padding:10px 9px;text-align:left;display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:9px;align-items:start;margin-bottom:2px}
-.lotrow:hover{background:rgba(255,255,255,.82);border-color:var(--line)}
-.lotrow[aria-selected="true"]{background:white;border-color:var(--teal-soft);box-shadow:inset 3px 0 0 var(--teal-deep),0 2px 10px rgba(6,36,35,.035)}
-.vdot{width:8px;height:8px;border-radius:50%;margin-top:5px;background:var(--normal)}
-.lotmain b{font:600 12.5px "IBM Plex Mono",monospace}
-.lotmain small{display:block;color:var(--muted);font-size:10.5px;line-height:1.45;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lotbadge{font-size:9.5px;padding:3px 6px;border:1px solid var(--line);border-radius:99px;color:var(--muted);max-width:104px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:rgba(255,255,255,.7)}
-.empty{padding:24px 12px;color:var(--muted);font-size:12px}
+/* ── 상세 ── */
+.crumb{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.gbtn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 14px;
+  cursor:pointer;font-size:13.5px;color:var(--ink2)}
+.gbtn:hover{background:var(--sunk)}
+.gbtn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+.spacer{flex:1}
+.lothead{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;
+  border-bottom:1px solid var(--line2);padding-bottom:18px;margin-bottom:18px}
+.lothead h1{font-size:clamp(26px,4vw,38px);font-family:"IBM Plex Mono",monospace;letter-spacing:-.02em}
+.headbadges{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.ctxchips{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}
+.ctxchip{border:1px solid var(--line2);background:var(--sunk);border-radius:7px;
+  padding:4px 10px;font-size:11.5px;color:var(--muted);font-family:"IBM Plex Mono",monospace}
 
-/* Detail workspace */
-.detail-empty{height:70vh;display:grid;place-items:center;color:var(--muted);text-align:center}
-.detail-empty .emptybox{max-width:360px}
-.detail-empty h2{color:var(--ink);font-size:16px;margin:0 0 8px}
-.detail-empty p{font-size:12px;margin:0}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden}
-.panel-head{min-height:48px;padding:12px 15px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
-.panel-head h3{margin:0;font-size:12.5px;letter-spacing:.01em}
-.panel-head .hint{margin-left:auto;color:var(--muted);font-size:10.5px}
-.panel-body{padding:15px}
-.lot-header{padding:17px 18px 16px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:start}
-.lot-titleline{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
-.lot-titleline h1{font:650 22px "IBM Plex Mono",monospace;letter-spacing:-.04em;margin:0}
-.status-badge{display:inline-flex;align-items:center;gap:6px;border-radius:99px;border:1px solid var(--line);padding:4px 8px;font-size:10.5px;font-weight:700;letter-spacing:.015em;background:var(--surface-2)}
-.status-badge:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
-.status-normal{color:var(--pass);background:var(--pass-bg);border-color:rgba(53,109,97,.22)}
-.status-watch{color:var(--watch);background:var(--watch-bg);border-color:rgba(138,101,28,.22)}
-.status-high{color:var(--high);background:var(--high-bg);border-color:rgba(140,61,69,.22)}
-.gate-pass{color:var(--pass);background:var(--pass-bg)}
-.gate-hold{color:var(--watch);background:var(--watch-bg)}
-.lot-subtitle{margin-top:7px;color:var(--ink-2);font-size:12px;font-weight:600}
-.lot-context{margin-top:11px;display:flex;gap:6px;flex-wrap:wrap}
-.context-chip{border:1px solid var(--line);border-radius:5px;background:var(--surface-2);padding:4px 7px;color:var(--muted);font:10.5px "IBM Plex Mono",monospace}
-.header-actions{display:flex;gap:6px}
-.iconbtn,.textbtn{border:1px solid var(--line);background:white;border-radius:6px;min-height:32px;padding:0 9px;font-size:11px;color:var(--ink-2)}
-.iconbtn:hover,.textbtn:hover{background:var(--hover);border-color:var(--line-strong)}
+.verdictbig{font-size:clamp(22px,3.4vw,30px);font-weight:600;letter-spacing:-.02em;
+  padding-left:18px;border-left:6px solid var(--muted);margin-bottom:16px}
+.cause{font-size:15.5px;color:var(--ink2);max-width:86ch;margin-bottom:22px}
+.actionhead{font-size:12.5px;color:var(--muted);font-weight:500;letter-spacing:.04em;
+  text-transform:uppercase;margin-bottom:10px}
+ol.steps{margin:0;padding:0;list-style:none;counter-reset:st}
+ol.steps li{position:relative;padding-left:34px;margin-bottom:11px;max-width:88ch;
+  font-size:14.5px;color:var(--ink2)}
+ol.steps li:last-child{margin-bottom:0}
+ol.steps li::before{counter-increment:st;content:counter(st);position:absolute;left:0;top:2px;
+  width:22px;height:22px;border-radius:50%;background:var(--sunk);border:1px solid var(--line);
+  display:grid;place-items:center;font-size:11.5px;color:var(--muted);
+  font-family:"IBM Plex Mono",monospace}
+.actnote{margin-top:14px;padding:13px 16px;background:var(--sunk);border:1px solid var(--line2);
+  border-radius:9px;font-size:13.5px;color:var(--ink2)}
 
-.summary-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(260px,.8fr);gap:14px;margin-bottom:14px}
-.signature-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-.metric-card{border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--surface-2);min-width:0}
-.metric-card .mk{font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.metric-card .mv{font:600 15px "IBM Plex Mono",monospace;margin-top:5px;white-space:nowrap}
-.metric-card .ml{color:var(--muted);font-size:9.5px;margin-top:3px}
-.metric-card.hit{background:var(--high-bg);border-color:rgba(140,61,69,.25)}
-.metric-card.hit .mv{color:var(--high)}
-.attrbox{display:flex;flex-direction:column;height:100%}
-.attr-verdict{font-size:17px;font-weight:650;letter-spacing:-.015em}
-.attr-reason{font-size:11.5px;color:var(--muted);margin-top:7px;line-height:1.55}
-.attr-meta{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:auto;padding-top:12px}
-.attr-meta div{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:8px}
-.attr-meta span{display:block;color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:.05em}
-.attr-meta b{display:block;margin-top:3px;font-size:11.5px}
+/* 이탈 카드 */
+.outgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.outcard{border:1.5px solid var(--bad);background:var(--badbg);border-radius:10px;padding:16px 18px}
+.outcard .k{font-size:12.5px;color:var(--bad);font-weight:500;margin-bottom:6px}
+.outcard .v{font-size:clamp(19px,2.3vw,25px);font-weight:600;font-family:"IBM Plex Mono",monospace;
+  letter-spacing:-.02em;line-height:1.25;word-break:break-word}
+.outcard .l{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.55}
+.allclear{display:flex;align-items:center;gap:12px;padding:18px 20px;border-radius:10px;
+  background:var(--okbg);border:1px solid #CFE0D4;color:var(--ok);font-size:15px;font-weight:500}
 
-.split{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr);gap:14px;margin-bottom:14px}
-.wafer-wrap{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.wafer-card{border:1px solid var(--line);border-radius:8px;background:var(--surface-2);padding:10px;min-width:0}
-.wafer-card figcaption{font-size:10.5px;font-weight:650;color:var(--ink-2);margin-bottom:4px}
-.wafer-card figcaption span{display:block;color:var(--muted);font-weight:400;font-size:9.5px;margin-top:2px}
-.wafer{display:block;width:100%;max-width:290px;height:auto;margin:auto}
-.wafer circle.spot{cursor:pointer}
-.wafer circle.spot:hover,.wafer circle.spot:focus{stroke:var(--teal-deep);stroke-width:2}
-.heatbar{height:7px;border-radius:99px;border:1px solid var(--line);background:linear-gradient(90deg,var(--cold),#F8F7FA,var(--hot));margin:8px 5px 0}
-.heatlabels{display:flex;justify-content:space-between;color:var(--muted);font:9px "IBM Plex Mono",monospace;margin:3px 5px 0}
+/* 표 */
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}
+th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line2)}
+th{color:var(--muted);font-weight:500;font-size:12px;letter-spacing:.03em;text-transform:uppercase;
+  background:var(--sunk);white-space:nowrap}
+td.num{text-align:right;font-family:"IBM Plex Mono",monospace;white-space:nowrap}
+tr.alert td{background:var(--badbg)}
+.state{font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.s-ok{background:var(--okbg);color:var(--ok)}
+.s-bad{background:var(--badbg);color:var(--bad)}
 
-.tablewrap{overflow:auto}
-table{width:100%;border-collapse:collapse;font-size:11.5px}
-th{text-align:left;color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:.055em;font-weight:650;padding:8px 9px;background:var(--surface-2);border-bottom:1px solid var(--line);white-space:nowrap}
-td{padding:9px;border-bottom:1px solid var(--line);vertical-align:top}
-tbody tr:last-child td{border-bottom:0}
-tbody tr:hover td{background:rgba(84,116,117,.025)}
-td.value,td.limit{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
-.row-alert td{background:rgba(140,61,69,.035)}
-.state{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:650;white-space:nowrap}
-.state:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
-.state-pass{color:var(--pass)}
-.state-fail{color:var(--high)}
-.state-na{color:var(--muted)}
+/* 조사 경로 */
+.tracehead{display:flex;gap:16px;flex-wrap:wrap;padding:13px 16px;background:var(--sunk);
+  border:1px solid var(--line2);border-radius:9px;margin-bottom:16px;font-size:13.5px}
+.tracehead b{font-family:"IBM Plex Mono",monospace}
+.step{border-left:2px solid var(--line);padding:0 0 20px 22px;position:relative}
+.step:last-child{padding-bottom:0;border-left-color:transparent}
+.step::before{content:"";position:absolute;left:-6px;top:5px;width:10px;height:10px;
+  border-radius:50%;background:var(--brand)}
+.step .tool{font-size:14.5px;font-weight:600}
+.step .why{color:var(--muted);font-size:13px;margin-top:2px}
+.step .res{margin-top:8px;font-size:13.5px;color:var(--ink2);font-family:"IBM Plex Mono",monospace}
+.step .evs{margin-top:8px;font-size:12.5px;color:var(--ink2)}
+.step .evs div{padding:4px 0;border-top:1px dashed var(--line2)}
+details.raw{margin-top:9px}
+details.raw summary{cursor:pointer;font-size:12px;color:var(--muted)}
+pre.rawjson{background:var(--sunk);border:1px solid var(--line2);border-radius:8px;padding:12px;
+  font-size:11.5px;overflow:auto;max-height:280px;margin:8px 0 0}
 
-.trace-list{position:relative;padding-left:18px}
-.trace-list:before{content:"";position:absolute;left:8px;top:12px;bottom:12px;width:1px;background:var(--line-strong)}
-.trace-step{position:relative;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);margin-bottom:8px;padding:10px 11px 10px 14px}
-.trace-step:last-child{margin-bottom:0}
-.trace-step:before{content:"";position:absolute;left:-15px;top:15px;width:8px;height:8px;border-radius:50%;background:white;border:2px solid var(--teal)}
-.trace-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.trace-num{font:600 9px "IBM Plex Mono",monospace;color:var(--muted)}
-.trace-tool{font:600 10.5px "IBM Plex Mono",monospace;color:var(--teal-deep)}
-.trace-reason{font-size:10.5px;color:var(--muted);margin-top:5px;line-height:1.5}
-.trace-result{font-size:10.5px;color:var(--ink-2);margin-top:6px}
-.trace-event{margin-top:7px;border-top:1px dashed var(--line);padding-top:6px;color:var(--muted);font-size:9.5px}
-details.raw{margin-top:7px}
-details.raw summary{cursor:pointer;color:var(--teal);font-size:9.5px;font-weight:600;list-style:none}
-details.raw summary::-webkit-details-marker{display:none}
-pre.rawjson{max-height:220px;overflow:auto;background:var(--teal-deep);color:#DDE8E6;padding:10px;border-radius:6px;font:9.5px/1.5 "IBM Plex Mono",monospace;white-space:pre-wrap;word-break:break-word;margin:7px 0 0}
+/* 웨이퍼 */
+.segs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px}
+.wafwrap{display:flex;flex-direction:column;align-items:center}
+.wafer{width:100%;max-width:540px;height:auto}
+.wafer .spot{cursor:pointer}
+.wafer .spot:hover,.wafer .spot:focus{stroke:var(--ink);stroke-width:1.6}
+.heat{display:flex;align-items:center;gap:10px;width:100%;max-width:540px;margin-top:14px;
+  font-size:12px;color:var(--muted)}
+.heat .bar{flex:1;height:11px;border-radius:3px;border:1px solid var(--line);
+  background:linear-gradient(90deg,var(--cold),#F3F1F4,var(--hot))}
 
-.action-panel{border-left:4px solid var(--teal-deep)}
-.action-text{font-size:12px;line-height:1.65;color:var(--ink-2)}
-.action-extra{margin-top:10px;padding:9px 10px;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;font:10.5px/1.6 "IBM Plex Mono",monospace;color:var(--teal-deep)}
-
-.accordion{margin-bottom:14px}
-.accordion-toggle{width:100%;border:0;background:var(--surface);display:flex;align-items:center;text-align:left;padding:12px 15px;font-size:12.5px;font-weight:650}
-.accordion-toggle:hover{background:var(--hover)}
-.accordion-toggle .toggle-label{margin-left:auto;color:var(--teal);font-size:10.5px;font-weight:600}
-.accordion-toggle .chev{width:16px;height:16px;margin-left:8px;transition:transform .15s}
-.accordion-toggle[aria-expanded="true"] .chev{transform:rotate(180deg)}
-.accordion-body{border-top:1px solid var(--line);padding:14px 15px}
-
-/* Secondary views */
-.secondary-view{padding:20px 22px 56px;max-width:1480px;margin:0 auto}
-.view-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.view-grid .wide{grid-column:1/-1}
+/* 차트 */
 .chart{width:100%;height:auto;display:block;overflow:visible}
-.chart text{font-family:"IBM Plex Mono",monospace;font-size:9px;fill:var(--muted)}
-.chart .grid{stroke:var(--line);stroke-width:1}
-.chart .axis{stroke:var(--line-strong);stroke-width:1}
+.chart text{font-family:"IBM Plex Mono",monospace;font-size:11px;fill:var(--muted)}
+.chart .axt{font-family:"IBM Plex Sans KR",sans-serif;font-size:12px;fill:var(--ink2)}
+.chart .grid{stroke:var(--line2)}
+.chart .axis{stroke:var(--line)}
 .chart .pt{cursor:pointer}
-.chart .pt:focus{stroke:var(--teal-deep);stroke-width:2}
-.segmented{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
-.segbtn{border:1px solid var(--line);border-radius:6px;background:white;padding:6px 9px;font-size:10.5px;color:var(--muted)}
-.segbtn[aria-pressed="true"]{background:var(--teal-deep);border-color:var(--teal-deep);color:white}
-.legend{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:9.5px;margin-top:8px}
-.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:-1px}
-.ref-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.rulecard{border:1px solid var(--line);border-radius:8px;background:var(--surface-2);padding:12px;margin-bottom:8px}
-.rulecard h4{margin:0;font-size:12px}
-.rulecard .rmeta{color:var(--muted);font:9.5px "IBM Plex Mono",monospace;margin-top:4px}
-.rulecard p{font-size:10.5px;color:var(--ink-2);line-height:1.55;margin:8px 0 0}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--ink2);margin-top:14px}
+.legend i{display:inline-block;width:13px;height:13px;border-radius:50%;margin-right:6px;
+  vertical-align:-2px}
+.legend i.ln{width:22px;height:0;border-radius:0;border-top-width:3px;border-top-style:solid;
+  vertical-align:4px}
+.mini{display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:center;padding:10px 0;
+  border-bottom:1px solid var(--line2)}
+.mini:last-child{border-bottom:0}
+.mini b{font-size:13.5px}
+.mini small{display:block;color:var(--muted);font-size:11.5px;font-weight:400}
 
-.tooltip{position:fixed;z-index:1000;pointer-events:none;background:var(--teal-deep);color:white;border-radius:7px;padding:9px 10px;font-size:10px;line-height:1.5;max-width:280px;box-shadow:0 10px 28px rgba(6,36,35,.24);display:none}
-.tooltip strong{display:block;font-size:10.5px;margin-bottom:2px}
-.infobtn{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid var(--line-strong);background:var(--surface-2);color:var(--muted);font:600 italic 9px/1 Georgia,"Times New Roman",serif;vertical-align:2px;margin-left:4px;padding:0}
-.infobtn:hover,.infobtn:focus-visible,.infobtn[aria-expanded="true"]{background:var(--teal-deep);border-color:var(--teal-deep);color:#fff;outline:none}
+/* 용어 */
+.gcats{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:20px}
+.glist{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+.gcard{border:1px solid var(--line2);border-radius:11px;padding:18px 20px;background:var(--sunk)}
+.gcard h3{font-size:15px}
+.gcard .en{color:var(--muted);font-weight:400;font-size:12px;margin-left:7px}
+.gcard p{font-size:13.5px;color:var(--ink2);line-height:1.75;margin-top:8px}
+.gcard svg{margin-top:12px;width:100%;height:auto;max-width:250px}
 
-footer{border-top:1px solid var(--line);background:rgba(255,255,255,.55);padding:14px 22px;color:var(--muted);font-size:10px;display:flex;justify-content:space-between;gap:20px}
+/* 용어 링크 & 팝업 */
+.term{border-bottom:1.5px dotted var(--brand);cursor:help;font-weight:500;padding:0 1px}
+.term:hover{background:#F1ECF3}
+.info{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;
+  border:1.3px solid var(--line);background:none;color:var(--muted);font-size:10.5px;
+  cursor:help;padding:0;margin-left:6px;vertical-align:2px;font-family:"IBM Plex Mono",monospace}
+.info:hover{border-color:var(--brand);color:var(--brand);background:#F1ECF3}
+#pop{position:absolute;z-index:80;max-width:360px;background:var(--panel);border:1px solid var(--ink);
+  border-radius:10px;box-shadow:0 12px 38px rgba(31,13,30,.18);padding:15px 17px;font-size:13.5px;
+  line-height:1.7;display:none}
+#pop h4{font-size:14px;margin-bottom:6px}
+#pop .en{color:var(--muted);font-weight:400;font-size:12px;margin-left:6px}
+#pop p{color:var(--ink2)}
+#pop svg{margin-top:10px;width:100%;height:auto}
 
-@media(max-width:1180px){
-  :root{--sidebar:210px;--results:285px}
-  .topstats .topstat:nth-child(n+3){display:none}
-  .signature-grid{grid-template-columns:repeat(2,1fr)}
-  .summary-grid,.split{grid-template-columns:1fr}
-}
-@media(max-width:900px){
-  .workspace{grid-template-columns:220px minmax(0,1fr)}
-  .filterrail{display:none}
-  .resultpane{grid-column:1}
-  .detailpane{grid-column:2}
-  .brandcopy span,.topstats{display:none}
-  .brand{min-width:auto}
-  .global-search{max-width:none}
-}
-@media(max-width:680px){
-  .appbar{padding:0 12px;height:58px;gap:10px}.topnav{top:58px;padding:0 10px}.workspace{display:block}.resultpane{position:static;height:auto;max-height:42vh;border-right:0;border-bottom:1px solid var(--line)}.detailpane{padding:12px}.lot-header{grid-template-columns:1fr}.header-actions{display:none}.signature-grid{grid-template-columns:1fr 1fr}.wafer-wrap{grid-template-columns:1fr}.view-grid,.ref-grid{grid-template-columns:1fr}.view-grid .wide{grid-column:auto}.secondary-view{padding:12px}.kbd{display:none}}
-@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;
+  background:var(--line2);border:1px solid var(--line2);border-radius:10px;overflow:hidden}
+.kpi div{background:var(--panel);padding:16px 18px}
+.kpi b{display:block;font-size:23px;font-weight:600;font-family:"IBM Plex Mono",monospace}
+.kpi small{color:var(--muted);font-size:12px}
+footer{border-top:1px solid var(--line);padding:22px 0 50px;color:var(--muted);font-size:12.5px}
 </style>
 </head>
 <body>
-<header class="appbar">
-  <div class="brand" aria-label="EPE-CD Attribution">
-    <div class="brandmark">CD</div>
-    <div class="brandcopy"><strong>EPE-CD Attribution</strong><span>Process Excursion Attribution Console</span></div>
+
+<header>
+  <div class="wrap">
+    <div class="hbar">
+      <div class="brand">
+        <div class="mark">CD</div>
+        <div><b data-t="brand">CD 이상 원인 판정 콘솔</b><span data-t="brandsub">노광·식각·계측 중 원인 모듈을 가려냅니다</span></div>
+      </div>
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <input id="q" type="search" data-ph="search" aria-label="로트 검색">
+      </div>
+      <div class="lang" role="group" aria-label="Language">
+        <button data-lang="ko" aria-pressed="true">한국어</button>
+        <button data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </div>
+    <nav id="nav" aria-label="Primary">
+      <button data-v="lots" aria-current="page" data-t="nav.lots">로트 판정</button>
+      <button data-v="trends" data-t="nav.trends">추이와 감시</button>
+      <button data-v="valid" data-t="nav.valid">검증 결과</button>
+      <button data-v="terms" data-t="nav.terms">용어 사전</button>
+      <button data-v="ref" data-t="nav.ref">기준값</button>
+    </nav>
   </div>
-  <div class="global-search">
-    <svg class="search-ico" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.7"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
-    <input id="globalSearch" type="search" placeholder="Search lot, scanner, reticle, chamber, or tool..." aria-label="Global lot search">
-    <span class="kbd">/</span>
-  </div>
-  <div class="topstats" id="topStats"></div>
 </header>
-<nav class="topnav" id="topnav" aria-label="Primary">
-  <button data-view="workspace" aria-current="page">Workspace</button>
-  <button data-view="trends">Trends</button>
-  <button data-view="validation">Validation</button>
-  <button data-view="reference">Reference</button>
-</nav>
 
-<section id="view-workspace" class="workspace">
-  <aside class="filterrail" aria-label="Lot filters">
-    <div class="filterhead"><div><div class="eyebrow">Search scope</div><h2>Filters</h2></div><button class="linkbtn" id="clearFilters">Reset</button></div>
-    <div class="fgroup"><label for="fVerdict">Verdict</label><select id="fVerdict"><option value="">All verdicts</option></select></div>
-    <div class="fgroup"><label for="fScanner">Scanner</label><select id="fScanner"><option value="">All scanners</option></select></div>
-    <div class="fgroup"><label for="fReticle">Reticle</label><select id="fReticle"><option value="">All reticles</option></select></div>
-    <div class="fgroup"><label for="fChamber">Chamber</label><select id="fChamber"><option value="">All chambers</option></select></div>
-    <div class="fgroup"><label for="fMetro">Metrology tool</label><select id="fMetro"><option value="">All tools</option></select></div>
-    <div class="fgroup"><span class="flabel">Production day</span><div class="range2"><input id="fDayMin" type="number" min="0" aria-label="Minimum production day"><input id="fDayMax" type="number" min="0" aria-label="Maximum production day"></div></div>
-    <div class="toggleline"><span>Abnormal only</span><label class="switch"><input id="fAbnormal" type="checkbox"><span class="slider"></span></label></div>
-  </aside>
+<main class="wrap">
 
-  <section class="resultpane" aria-label="Lot search results">
-    <div class="results-head"><div class="results-head-top"><h2>Lots</h2><span class="results-count" id="resultCount"></span></div><div class="results-meta">Sorted by production day · click a lot to investigate</div></div>
-    <div id="lotlist" role="listbox" aria-label="Lot results"></div>
-  </section>
+<!-- 로트 목록 -->
+<section class="view" id="v-lots">
+  <div class="panel" id="listCard">
+    <header>
+      <h2 data-t="list.title">처리할 로트를 고르세요</h2>
+      <span class="sub" id="listCount"></span>
+    </header>
+    <div class="filters">
+      <button class="chip alarm" id="fAbn" aria-pressed="false"></button>
+      <select id="fVerdict"></select>
+      <select id="fScanner"></select>
+      <select id="fChamber"></select>
+      <select id="fMetro"></select>
+      <input class="numin mono" id="fDayMin" type="number" min="0" placeholder="0" aria-label="min day">
+      <span class="sub">~</span>
+      <input class="numin mono" id="fDayMax" type="number" min="0" placeholder="39" aria-label="max day">
+      <button class="linkbtn" id="fReset" data-t="list.reset">초기화</button>
+    </div>
+    <div id="lotlist" role="listbox" aria-label="lots"></div>
+  </div>
 
-  <main class="detailpane" id="detailPane">
-    <div class="detail-empty" id="detailEmpty"><div class="emptybox"><div class="eyebrow">Investigation workspace</div><h2>Select a lot to review attribution evidence</h2><p>Search or filter the production history, then open a lot to inspect signatures, tool calls, Verification Gate, and recommended action.</p></div></div>
-    <div id="lotDetail" hidden></div>
-  </main>
+  <div id="detail" hidden></div>
 </section>
 
-<section id="view-trends" class="secondary-view" hidden>
-  <div class="view-grid">
-    <article class="panel wide"><div class="panel-head"><h3>Process Metric Trend</h3><span class="hint">Lot-level points · select a metric</span></div><div class="panel-body"><div class="segmented" id="metricPick"></div><svg class="chart" id="trendChart" viewBox="0 0 900 330" role="img" aria-label="Lot-level process metric trend"></svg><div class="legend" id="trendLegend"></div></div></article>
-    <article class="panel"><div class="panel-head"><h3>CD-SEM Monitor Drift</h3><span class="hint">Golden-wafer re-measurement</span></div><div class="panel-body"><svg class="chart" id="monitorChart" viewBox="0 0 680 280" role="img" aria-label="CD-SEM monitor drift"></svg><div class="legend" id="monitorLegend"></div></div></article>
-    <article class="panel"><div class="panel-head"><h3>TMU / Process Budget <button type="button" class="infobtn" data-term="TMU" aria-expanded="false" aria-label="What is TMU — Measurement Uncertainty?">i</button></h3><span class="hint">Measurement uncertainty consumption</span></div><div class="panel-body"><svg class="chart" id="tmuChart" viewBox="0 0 680 280" role="img" aria-label="TMU versus process budget"></svg><div class="legend" id="tmuLegend"></div></div></article>
-    <article class="panel wide"><div class="panel-head"><h3>Etch Chamber Bias</h3><span class="hint">Windowed chamber fingerprint</span></div><div class="panel-body" id="chamberPanel"></div></article>
+<!-- 추이 -->
+<section class="view" id="v-trends" hidden>
+  <div class="panel">
+    <header><h2 data-t="tr.trend">생산일별 추이</h2><span class="sub" data-t="tr.trendsub">점 하나가 로트 · 클릭하면 해당 판정으로 이동</span></header>
+    <div class="segs" id="metricPick"></div>
+    <svg class="chart" id="trendChart" viewBox="0 0 1000 360" role="img"></svg>
+    <div class="legend" id="trendLegend"></div>
+  </div>
+  <div class="panel">
+    <header><h2 data-t="tr.mon">CD-SEM 안정성</h2><span class="sub" data-t="tr.monsub">모니터 웨이퍼 반복 측정 · 기준선 대비 이동량</span></header>
+    <svg class="chart" id="monChart" viewBox="0 0 1000 320" role="img"></svg>
+    <div class="legend" id="monLegend"></div>
+  </div>
+  <div class="panel">
+    <header><h2 data-t="tr.tmu">TMU / 공정 예산</h2><span class="sub" id="tmuSub"></span></header>
+    <svg class="chart" id="tmuChart" viewBox="0 0 1000 320" role="img"></svg>
+    <div class="legend" id="tmuLegend"></div>
+  </div>
+  <div class="panel">
+    <header><h2 data-t="tr.cham">Etch 챔버별 bias</h2><span class="sub" id="chamSub"></span></header>
+    <div id="chamPanel"></div>
   </div>
 </section>
 
-<section id="view-validation" class="secondary-view" hidden>
-  <div class="view-grid">
-    <article class="panel wide"><div class="panel-head"><h3>Blind Evaluation Matrix</h3><span class="hint">Injected scenario × predicted disposition</span></div><div class="panel-body tablewrap"><table id="confTable"></table></div></article>
-    <article class="panel"><div class="panel-head"><h3>Evaluation Summary</h3></div><div class="panel-body" id="evalSummary"></div></article>
-    <article class="panel"><div class="panel-head"><h3>Safety-Critical Metric</h3></div><div class="panel-body"><div class="metric-card"><div class="mk">Metrology drift → Etch wrong action</div><div class="mv">0</div><div class="ml">Synthetic acceptance test</div></div><p style="font-size:10.5px;color:var(--muted);margin:10px 0 0">The project prioritizes preventing process action when the measurement system itself is not trustworthy.</p></div></article>
+<!-- 검증 -->
+<section class="view" id="v-valid" hidden>
+  <div class="panel">
+    <header><h2 data-t="va.kpi">핵심 지표</h2></header>
+    <div class="kpi" id="valKpi"></div>
+  </div>
+  <div class="panel">
+    <header><h2 data-t="va.matrix">블라인드 평가</h2><span class="sub" data-t="va.matrixsub">세로 = 주입한 이상 · 가로 = 에이전트 판정</span></header>
+    <div class="tw"><table id="confTable"></table></div>
   </div>
 </section>
 
-<section id="view-reference" class="secondary-view" hidden>
-  <div class="ref-grid">
-    <article class="panel"><div class="panel-head"><h3>Attribution Rule Catalog</h3><span class="hint">Deterministic knowledge base</span></div><div class="panel-body" id="ruleCatalog"></div></article>
-    <article class="panel"><div class="panel-head"><h3>Data & Control Limits</h3><span class="hint">Synthetic proof-of-concept</span></div><div class="panel-body tablewrap"><table id="specTable"></table></div></article>
+<!-- 용어 -->
+<section class="view" id="v-terms" hidden>
+  <div class="panel">
+    <header><h2 data-t="gl.title">용어 사전</h2><span class="sub" data-t="gl.sub">본문의 점선 밑줄에 마우스를 올리면 같은 설명이 그 자리에 나옵니다</span></header>
+    <div class="gcats" id="gcats"></div>
+    <div class="glist" id="glist"></div>
   </div>
 </section>
 
-<div class="tooltip" id="tooltip" role="tooltip"></div>
-<footer><span>Synthetic proof-of-concept. Not validated on production fab data.</span><span class="mono">EPE-CD Attribution · deterministic gate + observable agent tools</span></footer>
+<!-- 기준값 -->
+<section class="view" id="v-ref" hidden>
+  <div class="panel">
+    <header><h2 data-t="rf.spec">데이터 사양과 관리 한계</h2><span class="sub" data-t="rf.specsub">합성 데이터 · 앵커는 계측 정합성 실습 실측</span></header>
+    <div class="tw"><table id="specTable"></table></div>
+  </div>
+  <div class="panel">
+    <header><h2 data-t="rf.rules">판정 규칙</h2><span class="sub" data-t="rf.rulessub">결정론적 규칙 KB</span></header>
+    <div id="ruleList"></div>
+  </div>
+</section>
+
+</main>
+
+<footer class="wrap">
+  <span data-t="foot">합성 데이터로 만든 개념 검증 프로젝트입니다. 실제 fab 데이터로 검증되지 않았습니다.</span>
+</footer>
+<div id="pop" role="tooltip"></div>
 
 <script src="data.js"></script>
 <script src="investigations.js"></script>
-<script src="validation/validation.js"></script>
-<script>
-const $ = s => document.querySelector(s);
-const $$ = s => Array.from(document.querySelectorAll(s));
-const esc = v => String(v ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const M = DATA.meta, LIM = DATA.limits;
-const VERDICT_COLOR = {NORMAL:'#647171',PHOTO_DOSE:'#4F6F70',PHOTO_TRACK_RADIAL:'#4F6F70',RETICLE_CD_ERROR:'#4F6F70',ETCH_CHAMBER:'#745A67',METROLOGY_TOOL_DRIFT:'#315F64',INDETERMINATE:'#6B607F'};
-const VERDICT_SHORT = {NORMAL:'Normal',PHOTO_DOSE:'Photo Dose',PHOTO_TRACK_RADIAL:'Track / PEB',RETICLE_CD_ERROR:'Reticle CD',ETCH_CHAMBER:'Etch Chamber',METROLOGY_TOOL_DRIFT:'Metrology Drift',INDETERMINATE:'Withheld'};
-const GATE_LABEL = {
-  adi_radial_within_limit:'ADI radial component within limit',adi_reticle_within_limit:'Reticle-repeat component within limit',adi_reticle_repeats_across_fields:'Site signature repeats across fields',delta_within_limit_or_absent:'Delta-CD within limit or unavailable',tool_drift_exceeds:'Monitor-wafer drift exceeds limit',metrology_healthy:'Metrology drift within limit',tmu_within_budget:'TMU within process budget',metrology_evidence_fresh:'Metrology monitor evidence is recent',chamber_specific:'Excursion is chamber-specific',taper_not_contradicting:'Cross-section taper does not contradict etch attribution'
-};
-const TOOL_LABEL = {get_lot_context:'Lot context',decompose_cd:'CD decomposition',get_metrology_health:'Metrology health',compare_chambers:'Chamber comparison',get_equipment_events:'Equipment events',verify_disposition:'Verification Gate'};
-const GLOSSARY = {
-  ADI:{t:'ADI — After-Develop Inspect',d:'CD measured right after photoresist patterning, before etch. The starting point for the CD budget.'},
-  DELTA_CD:{t:'ΔCD — ADI → ACI CD Shift',d:'The etch bias: how much the critical dimension moved between the ADI and ACI measurement. A deviation from the reference bias points at the etch step.'},
-  TMU:{t:'TMU — Measurement Uncertainty',d:'The metrology tool’s own precision and tool-to-tool matching error, shown as a percentage of the process CD tolerance. High TMU consumption means the measurement itself — not the process — may be unreliable.'},
-  RADIAL:{t:'Radial component',d:'A CD pattern that varies smoothly from wafer center to edge — typically linked to scanner illumination or track (coat/develop) uniformity, not one field or die.'},
-  RETICLE_REPEAT:{t:'Reticle-repeat component',d:'A CD offset that repeats at the same die position across every field on the wafer. Field-independent repetition points at the photomask (reticle) rather than the scanner or track.'},
-  CHAMBER_DEV:{t:'Chamber deviation',d:'How far a single etch chamber’s average bias differs from the fleet average. A deviation isolated to one chamber points at that chamber, not the etch process broadly.'},
-  GATE:{t:'Verification Gate',d:'A deterministic pass/fail checklist that must clear before an automated disposition is trusted. If any condition fails, the lot is held for manual review instead.'},
-  TRACE:{t:'Investigation Trace',d:'The literal sequence of tool calls the attribution agent executed for this lot — read from its recorded trace, not a simulated explanation.'},
-  'tool:get_lot_context':{t:'get_lot_context',d:'Reads the lot’s recorded process routing — scanner, reticle, chamber, ADI/ACI tools — and its measured CD means.'},
-  'tool:decompose_cd':{t:'decompose_cd',d:'Splits the raw CD signature into wafer / field / reticle / delta-bias coordinate components and compares each to its control limit.'},
-  'tool:get_metrology_health':{t:'get_metrology_health',d:'Checks CD-SEM monitor-wafer drift and TMU-vs-budget history for the tool(s) that measured this lot.'},
-  'tool:compare_chambers':{t:'compare_chambers',d:'Compares this lot’s etch bias against other chambers running in the same window to see if the deviation is chamber-specific.'},
-  'tool:get_equipment_events':{t:'get_equipment_events',d:'Looks up logged equipment events (PM, alarm, recipe change) around the lot’s process date.'},
-  'tool:verify_disposition':{t:'verify_disposition',d:'Runs the deterministic Verification Gate — every condition must pass before the disposition is trusted.'}
-};
-function infoBtn(key){const g=GLOSSARY[key];if(!g)return '';return ` <button type="button" class="infobtn" data-term="${esc(key)}" aria-expanded="false" aria-label="What is ${esc(g.t)}?">i</button>`}
-
-let state={query:'',verdict:'',scanner:'',reticle:'',chamber:'',metro:'',dayMin:0,dayMax:M.days-1,abnormal:false,current:null,view:'workspace'};
-let chartsDrawn=false, metricKey='dbias';
-
-function riskClass(r){return r==='High'?'status-high':r==='Watch'?'status-watch':'status-normal'}
-function gateStatus(l){const inv=INVESTIGATIONS?.[l.lot];return inv && inv.status==='DISPOSITION_READY'?'PASS':'HOLD'}
-function unique(key){return [...new Set(DATA.lots.map(l=>l[key]).filter(Boolean))].sort()}
-function optionize(sel,arr){sel.insertAdjacentHTML('beforeend',arr.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join(''))}
-function initFilters(){
-  optionize($('#fVerdict'),Object.keys(VERDICT_SHORT)); optionize($('#fScanner'),unique('scanner')); optionize($('#fReticle'),unique('reticle')); optionize($('#fChamber'),unique('chamber'));
-  optionize($('#fMetro'),[...new Set(DATA.lots.flatMap(l=>[l.adiTool,l.aciTool]).filter(Boolean))].sort());
-  $('#fDayMin').value=0; $('#fDayMax').value=M.days-1;
-  ['fVerdict','fScanner','fReticle','fChamber','fMetro','fDayMin','fDayMax'].forEach(id=>$('#'+id).addEventListener('change',readFilters));
-  $('#fAbnormal').addEventListener('change',readFilters); $('#globalSearch').addEventListener('input',e=>{state.query=e.target.value.trim().toLowerCase();renderLots()});
-  $('#clearFilters').onclick=()=>{state={...state,query:'',verdict:'',scanner:'',reticle:'',chamber:'',metro:'',dayMin:0,dayMax:M.days-1,abnormal:false};$('#globalSearch').value='';$('#fVerdict').value='';$('#fScanner').value='';$('#fReticle').value='';$('#fChamber').value='';$('#fMetro').value='';$('#fDayMin').value=0;$('#fDayMax').value=M.days-1;$('#fAbnormal').checked=false;renderLots()};
-}
-function readFilters(){state.verdict=$('#fVerdict').value;state.scanner=$('#fScanner').value;state.reticle=$('#fReticle').value;state.chamber=$('#fChamber').value;state.metro=$('#fMetro').value;state.dayMin=+$('#fDayMin').value||0;state.dayMax=+$('#fDayMax').value||M.days-1;state.abnormal=$('#fAbnormal').checked;renderLots()}
-function filteredLots(){return DATA.lots.filter(l=>{
-  const hay=[l.lot,l.scanner,l.reticle,l.chamber,l.adiTool,l.aciTool,l.label,l.verdict].join(' ').toLowerCase();
-  return (!state.query||hay.includes(state.query))&&(!state.verdict||l.verdict===state.verdict)&&(!state.scanner||l.scanner===state.scanner)&&(!state.reticle||l.reticle===state.reticle)&&(!state.chamber||l.chamber===state.chamber)&&(!state.metro||l.adiTool===state.metro||l.aciTool===state.metro)&&(l.day>=state.dayMin&&l.day<=state.dayMax)&&(!state.abnormal||l.verdict!=='NORMAL');
-}).sort((a,b)=>b.day-a.day||b.lot.localeCompare(a.lot))}
-function renderTopStats(){const abnormal=DATA.lots.filter(l=>l.verdict!=='NORMAL').length;const ready=DATA.lots.filter(l=>gateStatus(l)==='PASS').length;$('#topStats').innerHTML=`<div class="topstat"><b>${DATA.lots.length}</b><span>Total lots</span></div><div class="topstat"><b>${abnormal}</b><span>Abnormal</span></div><div class="topstat"><b>${ready}</b><span>Gate ready</span></div>`}
-function renderLots(){const rows=filteredLots();$('#resultCount').textContent=`${rows.length} / ${DATA.lots.length}`;const box=$('#lotlist');if(!rows.length){box.innerHTML='<div class="empty">No lots match the current filters.</div>';return}box.innerHTML=rows.map(l=>`<button class="lotrow" role="option" aria-selected="${state.current===l.lot}" data-lot="${l.lot}"><span class="vdot" style="background:${VERDICT_COLOR[l.verdict]}"></span><span class="lotmain"><b>${l.lot}</b><small>${l.date} · ${l.scanner} · ${l.chamber}<br>${l.aciMean===null?'ADI only / ACI skip':`ACI ${l.aciTool}`}</small></span><span class="lotbadge">${esc(VERDICT_SHORT[l.verdict])}</span></button>`).join('');box.querySelectorAll('.lotrow').forEach(b=>{b.onclick=()=>openLot(b.dataset.lot);b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openLot(b.dataset.lot)}}})}
-
-function metricCard(label,value,limit,hit=false,infoKey=null){return `<div class="metric-card ${hit?'hit':''}"><div class="mk">${esc(label)}${infoKey?infoBtn(infoKey):''}</div><div class="mv">${esc(value)}</div><div class="ml">Reference ${esc(limit)}</div></div>`}
-function evidenceInfoKey(k){const s=k.toLowerCase();if(s.includes('measurement uncertainty'))return 'TMU';if(s.includes('delta-cd'))return 'DELTA_CD';if(s.includes('radial'))return 'RADIAL';if(s.includes('reticle-repeat'))return 'RETICLE_REPEAT';if(s.includes('chamber deviation'))return 'CHAMBER_DEV';return null}
-function evidenceForGate(l,cond){const rows=l.ev||[];const find=s=>rows.find(e=>e.k.toLowerCase().includes(s));let e=null,ref='';switch(cond){case'adi_radial_within_limit':e=find('radial');break;case'adi_reticle_within_limit':case'adi_reticle_repeats_across_fields':e=find('reticle');break;case'delta_within_limit_or_absent':e=find('delta-cd');break;case'tool_drift_exceeds':case'metrology_healthy':e=find('monitor wafer drift');break;case'tmu_within_budget':e=find('measurement uncertainty');break;case'chamber_specific':e=find('chamber deviation');break;case'taper_not_contradicting':e=find('taper');break;case'metrology_evidence_fresh':e=find('monitor wafer drift');ref='≤2 days old';break}return {actual:e?.v||'—',reference:ref||e?.lim||'—'} }
-function eventSummary(step){const r=step.result||{};if(step.tool==='get_lot_context')return `${r.scanner||'—'} · ${r.reticle||'—'} · ${r.chamber||'—'}`;if(step.tool==='decompose_cd'){const m=r.metrics||{};return `offset ${fmt(m.offset)} · radial ${fmt(m.radial)} · reticle ${fmt(m.reticle)} · ΔCD ${fmt(m.dbias)}`};if(step.tool==='get_metrology_health'){const mon=r.monitor?.series||[],tmu=r.tmu?.series||[];const md=mon.length?mon[mon.length-1].drift:null,tr=tmu.length?tmu[tmu.length-1].ratio:null;return `monitor ${fmt(md)} nm · TMU ${tr==null?'—':tr+'%'}`};if(step.tool==='compare_chambers'){const c=r.chambers||{};return Object.keys(c).length?Object.entries(c).map(([k,v])=>`${k} ${fmt(v)} nm`).join(' · '):'No chamber evidence in window'}if(step.tool==='get_equipment_events'){const ev=r.events||[];return `${ev.length} event${ev.length===1?'':'s'} found around day ${r.day??'—'}`};if(step.tool==='verify_disposition')return `${r.passed?'PASS':'HOLD'} · ${VERDICT_SHORT[r.verdict]||r.verdict}`;return 'Result captured'}
-function fmt(v,d=2){return v==null||Number.isNaN(+v)?'—':(+v).toFixed(d)}
-function renderTrace(inv){if(!inv?.trace?.length)return '<div class="empty">No investigation trace is available for this lot.</div>';return `<div class="trace-list">${inv.trace.map((s,i)=>{const events=s.tool==='get_equipment_events'?(s.result?.events||[]):[];return `<div class="trace-step"><div class="trace-top"><span class="trace-num">${String(i+1).padStart(2,'0')}</span><span class="trace-tool">${esc(TOOL_LABEL[s.tool]||s.tool)}</span>${infoBtn('tool:'+s.tool)}</div><div class="trace-reason">${esc(s.reason)}</div><div class="trace-result">${esc(eventSummary(s))}</div>${events.length?`<div class="trace-event">${events.slice(0,3).map(e=>`<div><span class="mono">D${e.day_index}</span> · ${esc(e.event_type)} · ${esc(e.component||'')} — ${esc(e.description||'')}</div>`).join('')}${events.length>3?`<div>+ ${events.length-3} more event(s)</div>`:''}</div>`:''}<details class="raw"><summary>View raw result</summary><pre class="rawjson">${esc(JSON.stringify(s.result,null,2))}</pre></details></div>`}).join('')}</div>`}
-
-function openLot(id){const l=DATA.lots.find(x=>x.lot===id);if(!l)return;state.current=id;try{history.replaceState(null,'',location.pathname+location.search+'#lot='+id)}catch(_e){location.hash='lot='+id;}$('#detailEmpty').hidden=true;$('#lotDetail').hidden=false;renderLots();const inv=INVESTIGATIONS?.[id];const gstatus=gateStatus(l);const risk=riskClass(l.risk);const meta=[];if(l.module&&l.module!=='-')meta.push(`<span class="context-chip">Module ${esc(l.module)}</span>`);if(l.coord&&l.coord!=='-')meta.push(`<span class="context-chip">Coordinate ${esc(l.coord)}</span>`);meta.push(`<span class="context-chip">Scanner ${esc(l.scanner)}</span>`,`<span class="context-chip">Reticle ${esc(l.reticle)}</span>`,`<span class="context-chip">Chamber ${esc(l.chamber)}</span>`,`<span class="context-chip">ADI ${esc(l.adiTool)}</span>`);if(l.aciTool)meta.push(`<span class="context-chip">ACI ${esc(l.aciTool)}</span>`);meta.push(`<span class="context-chip">Day ${l.day}</span>`);
-const evMap=Object.fromEntries((l.ev||[]).map(e=>[e.k,e]));
-const sigDefs=[[evMap['ADI scalar component'],'ADI'],[evMap['ADI radial component'],'RADIAL'],[evMap['Reticle-repeat component'],'RETICLE_REPEAT'],[evMap['Delta-CD (etch bias) deviation']||evMap['Delta-CD'],'DELTA_CD']];
-const sigCards=sigDefs.filter(([e])=>e).map(([e,ik])=>metricCard(e.k,e.v,e.lim,e.hit,ik)).join('');
-const gateRows=l.gate?.length?l.gate.map(g=>{const x=evidenceForGate(l,g.c);return `<tr><td>${esc(GATE_LABEL[g.c]||g.c)}</td><td class="value">${esc(x.actual)}</td><td class="limit">${esc(x.reference)}</td><td><span class="state ${g.ok?'state-pass':'state-fail'}">${g.ok?'PASS':'FAIL'}</span></td></tr>`}).join(''):`<tr><td>Base classification requires no additional rule-specific gate.</td><td class="value">All monitored evidence</td><td class="limit">Within control limits</td><td><span class="state state-pass">PASS</span></td></tr>`;
-const evidenceRows=(l.ev||[]).map(e=>{const ik=evidenceInfoKey(e.k);return `<tr class="${e.hit?'row-alert':''}"><td>${esc(e.k)}${ik?infoBtn(ik):''}</td><td class="value">${esc(e.v)}</td><td class="limit">${esc(e.lim)}</td><td><span class="state ${e.hit?'state-fail':'state-pass'}">${e.hit?'OUT':'WITHIN'}</span></td></tr>`}).join('');
-$('#lotDetail').innerHTML=`
-<article class="panel"><div class="lot-header"><div><div class="eyebrow">Lot investigation</div><div class="lot-titleline"><h1>${l.lot}</h1><span class="status-badge ${risk}">${esc(VERDICT_SHORT[l.verdict])}</span><span class="status-badge ${gstatus==='PASS'?'gate-pass':'gate-hold'}">Gate ${gstatus}</span></div><div class="lot-subtitle">${esc(l.label)} · ${esc(l.date)}</div><div class="lot-context">${meta.join('')}</div></div><div class="header-actions"><button class="textbtn" id="prevLot">Previous</button><button class="textbtn" id="nextLot">Next</button></div></div></article>
-<div class="accordion" id="onramp"><button type="button" class="accordion-toggle" id="onrampToggle" aria-expanded="false" aria-controls="onrampBody"><span>What am I looking at?</span><span class="toggle-label" id="onrampToggleLabel">Show explanation</span><svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="accordion-body" id="onrampBody" hidden><p style="margin:0 0 8px;font-size:11.5px;line-height:1.65;color:var(--ink-2)"><b>ADI</b> (After-Develop Inspect) is the CD measured right after photo patterning; <b>ACI</b> (After-Clean Inspect) is the CD measured after etch and clean. <b>ΔCD</b> is the ADI → ACI CD shift — the etch bias. <b>TMU</b> is the metrology tool's own measurement uncertainty, spent against the process CD tolerance budget.</p><p style="margin:0;font-size:11.5px;line-height:1.65;color:var(--ink-2)">The <b>Verification Gate</b> further down is a deterministic pass/fail checklist — every condition must clear before a disposition is trusted; if one fails, the lot is held for manual review instead of auto-dispositioned. Every ⓘ icon on this page opens a short definition — by mouse, keyboard focus, or tap.</p></div></div>
-<div class="summary-grid"><article class="panel"><div class="panel-head"><h3>Observed Signature</h3><span class="hint">Measured evidence versus control limits</span></div><div class="panel-body"><div class="signature-grid">${sigCards}</div><div style="margin-top:10px;color:var(--muted);font-size:10.5px">Dose Setting <span class="mono">${fmt(l.doseSet)} → ${fmt(l.doseSensor)} mJ/cm² (${l.doseGap>0?'+':''}${fmt(l.doseGap)}%)</span> · Focus Sensor <span class="mono">${l.focusSensor>0?'+':''}${fmt(l.focusSensor,0)} nm</span> · RF hours <span class="mono">${l.rf}</span></div></div></article><article class="panel"><div class="panel-head"><h3>Attribution Summary</h3></div><div class="panel-body attrbox"><div class="attr-verdict">${esc(l.label)}</div><div class="attr-reason">${esc(l.cause)}</div><div class="attr-meta"><div><span>Risk</span><b>${esc(l.risk)}</b></div><div><span>Agent tools</span><b class="mono">${inv?.tool_calls??'—'}</b></div></div></div></article></div>
-<article class="panel"><div class="panel-head"><h3>Wafer Signature Map</h3><span class="hint">Click or focus a site for measured value</span></div><div class="panel-body"><div class="wafer-wrap"><figure class="wafer-card"><figcaption>ADI CD residual${infoBtn('ADI')}<span>Mean ${l.adiMean} nm · ${esc(l.adiTool)}</span></figcaption><svg id="waferAdi" class="wafer" viewBox="-178 -178 356 356" role="img" aria-label="ADI CD residual wafer map"></svg><div class="heatbar"></div><div class="heatlabels"><span>-4 nm</span><span>0</span><span>+4 nm</span></div></figure><figure class="wafer-card"><figcaption>Etch-bias residual${infoBtn('DELTA_CD')}<span>${l.aciMean==null?'ACI not measured':`ACI mean ${l.aciMean} nm · ${esc(l.aciTool)}`}</span></figcaption><svg id="waferDelta" class="wafer" viewBox="-178 -178 356 356" role="img" aria-label="Etch bias residual wafer map"></svg><div class="heatbar"></div><div class="heatlabels"><span>-3 nm</span><span>0</span><span>+3 nm</span></div></figure></div></div></article>
-<article class="panel"><div class="panel-head"><h3>Attribution Evidence</h3><span class="hint">Always shown — including NORMAL lots</span></div><div class="panel-body tablewrap"><table><thead><tr><th>Metric</th><th>Actual</th><th>Limit / Reference</th><th>Status</th></tr></thead><tbody>${evidenceRows}</tbody></table></div></article>
-<article class="panel"><div class="panel-head"><h3>Investigation Trace${infoBtn('TRACE')}</h3><span class="hint">Observable tool-call sequence</span></div><div class="panel-body">${renderTrace(inv)}</div></article>
-<article class="panel"><div class="panel-head"><h3>Verification Gate${infoBtn('GATE')}</h3><span class="hint">Deterministic rule checks before disposition</span></div><div class="panel-body tablewrap"><table><thead><tr><th>Gate condition</th><th>Measured / Evidence</th><th>Threshold / Reference</th><th>Result</th></tr></thead><tbody>${gateRows}</tbody></table></div></article>
-<article class="panel action-panel"><div class="panel-head"><h3>Recommended Action</h3><span class="hint">Operational disposition guidance</span></div><div class="panel-body"><div class="action-text">${esc(l.action)}</div>${l.extra?`<div class="action-extra">${esc(l.extra)}</div>`:''}</div></article>`;
-drawWafer('waferAdi',l.adiMap,4,v=>v+M.adiTarget,l.adiTool,'ADI CD');drawWafer('waferDelta',l.deltaMap?l.deltaMap.map(v=>v-M.etchBias):null,3,v=>v+M.etchBias,l.aciTool,'Etch bias');$('#prevLot').onclick=()=>stepLot(-1);$('#nextLot').onclick=()=>stepLot(1);
-const onrampToggle=$('#onrampToggle');onrampToggle.onclick=()=>{const open=onrampToggle.getAttribute('aria-expanded')==='true';onrampToggle.setAttribute('aria-expanded',String(!open));$('#onrampBody').hidden=open;$('#onrampToggleLabel').textContent=open?'Show explanation':'Hide explanation'};}
-function stepLot(delta){const rows=filteredLots();const i=rows.findIndex(l=>l.lot===state.current);if(i>=0&&rows[i+delta])openLot(rows[i+delta].lot)}
-
-function heat(v,s){const t=Math.max(-1,Math.min(1,v/s));const neg=[82,126,135],mid=[248,247,249],pos=[163,90,90];const mix=(a,b,k)=>a.map((x,i)=>Math.round(x+(b[i]-x)*k));return `rgb(${(t<0?mix(mid,neg,-t):mix(mid,pos,t)).join(',')})`}
-function drawWafer(id,vals,scale,absFn,tool,label){const g=$('#'+id);if(!g)return;if(!vals){g.innerHTML='<circle r="150" fill="#F8F7FA" stroke="rgba(6,36,35,.18)" stroke-dasharray="5 4"/><text y="-5" text-anchor="middle" font-size="11" fill="#667676" font-family="Inter">ACI skip-lot</text><text y="14" text-anchor="middle" font-size="9" fill="#8B9999" font-family="Inter">No post-etch measurement available</text>';return}let s='<circle r="150" fill="#FBFAFC" stroke="rgba(6,36,35,.18)" stroke-width="1.3"/><path d="M -10 150 L 10 150 L 0 136 Z" fill="#A8BEBD"/><line x1="-150" y1="0" x2="150" y2="0" stroke="rgba(6,36,35,.07)"/><line x1="0" y1="-150" x2="0" y2="150" stroke="rgba(6,36,35,.07)"/>';const seen={};DATA.sites.forEach(p=>{const k=p.field_x+','+p.field_y;if(seen[k])return;seen[k]=1;s+=`<rect x="${p.field_x*26-13}" y="${-p.field_y*33-16.5}" width="26" height="33" fill="none" stroke="rgba(6,36,35,.07)"/>`});DATA.sites.forEach((p,i)=>{s+=`<circle cx="${p.wafer_x_mm}" cy="${-p.wafer_y_mm}" r="5.3" fill="${heat(vals[i],scale)}" stroke="#fff" stroke-width=".8"/><circle class="spot" cx="${p.wafer_x_mm}" cy="${-p.wafer_y_mm}" r="10" fill="transparent" stroke="transparent" tabindex="0" role="button" data-i="${i}" aria-label="${p.site_id}, residual ${fmt(vals[i])} nm"/>`});g.innerHTML=s;g.querySelectorAll('.spot').forEach(c=>{const show=e=>{const i=+c.dataset.i,p=DATA.sites[i],v=vals[i];showTooltip(`<strong>${esc(p.site_id)} · ${esc(label)}</strong><span class="mono">Residual ${v>0?'+':''}${fmt(v)} nm</span><br><span class="mono">Measured ${fmt(absFn(v))} nm</span><br>Field (${p.field_x}, ${p.field_y}) · site ${p.site_in_field+1}<br>Tool ${esc(tool||'—')}`,e.clientX||c.getBoundingClientRect().left,e.clientY||c.getBoundingClientRect().top)};c.addEventListener('mouseenter',show);c.addEventListener('focus',()=>{const r=c.getBoundingClientRect();show({clientX:r.left+10,clientY:r.top+10})});c.addEventListener('mousemove',show);c.addEventListener('mouseleave',hideTooltip);c.addEventListener('blur',hideTooltip)})}
-
-const tooltip=$('#tooltip');function showTooltip(html,x,y){tooltip.innerHTML=html;tooltip.style.display='block';const pad=12,w=tooltip.offsetWidth,h=tooltip.offsetHeight;tooltip.style.left=Math.min(innerWidth-w-pad,Math.max(pad,x+12))+'px';tooltip.style.top=Math.min(innerHeight-h-pad,Math.max(pad,y+12))+'px'}function hideTooltip(){tooltip.style.display='none'}
-
-/* Terminology tooltips: reachable by mouse hover, keyboard focus, and click/tap.
-   Definitions are supplementary only — every value they annotate is already
-   plain text in the DOM, never hidden exclusively behind the tooltip. */
-let infoOpenBtn=null, infoPinned=false;
-function showInfoTooltip(btn){const g=GLOSSARY[btn.dataset.term];if(!g)return;infoOpenBtn=btn;btn.setAttribute('aria-expanded','true');const r=btn.getBoundingClientRect();showTooltip(`<strong>${esc(g.t)}</strong>${esc(g.d)}`,r.left,r.bottom)}
-function hideInfoTooltip(force){if(!infoOpenBtn)return;if(infoPinned&&!force)return;infoOpenBtn.setAttribute('aria-expanded','false');infoOpenBtn=null;infoPinned=false;hideTooltip()}
-document.addEventListener('mouseover',e=>{const b=e.target.closest('.infobtn');if(b)showInfoTooltip(b)});
-document.addEventListener('mouseout',e=>{const b=e.target.closest('.infobtn');if(b&&infoOpenBtn===b)hideInfoTooltip()});
-document.addEventListener('focusin',e=>{const b=e.target.closest('.infobtn');if(b)showInfoTooltip(b)});
-document.addEventListener('focusout',e=>{const b=e.target.closest('.infobtn');if(b&&infoOpenBtn===b)hideInfoTooltip()});
-document.addEventListener('click',e=>{const b=e.target.closest('.infobtn');if(b){e.preventDefault();e.stopPropagation();if(infoOpenBtn===b&&infoPinned){hideInfoTooltip(true)}else{showInfoTooltip(b);infoPinned=true}}else if(infoOpenBtn){hideInfoTooltip(true)}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&infoOpenBtn)hideInfoTooltip(true)});
-
-/* Trends */
-const METRICS=[{k:'dbias',n:'Delta-CD deviation',lim:LIM.delta_bias,cen:DATA.centers.delta_bias,unit:'nm'},{k:'offset',n:'ADI scalar shift',lim:LIM.adi_offset,cen:DATA.centers.adi_offset,unit:'nm'},{k:'radial',n:'ADI radial shift',lim:LIM.adi_radial,cen:DATA.centers.adi_radial,unit:'nm'}];
-function axes(o){const X=v=>o.x0+(v-o.xmin)/(o.xmax-o.xmin)*(o.x1-o.x0),Y=v=>o.y1-(v-o.ymin)/(o.ymax-o.ymin)*(o.y1-o.y0);let s='';o.yt.forEach(v=>s+=`<line class="grid" x1="${o.x0}" y1="${Y(v)}" x2="${o.x1}" y2="${Y(v)}"/><text x="${o.x0-7}" y="${Y(v)+3}" text-anchor="end">${o.fmt?o.fmt(v):v}</text>`);o.xt.forEach(v=>s+=`<line class="grid" x1="${X(v)}" y1="${o.y0}" x2="${X(v)}" y2="${o.y1}"/><text x="${X(v)}" y="${o.y1+16}" text-anchor="middle">${v}</text>`);s+=`<line class="axis" x1="${o.x0}" y1="${o.y0}" x2="${o.x0}" y2="${o.y1}"/><line class="axis" x1="${o.x0}" y1="${o.y1}" x2="${o.x1}" y2="${o.y1}"/>`;return {X,Y,s}}
-function initMetricPick(){const p=$('#metricPick');p.innerHTML=METRICS.map(m=>`<button class="segbtn" data-k="${m.k}" aria-pressed="${m.k===metricKey}">${m.n}</button>`).join('');p.onclick=e=>{const b=e.target.closest('[data-k]');if(!b)return;metricKey=b.dataset.k;$$('#metricPick .segbtn').forEach(x=>x.setAttribute('aria-pressed',x===b));drawTrend()}}
-function drawTrend(){const m=METRICS.find(x=>x.k===metricKey),rows=DATA.lots.filter(l=>l.m[m.k]!=null),vals=rows.map(l=>l.m[m.k]-m.cen),span=Math.max(m.lim*2.1,...vals.map(v=>Math.abs(v)*1.08));const A=axes({x0:52,x1:875,y0:18,y1:286,xmin:0,xmax:M.days-1,ymin:-span,ymax:span,xt:[0,5,10,15,20,25,30,35,39],yt:[-m.lim,0,m.lim].map(v=>+v.toFixed(2)),fmt:v=>v.toFixed(2)});let s=`<rect x="52" y="${A.Y(m.lim)}" width="823" height="${A.Y(-m.lim)-A.Y(m.lim)}" fill="rgba(168,190,189,.14)"/>${A.s}`;rows.forEach(l=>{const v=l.m[m.k]-m.cen;s+=`<circle class="pt" tabindex="0" role="button" aria-label="${l.lot} ${m.n} ${fmt(v)} ${m.unit}" data-lot="${l.lot}" cx="${A.X(l.day)}" cy="${A.Y(v)}" r="${Math.abs(v)>m.lim?3.8:2.4}" fill="${VERDICT_COLOR[l.verdict]}"/>`});const g=$('#trendChart');g.innerHTML=s;g.querySelectorAll('.pt').forEach(c=>{c.onclick=()=>{showView('workspace');openLot(c.dataset.lot)};c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();c.click()}}});$('#trendLegend').innerHTML=`<span><i style="background:var(--teal-soft)"></i>Control band ±${m.lim.toFixed(2)} ${m.unit}</span><span><i style="background:var(--photo)"></i>Photo</span><span><i style="background:var(--etch)"></i>Etch</span><span><i style="background:var(--metro)"></i>Metrology</span>`}
-function drawMonitor(){const ys=DATA.monitor.map(d=>d.drift),span=Math.max(1.4,...ys.map(Math.abs))*1.2,A=axes({x0:46,x1:660,y0:18,y1:236,xmin:0,xmax:M.days-1,ymin:-span,ymax:span,xt:[0,10,20,30,39],yt:[-LIM.tool_drift,0,LIM.tool_drift].map(v=>+v.toFixed(2)),fmt:v=>v.toFixed(1)});let s=`<rect x="46" y="${A.Y(LIM.tool_drift)}" width="614" height="${A.Y(-LIM.tool_drift)-A.Y(LIM.tool_drift)}" fill="rgba(168,190,189,.14)"/>${A.s}`;const st={'CDSEM-A':'#8A9998','CDSEM-B':'#315F64'};Object.keys(st).forEach(t=>{const r=DATA.monitor.filter(x=>x.tool===t);s+=`<polyline points="${r.map(d=>A.X(d.day)+','+A.Y(d.drift)).join(' ')}" fill="none" stroke="${st[t]}" stroke-width="1.8"/>`;r.forEach(d=>s+=`<circle cx="${A.X(d.day)}" cy="${A.Y(d.drift)}" r="2.8" fill="${Math.abs(d.drift)>LIM.tool_drift?'#8C3D45':st[t]}"/>`)});$('#monitorChart').innerHTML=s;$('#monitorLegend').innerHTML='<span><i style="background:#8A9998"></i>CDSEM-A</span><span><i style="background:#315F64"></i>CDSEM-B</span><span><i style="background:var(--teal-soft)"></i>Healthy band</span>'}
-function drawTmu(){const B=M.tmuBudget,max=Math.max(B*1.6,...DATA.tmu.map(t=>t.ratio))*1.08,A=axes({x0:46,x1:660,y0:18,y1:236,xmin:0,xmax:M.days-1,ymin:0,ymax:max,xt:[0,10,20,30,39],yt:[0,B,Math.round(max)],fmt:v=>v+'%'});let s=`<rect x="46" y="${A.Y(B)}" width="614" height="${A.Y(0)-A.Y(B)}" fill="rgba(168,190,189,.14)"/>${A.s}<line x1="46" y1="${A.Y(B)}" x2="660" y2="${A.Y(B)}" stroke="#8C3D45" stroke-dasharray="5 4"/>`;const st={'CDSEM-A':'#8A9998','CDSEM-B':'#315F64'};Object.keys(st).forEach(t=>{const r=DATA.tmu.filter(x=>x.tool===t);s+=`<polyline points="${r.map(d=>A.X(d.day)+','+A.Y(d.ratio)).join(' ')}" fill="none" stroke="${st[t]}" stroke-width="1.8"/>`;r.forEach(d=>s+=`<circle cx="${A.X(d.day)}" cy="${A.Y(d.ratio)}" r="${d.ratio>B?3.8:2.6}" fill="${d.ratio>B?'#8C3D45':st[t]}"/>`)});$('#tmuChart').innerHTML=s;$('#tmuLegend').innerHTML=`<span><i style="background:#8A9998"></i>CDSEM-A</span><span><i style="background:#315F64"></i>CDSEM-B</span><span><i style="background:#8C3D45"></i>Over ${B}% budget</span>`}
-function drawChambers(){const by={};DATA.chamberSeries.forEach(r=>(by[r.chamber]=by[r.chamber]||[]).push(r));$('#chamberPanel').innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px">'+Object.keys(by).sort().map(ch=>{const r=by[ch].sort((a,b)=>a.day-b.day),max=Math.max(LIM.chamber_dev*2,...r.map(x=>Math.abs(x.dbias))),X=d=>8+d/(M.days-1)*250,Y=v=>34-v/max*24;return `<div class="metric-card"><div class="mk">${ch}</div><svg viewBox="0 0 266 70" style="width:100%;height:auto"><rect x="8" y="${Y(LIM.chamber_dev)}" width="250" height="${Y(-LIM.chamber_dev)-Y(LIM.chamber_dev)}" fill="rgba(168,190,189,.14)"/><line x1="8" y1="34" x2="258" y2="34" stroke="rgba(6,36,35,.15)"/><polyline points="${r.map(x=>X(x.day)+','+Y(x.dbias)).join(' ')}" fill="none" stroke="#745A67" stroke-width="1.7"/></svg></div>`}).join('')+'</div>'}
-function drawTrends(){if(chartsDrawn)return;initMetricPick();drawTrend();drawMonitor();drawTmu();drawChambers();chartsDrawn=true}
-
-function renderValidation(){const c=VALIDATION?.confusion||{},preds=[...new Set(Object.values(c).flatMap(o=>Object.keys(o)))].sort(),name={S0:'Normal',S1:'Photo dose',S2:'Track / PEB',S3:'Reticle CD',S4:'Etch chamber',S5:'Metrology drift','??':'Withheld'};$('#confTable').innerHTML='<thead><tr><th>Injected scenario</th>'+preds.map(p=>`<th>${name[p]||p}</th>`).join('')+'</tr></thead><tbody>'+Object.keys(c).sort().map(t=>`<tr><td>${name[t]||t}</td>${preds.map(p=>`<td class="num">${c[t][p]||0}</td>`).join('')}</tr>`).join('')+'</tbody>';const ev=VALIDATION?.summary||{};$('#evalSummary').innerHTML=`<div class="signature-grid" style="grid-template-columns:1fr 1fr"><div class="metric-card"><div class="mk">Evaluated lots</div><div class="mv">${ev.evaluated_lots??320}</div></div><div class="metric-card"><div class="mk">Exact matches</div><div class="mv">${ev.exact_matches??289}</div></div><div class="metric-card"><div class="mk">Abstentions</div><div class="mv">${ev.abstentions??3}</div></div><div class="metric-card"><div class="mk">Ground-truth missing</div><div class="mv">${ev.missing_ground_truth?.length??0}</div></div></div><p style="font-size:10.5px;color:var(--muted);margin:12px 0 0">This is a synthetic scenario acceptance test, not production-model accuracy.</p>`}
-function renderReference(){$('#ruleCatalog').innerHTML=DATA.rules.map(r=>`<div class="rulecard"><h4>${esc(r.label)}</h4><div class="rmeta">${esc(r.id)} · ${esc(r.module)} · ${esc(r.coord)}</div><p>${esc(r.cause)}</p></div>`).join('');const rows=[['Lots',M.lots],['Production days',M.days],['ADI / ACI target',`${M.adiTarget} / ${M.aciTarget} nm`],['Reference etch bias',`${M.etchBias} nm`],['CD tolerance',`±${M.cdTol} nm`],['TMU budget',`${M.tmuBudget}%`],['ADI scalar limit',`±${LIM.adi_offset.toFixed(2)} nm`],['ADI radial limit',`±${LIM.adi_radial.toFixed(2)} nm`],['Reticle-repeat limit',`≤${LIM.adi_reticle.toFixed(2)} nm`],['Delta-CD limit',`±${LIM.delta_bias.toFixed(2)} nm`],['Monitor drift limit',`±${LIM.tool_drift.toFixed(2)} nm`],['Chamber deviation limit',`±${LIM.chamber_dev.toFixed(2)} nm`]];$('#specTable').innerHTML='<thead><tr><th>Parameter</th><th>Value</th></tr></thead><tbody>'+rows.map(r=>`<tr><td>${r[0]}</td><td class="value">${r[1]}</td></tr>`).join('')+'</tbody>'}
-
-function showView(v){state.view=v;['workspace','trends','validation','reference'].forEach(k=>$('#view-'+k).hidden=k!==v);$$('#topnav button').forEach(b=>b.toggleAttribute('aria-current',b.dataset.view===v));if(v==='trends')drawTrends();window.scrollTo({top:0,behavior:'instant'})}
-$('#topnav').onclick=e=>{const b=e.target.closest('[data-view]');if(b)showView(b.dataset.view)};
-document.addEventListener('keydown',e=>{if(e.key==='/'&&document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='SELECT'){e.preventDefault();$('#globalSearch').focus()}});
-
-initFilters();renderTopStats();renderValidation();renderReference();renderLots();
-const hash=new URLSearchParams(location.hash.replace(/^#/,''));openLot(hash.get('lot')||DATA.lots.find(l=>l.verdict!=='NORMAL')?.lot||DATA.lots[0].lot);
-</script>
+<script src="validation/validation.js" onerror="window.VALIDATION=null"></script>
+<script src="app.js"></script>
 </body>
 </html>
