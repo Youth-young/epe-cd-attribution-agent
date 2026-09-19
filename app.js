@@ -227,6 +227,22 @@ const TERM_SVG_OVERRIDE = {
   }
 };
 
+
+Object.assign(TERM_SVG_OVERRIDE, {
+  wafer: {
+    ko: `<svg viewBox="0 0 340 220" aria-hidden="true"><circle cx="92" cy="92" r="62" fill="#FFFFFF" stroke="#464646" stroke-width="2.5"/><g stroke="#C6907A" stroke-width="1.2"><line x1="44" y1="44" x2="44" y2="140"/><line x1="62" y1="38" x2="62" y2="146"/><line x1="80" y1="34" x2="80" y2="150"/><line x1="98" y1="32" x2="98" y2="152"/><line x1="116" y1="34" x2="116" y2="150"/><line x1="134" y1="38" x2="134" y2="146"/><line x1="152" y1="44" x2="152" y2="140"/><line x1="36" y1="56" x2="148" y2="56"/><line x1="32" y1="74" x2="152" y2="74"/><line x1="30" y1="92" x2="154" y2="92"/><line x1="32" y1="110" x2="152" y2="110"/><line x1="36" y1="128" x2="148" y2="128"/></g><path d="M84 154h16l-8-18z" fill="#464646"/><text x="184" y="76" class="cap" fill="#B6534A">300 mm 웨이퍼</text><text x="184" y="104" class="lbl">• 다이 수백 개가 배치됨</text><text x="184" y="126" class="lbl">• 아래 notch = 정렬 기준</text><text x="36" y="194" class="lbl">격자선은 die 배열 예시</text></svg>`,
+    en: `<svg viewBox="0 0 340 220" aria-hidden="true"><circle cx="92" cy="92" r="62" fill="#FFFFFF" stroke="#464646" stroke-width="2.5"/><g stroke="#C6907A" stroke-width="1.2"><line x1="44" y1="44" x2="44" y2="140"/><line x1="62" y1="38" x2="62" y2="146"/><line x1="80" y1="34" x2="80" y2="150"/><line x1="98" y1="32" x2="98" y2="152"/><line x1="116" y1="34" x2="116" y2="150"/><line x1="134" y1="38" x2="134" y2="146"/><line x1="152" y1="44" x2="152" y2="140"/><line x1="36" y1="56" x2="148" y2="56"/><line x1="32" y1="74" x2="152" y2="74"/><line x1="30" y1="92" x2="154" y2="92"/><line x1="32" y1="110" x2="152" y2="110"/><line x1="36" y1="128" x2="148" y2="128"/></g><path d="M84 154h16l-8-18z" fill="#464646"/><text x="184" y="76" class="cap" fill="#B6534A">300 mm wafer</text><text x="184" y="104" class="lbl">• carries hundreds of die</text><text x="184" y="126" class="lbl">• bottom notch = alignment reference</text><text x="38" y="194" class="lbl">Grid shows an example die layout</text></svg>`
+  },
+  field: {
+    ko: `<svg viewBox="0 0 340 220" aria-hidden="true"><circle cx="92" cy="102" r="66" fill="none" stroke="#E7CFC4" stroke-width="2"/><g stroke="#464646" stroke-width="1.5"><rect x="44" y="54" width="24" height="24" fill="#FFFFFF"/><rect x="68" y="54" width="24" height="24" fill="#F7E5DB"/><rect x="92" y="54" width="24" height="24" fill="#FFFFFF"/><rect x="116" y="54" width="24" height="24" fill="#F7E5DB"/><rect x="32" y="78" width="24" height="24" fill="#FFFFFF"/><rect x="56" y="78" width="24" height="24" fill="#F7E5DB"/><rect x="80" y="78" width="24" height="24" fill="#FFFFFF"/><rect x="104" y="78" width="24" height="24" fill="#F7E5DB"/><rect x="128" y="78" width="24" height="24" fill="#FFFFFF"/><rect x="44" y="102" width="24" height="24" fill="#F7E5DB"/><rect x="68" y="102" width="24" height="24" fill="#FFFFFF"/><rect x="92" y="102" width="24" height="24" fill="#F7E5DB"/><rect x="116" y="102" width="24" height="24" fill="#FFFFFF"/><rect x="56" y="126" width="24" height="24" fill="#FFFFFF"/><rect x="80" y="126" width="24" height="24" fill="#F7E5DB"/><rect x="104" y="126" width="24" height="24" fill="#FFFFFF"/></g><text x="182" y="76" class="cap" fill="#55639A">한 칸 = 1회 노광 field</text><text x="182" y="102" class="lbl">• 26 × 33 mm 예시</text><text x="182" y="124" class="lbl">• 진한 칸 = 측정한 field</text><text x="182" y="146" class="lbl">• center / mid / edge 포함</text><text x="34" y="196" class="lbl">웨이퍼 반경 방향으로 9개 field 표본</text></svg>`,
+    en: `<svg viewBox="0 0 340 220" aria-hidden="true"><circle cx="92" cy="102" r="66" fill="none" stroke="#E7CFC4" stroke-width="2"/><g stroke="#464646" stroke-width="1.5"><rect x="44" y="54" width="24" height="24" fill="#FFFFFF"/><rect x="68" y="54" width="24" height="24" fill="#F7E5DB"/><rect x="92" y="54" width="24" height="24" fill="#FFFFFF"/><rect x="116" y="54" width="24" height="24" fill="#F7E5DB"/><rect x="32" y="78" width="24" height="24" fill="#FFFFFF"/><rect x="56" y="78" width="24" height="24" fill="#F7E5DB"/><rect x="80" y="78" width="24" height="24" fill="#FFFFFF"/><rect x="104" y="78" width="24" height="24" fill="#F7E5DB"/><rect x="128" y="78" width="24" height="24" fill="#FFFFFF"/><rect x="44" y="102" width="24" height="24" fill="#F7E5DB"/><rect x="68" y="102" width="24" height="24" fill="#FFFFFF"/><rect x="92" y="102" width="24" height="24" fill="#F7E5DB"/><rect x="116" y="102" width="24" height="24" fill="#FFFFFF"/><rect x="56" y="126" width="24" height="24" fill="#FFFFFF"/><rect x="80" y="126" width="24" height="24" fill="#F7E5DB"/><rect x="104" y="126" width="24" height="24" fill="#FFFFFF"/></g><text x="182" y="76" class="cap" fill="#55639A">One cell = one exposure field</text><text x="182" y="102" class="lbl">• 26 × 33 mm example</text><text x="182" y="124" class="lbl">• dark cells = sampled fields</text><text x="182" y="146" class="lbl">• centre / mid / edge included</text><text x="38" y="196" class="lbl">Nine sampled fields across the wafer radius</text></svg>`
+  },
+  cd: {
+    ko: `<svg viewBox="0 0 340 230" aria-hidden="true"><rect x="40" y="62" width="42" height="88" fill="#F7E5DB" stroke="#000000" stroke-width="2"/><rect x="132" y="62" width="42" height="88" fill="#F7E5DB" stroke="#000000" stroke-width="2"/><rect x="224" y="62" width="42" height="88" fill="#F7E5DB" stroke="#000000" stroke-width="2"/><path d="M40 42h42" stroke="#B6534A" stroke-width="5"/><path d="M40 30v24M82 30v24" stroke="#B6534A" stroke-width="4"/><text x="54" y="24" class="cap" fill="#B6534A">CD</text><path d="M82 178h50" stroke="#464646" stroke-width="5"/><path d="M82 166v24M132 166v24" stroke="#464646" stroke-width="4"/><text x="90" y="212" class="cap" fill="#464646">space</text><path d="M40 202h92" stroke="#B6534A" stroke-width="5"/><path d="M40 190v24M132 190v24" stroke="#B6534A" stroke-width="4"/><text x="156" y="206" class="cap" fill="#B6534A">pitch = CD + space (fixed)</text><text x="184" y="98" class="lbl">CD가 커지면</text><text x="184" y="122" class="lbl">space는 줄어듭니다</text></svg>`,
+    en: `<svg viewBox="0 0 340 230" aria-hidden="true"><rect x="40" y="62" width="42" height="88" fill="#F7E5DB" stroke="#000000" stroke-width="2"/><rect x="132" y="62" width="42" height="88" fill="#F7E5DB" stroke="#000000" stroke-width="2"/><rect x="224" y="62" width="42" height="88" fill="#F7E5DB" stroke="#000000" stroke-width="2"/><path d="M40 42h42" stroke="#B6534A" stroke-width="5"/><path d="M40 30v24M82 30v24" stroke="#B6534A" stroke-width="4"/><text x="54" y="24" class="cap" fill="#B6534A">CD</text><path d="M82 178h50" stroke="#464646" stroke-width="5"/><path d="M82 166v24M132 166v24" stroke="#464646" stroke-width="4"/><text x="90" y="212" class="cap" fill="#464646">space</text><path d="M40 202h92" stroke="#B6534A" stroke-width="5"/><path d="M40 190v24M132 190v24" stroke="#B6534A" stroke-width="4"/><text x="156" y="206" class="cap" fill="#B6534A">pitch = CD + space (fixed)</text><text x="184" y="98" class="lbl">If CD increases,</text><text x="184" y="122" class="lbl">space decreases.</text></svg>`
+  }
+});
+
 function glossaryName(key) {
   const x = TERMS[key] || {};
   return LANG === 'en' ? (TERM_EN_NAME[key] || x.e || x.k || key) : (x.k || key);
@@ -329,7 +345,7 @@ const T = {
   'intro.body': ['로트를 고르면 상태 → 변화 → 추정 원인 → 권고 조치 → 기술 근거 순서로 보여줍니다.',
                  'Choose a lot to see status → change → likely cause → recommended action → technical evidence.'],
   'hero.eyebrow':['Semiconductor decision support','Semiconductor decision support'],
-  'hero.title':['CD 이상 원인을 어디서부터 확인해야 할지 빠르게 좁혀보세요','Narrow a CD excursion to the right module—fast'],
+  'hero.title':['CD 이상 원인을 어디서부터 확인해야 할지 빠르게 좁혀보세요','Quickly narrow where to inspect first for a CD excursion'],
   'hero.body1':['로트를 고르면','Choose a lot and read it in this order:'],
   'hero.flow':['상태 → 변화 → 추정 원인 → 권고 조치 → 기술 근거','status → change → likely cause → recommended action → technical evidence'],
   'hero.body2':['순서로 보여줍니다. 처음 보는 사람은 결론부터, 엔지니어는 근거까지 내려가며 확인할 수 있습니다.','First-time users can start with the decision; engineers can drill down to the evidence.'],
@@ -373,6 +389,10 @@ const T = {
   'filter.daymin':['최소 생산일', 'Minimum production day'],
   'filter.daymax':['최대 생산일', 'Maximum production day'],
   'filter.period':['생산 기간 필터', 'Production period filter'],
+  'filter.sort':['정렬 기준', 'Sort order'],
+  'sort.lotdesc':['최신 로트순', 'Latest lot ID first'],
+  'sort.lotasc':['오래된 로트순', 'Oldest lot ID first'],
+  'sort.daydesc':['최신 생산일순', 'Latest production day first'],
   'filter.advanced':['고급 필터', 'Advanced filters'],
   'period.all':['전체 기간', 'All dates'],
   'period.3':['최근 3 생산일', 'Latest 3 production days'],
@@ -666,11 +686,21 @@ const infoBtn = k => k && TERMS[k] ? `<button class="info" type="button" data-t=
 
 /* ── 상태 ─────────────────────────────────────────────────── */
 const S = {view: 'home', lot: null, q: '', abn: true, verdict: '', scanner: '', chamber: '',
-           metro: '', period: 0, queueOpen: false, metric: 'dbias', waf: 'adi'};
+           metro: '', period: 0, sort: 'lotdesc', queueOpen: false, metric: 'dbias', waf: 'adi'};
 const MAX_DAY = Math.max(...DATA.lots.map(l => Number(l.day) || 0));
 
 function outCount(l) { return (l.ev || []).filter(e => e.hit).length; }
 /* 긴 측정값 문자열에서 한눈에 읽을 머리값만 뽑고 나머지는 보조줄로 내린다 */
+function lotSeq(lot) {
+  const m = String(lot || '').match(/(\d+)/);
+  return m ? Number(m[1]) : -1;
+}
+function compareLotsById(a, b, dir = 'desc') {
+  const diff = lotSeq(a.lot) - lotSeq(b.lot);
+  if (diff !== 0) return dir === 'asc' ? diff : -diff;
+  return String(a.lot || '').localeCompare(String(b.lot || ''));
+}
+
 function headline(v) {
   const s = String(v || '').trim();
   if (s.includes('=')) {
@@ -686,7 +716,7 @@ function headline(v) {
 }
 function filtered() {
   const q = S.q.toLowerCase();
-  return DATA.lots.filter(l =>
+  const rows = DATA.lots.filter(l =>
     (!S.abn || l.verdict !== 'NORMAL') &&
     (!S.verdict || l.verdict === S.verdict) &&
     (!S.scanner || l.scanner === S.scanner) &&
@@ -695,8 +725,18 @@ function filtered() {
     (!S.period || l.day >= MAX_DAY - (S.period - 1)) &&
     (!q || [l.lot, l.scanner, l.reticle, l.chamber, l.adiTool, l.aciTool]
       .some(v => String(v || '').toLowerCase().includes(q)))
-  ).sort((a, b) => (a.verdict === 'NORMAL') - (b.verdict === 'NORMAL') || b.day - a.day
-                   || a.lot.localeCompare(b.lot));
+  );
+
+  const sortMode = S.sort || 'lotdesc';
+  return rows.sort((a, b) => {
+    if (sortMode === 'daydesc') {
+      return b.day - a.day || compareLotsById(a, b, 'desc');
+    }
+    if (sortMode === 'lotasc') {
+      return compareLotsById(a, b, 'asc') || b.day - a.day;
+    }
+    return compareLotsById(a, b, 'desc') || b.day - a.day;
+  });
 }
 
 /* ── 필터 UI ──────────────────────────────────────────────── */
@@ -723,6 +763,11 @@ function fillSelects() {
     $('#fPeriod').innerHTML = [
       [0, t('period.all')], [3, t('period.3')], [7, t('period.7')], [14, t('period.14')]
     ].map(([v, label]) => `<option value="${v}"${Number(S.period) === Number(v) ? ' selected' : ''}>${esc(label)}</option>`).join('');
+  }
+  if ($('#fSort')) {
+    $('#fSort').innerHTML = [
+      ['lotdesc', t('sort.lotdesc')], ['lotasc', t('sort.lotasc')], ['daydesc', t('sort.daydesc')]
+    ].map(([v, label]) => `<option value="${v}"${S.sort === v ? ' selected' : ''}>${esc(label)}</option>`).join('');
   }
   const hold = DATA.lots.filter(l => l.verdict === 'INDETERMINATE').length;
   const normal = DATA.lots.filter(l => l.verdict === 'NORMAL').length;
@@ -1255,10 +1300,21 @@ function showView(v) {
   if (v === 'ref' && !drawn.rf) { renderRef(); drawn.rf = 1; }
   hidePop(); scrollTo({top: 0, behavior: 'auto'});
 }
+function applyHeroTitle() {
+  const el = $('#heroTitle');
+  if (!el) return;
+  if (LANG === 'ko') {
+    el.innerHTML = '<span class="keep">CD 이상 원인을</span> <span class="keep">어디서부터 확인해야 할지</span> <span class="keep">빠르게 좁혀보세요</span>';
+  } else {
+    el.innerHTML = '<span class="keep">Quickly narrow</span> <span class="keep">where to inspect first</span> <span class="keep">for a CD excursion</span>';
+  }
+}
+
 function applyLang() {
   document.documentElement.lang = LANG;
   document.title = LANG === 'ko' ? 'CD 이상 원인 분석' : 'CD Excursion Attribution';
   $$('[data-t]').forEach(el => el.textContent = t(el.dataset.t));
+  applyHeroTitle();
   $$('[data-ph]').forEach(el => el.placeholder = t(el.dataset.ph));
   $$('[data-aria]').forEach(el => el.setAttribute('aria-label', t(el.dataset.aria)));
   $$('.lang button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === LANG)));
@@ -1304,8 +1360,9 @@ $('#fScanner').onchange = e => { S.scanner = e.target.value; renderList(); };
 $('#fChamber').onchange = e => { S.chamber = e.target.value; renderList(); };
 $('#fMetro').onchange = e => { S.metro = e.target.value; renderList(); };
 $('#fPeriod').onchange = e => { S.period = Number(e.target.value) || 0; renderList(); };
+$('#fSort').onchange = e => { S.sort = e.target.value || 'lotdesc'; renderList(); };
 $('#fReset').onclick = () => {
-  Object.assign(S, {q: '', abn: false, verdict: '', scanner: '', chamber: '', metro: '', period: 0});
+  Object.assign(S, {q: '', abn: false, verdict: '', scanner: '', chamber: '', metro: '', period: 0, sort: 'lotdesc'});
   $('#q').value = '';
   fillSelects(); renderList();
 };

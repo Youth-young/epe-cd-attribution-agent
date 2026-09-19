@@ -555,6 +555,20 @@ tr.alert td{background:var(--coral-soft)}
   .gvisual svg{max-width:100%}
 }
 
+
+/* ── v2 polish overrides ── */
+.keep{white-space:nowrap}
+.queue-note,.queue-lead,.metric-source,.meta-date{color:var(--ink2)}
+.gcard p,.home-card p,.home-card li,.sub,.flow-step small{color:var(--ink2)}
+.gvisual{overflow:hidden}
+.gvisual svg{display:block;width:100%;max-width:100%;height:auto;overflow:visible}
+@media(max-width:700px){
+  .hero h1{letter-spacing:-.035em}
+  #heroTitle .keep{display:inline}
+  .filters > select,.filters > .chip{flex:1 1 calc(50% - 8px)}
+  .filters > .linkbtn{flex:0 0 auto}
+}
+
 </style>
 </head>
 <body>
@@ -603,7 +617,7 @@ tr.alert td{background:var(--coral-soft)}
   <div class="panel hero" id="introCard">
     <div class="hero-copy">
       <div class="eyebrow" data-t="hero.eyebrow">Semiconductor decision support</div>
-      <h1 data-t="hero.title">CD 이상 원인을 어디서부터 확인해야 할지 빠르게 좁혀보세요</h1>
+      <h1 id="heroTitle"><span class="keep">CD 이상 원인을</span> <span class="keep">어디서부터 확인해야 할지</span> <span class="keep">빠르게 좁혀보세요</span></h1>
       <p><span data-t="hero.body1">로트를 고르면</span> <span class="keypoint" data-t="hero.flow">상태 → 변화 → 추정 원인 → 권고 조치 → 기술 근거</span> <span data-t="hero.body2">순서로 보여줍니다. 처음 보는 사람은 결론부터, 엔지니어는 근거까지 내려가며 확인할 수 있습니다.</span></p>
       <div class="hero-cta">
         <button class="gbtn primary" id="heroStart" data-t="hero.start">로트 검토 시작</button>
@@ -679,6 +693,7 @@ tr.alert td{background:var(--coral-soft)}
         <button class="chip alarm" id="fAbn" aria-pressed="false"></button>
         <select id="fVerdict" data-aria="filter.verdict" aria-label="판정 필터"></select>
         <select id="fPeriod" data-aria="filter.period" aria-label="생산 기간 필터"></select>
+        <select id="fSort" data-aria="filter.sort" aria-label="정렬 기준"></select>
         <button class="linkbtn" id="fReset" data-t="list.reset">초기화</button>
       </div>
       <details class="advanced" id="advancedFilters">
