@@ -121,7 +121,145 @@ const TERM_EN = {
   gate_ok:'Deterministic code re-checked every rule-specific verification condition required for this disposition, and all conditions passed.',
   gate_hold:'One or more required verification conditions were not met, so the system withholds attribution instead of forcing a cause.',
   cdu:'How uniform CD is across the wafer, usually quoted as 3σ. Even on-target on average, poor CDU puts part of the wafer out of spec. About 4.2 nm here.',
+
 };
+
+/* ── English rule copy: UI language never falls back to Korean ── */
+const EN_RULE = {
+  PHOTO_DOSE: {
+    label: 'Exposure dose drift', module: 'Litho',
+    cause: 'The wafer-average ADI CD shifted while the radial, slit and reticle-repeat components stayed inside their limits. That is a wafer-wide mean-shift signature, so a uniform driver should be checked first. If the recipe Setting is stable but the Energy Sensor reading moved, the effective dose has separated from the commanded dose; Dose Mapper / Energy Sensor calibration becomes the first suspect.',
+    action: 'Order matters. (1) Compare the recipe Setting with the Energy Sensor reading. If they disagree, recalibrate the Dose Mapper / Energy Sensor before changing the recipe. (2) Check PM / change history for laser-source replacement, illumination-optics replacement and the latest calibration. (3) Separate a step change from a gradual drift in the Energy Sensor trend. (4) Review source parameters such as pulse-energy stability, E95 bandwidth and illumination transmission. (5) Confirm that Track develop / PEB conditions did not change. (6) Verify recovery with a rework lot while the wafer is still before etch. (7) Put the Energy Sensor reading itself under SPC and add calibration to the change-control checklist after source replacement.'
+  },
+  PHOTO_TRACK_RADIAL: {
+    label: 'Track / PEB radial profile shift', module: 'Litho (Track)',
+    cause: 'The ADI residual shows an out-of-limit radial coefficient: centre-to-edge CD separation increased while the wafer mean remained comparatively stable. A uniform dose shift does not create this pattern. The signature is consistent with a PEB hot-plate temperature profile or radial coating-thickness change, and a normal Delta-CD argues against an etch-originated shift.',
+    action: '(1) Review the Track PEB plate temperature map, including zone setpoints and actual temperatures. (2) Check coater spin profile and radial resist-thickness uniformity. (3) Match the onset against Track PM / calibration / maintenance history. (4) Do not hide a radial signature with scanner dose correction; correcting only the wafer mean can worsen centre-to-edge CDU.'
+  },
+  RETICLE_CD_ERROR: {
+    label: 'Reticle CD error', module: 'Litho (Reticle)',
+    cause: 'The deviation appears at the same in-field site and repeats across fields. Because it is fixed to field coordinates rather than wafer or radial coordinates, the reticle itself is the leading source.',
+    action: '(1) Expose the same reticle on another scanner and check whether the same site repeats. If it follows the reticle, the reticle is implicated; if it follows the scanner, investigate the scanner fingerprint. (2) Review mask CD inspection results and recent clean / repair history. (3) Check pellicle contamination and mask CD degradation. (4) Do not start with scanner dose or etch-recipe correction; a site-fixed signature will not be removed by wafer-wide compensation.'
+  },
+  ETCH_CHAMBER: {
+    label: 'Etch chamber deviation / PM drift', module: 'Etch',
+    cause: 'ADI is normal, but Delta-CD moved and the excursion is concentrated in one chamber with a radial component. The leading causes are plasma-uniformity, gas-flow or ESC-temperature changes, or cumulative chamber drift after PM.',
+    action: '(1) Isolate the chamber and re-measure etch bias with a chamber-matching wafer. (2) Plot bias versus RF hours to separate seasoning drift from a one-time shift, and distinguish the first-wafer-effect region after PM from the slower drift that follows. (3) Review OES, RF and pressure traces for the affected interval. (4) Compare chamber PM / wet-clean timing with the CD change point. (5) ACI is not reworkable; if needed, temporarily adjust the upstream ADI target for subsequent lots and restore it after chamber recovery.'
+  },
+  METROLOGY_TOOL_DRIFT: {
+    label: 'Metrology tool offset drift', module: 'Metrology',
+    cause: 'Delta-CD moved without being confined to one etch chamber, but the shift appears only on lots measured by one metrology tool. A monitor wafer that never saw the process moved in the same direction, which points to metrology offset drift rather than a process change.',
+    action: '(1) Hold process action; changing chamber recipes now can move a healthy process. (2) Review the CD-SEM monitor-wafer history and the latest calibration, then recalibrate. (3) Recalculate the tool-to-tool matching offset. (4) Re-evaluate lots measured by the affected tool during the suspect interval. (5) Consider shortening the monitor-wafer cadence. (6) Decompose TMU into precision and tool-to-tool match; if match dominates, re-align the fleet, and if precision dominates, investigate recipe settings such as frame count, magnification and landing energy as well as tool condition.'
+  },
+  INDETERMINATE: {
+    label: 'Attribution withheld', module: '',
+    cause: 'An excursion was detected, but the evidence is not strong enough to assign a source. Chamber concentration and metrology drift may both fall short of their required conditions, or a required evidence stream may be missing.',
+    action: 'Request more evidence: chamber-matching wafer data, an interim monitor-wafer re-measurement and, where useful, a cross-section taper check. Do not name an action owner without enough evidence.'
+  },
+  NORMAL: {
+    label: 'Normal', module: '',
+    cause: 'All monitored components are within their control limits.',
+    action: 'No action required.'
+  }
+};
+
+/* ── Glossary names and diagram localization ── */
+const TERM_EN_NAME = {
+  excursion:'Excursion', attribution:'Attribution / disposition', wafer:'Wafer', lot:'Lot',
+  photo:'Photolithography (Litho)', etch:'Plasma etch', cd:'CD (Critical Dimension)', pitch:'Pitch',
+  adi:'ADI (After Develop Inspection)', aci:'ACI / AEI (After Clean / Etch Inspection)',
+  epe:'EPE (Edge Placement Error)', overlay:'Overlay', reticle:'Reticle / photomask', field:'Exposure field',
+  chamber:'Etch chamber', golden:'Monitor wafer / golden wafer', cdsem:'CD-SEM', xsem:'Cross-section SEM',
+  dose:'Exposure dose', peb:'PEB (Post Exposure Bake)', delta:'Delta-CD / etch bias', pm:'PM / chamber seasoning',
+  limit:'Control limit', rework:'Rework', metro:'Metrology', skiplot:'Skip-lot sampling', apc:'APC / run-to-run control',
+  tmu:'TMU (Total Measurement Uncertainty)', precision:'Dynamic precision', match:'Tool-to-tool matching',
+  tolerance:'Process tolerance', setting:'Recipe Setting', sensor:'Energy Sensor actual', dosemapper:'Dose Mapper calibration',
+  changepoint:'Change point / maintenance history', ocap:'SPC / OCAP', gate_ok:'Verification passed',
+  gate_hold:'Attribution withheld', tis:'TIS (Tool Induced Shift)', cdu:'CDU (CD Uniformity)'
+};
+
+const SVG_TEXT_EN = {
+  '조치 대상':'Action owner','확정':'confirmed','지름 300 mm':'300 mm diameter','한 장에 die 수백 개':'Hundreds of die per wafer',
+  '아래 노치 = 정렬 기준':'Bottom notch = alignment reference','진한 칸 = 측정 슬롯':'Dark slots = sampled wafers',
+  '조명계 (dose)':'Illumination (dose)','레티클':'Reticle','투영 렌즈 · 1/4 축소':'Projection lens · 4x reduction','웨이퍼 (감광막)':'Wafer (photoresist)',
+  '플라즈마':'Plasma','측벽각(SWA)이 생김':'Sidewall angle (SWA)','폭도 함께 변함':'CD changes with profile',
+  'pitch = CD + space (고정)':'pitch = CD + space (fixed)','CD가 커지면':'If CD increases','space가 줄어든다':'space decreases',
+  'pitch (중심 간 거리)':'pitch (centre-to-centre)','설계가 정하는':'set by design','고정값':'fixed value',
+  '레지스트 패턴 (미식각)':'Resist pattern (pre-etch)','rework 가능 · APC 피드백':'Reworkable · APC feedback','Etch 단계로':'To Etch','진행':'process',
+  '레지스트 제거 · 소자 구조':'Resist removed · device feature','되돌릴 수 없음 · skip-lot 측정':'Not reworkable · skip-lot','최종 결과에 가장 가까움':'Closest to final structure',
+  '위층 패턴':'Upper-layer pattern','EPE = 가장자리 어긋남':'EPE = edge displacement','아래층 패턴':'Lower-layer pattern','EPE = 오버레이 오차 + CD 변동':'EPE = overlay error + CD variation',
+  '아래층 target':'Lower-layer target','위층 target':'Upper-layer target','둘의 차이 = overlay':'Difference = overlay',
+  '레티클 (4배 크기)':'Reticle image (4x)','1/4 축소':'4x → 1x','웨이퍼 field':'Wafer field','한 칸 = 1회 노광 (26×33 mm)':'One cell = one exposure (26×33 mm)',
+  '진한 칸 = 측정 field 9개':'Dark cells = 9 sampled fields','center–mid–edge가':'centre / mid / edge','모두 표본에 들어오도록 배치':'all included in sampling',
+  'RF · 가스 주입':'RF · gas feed','플라즈마 (라디칼)':'Plasma (radicals)','웨이퍼 / ESC (온도 제어)':'Wafer / ESC (temperature control)','벽면 상태가 CD에 영향':'Wall condition shifts CD',
+  '패턴 고정 · 라인 미투입':'Fixed pattern · never returned to line','동일 recipe 반복 측정':'Repeated on a fixed recipe','값이 이동하면 장비 drift':'Movement = tool drift',
+  '전자빔 · top-down':'Electron beam · top-down','edge 사이 = CD':'Edge-to-edge = CD','2차 전자 신호 파형':'Secondary-electron waveform',
+  'TCD (위폭)':'TCD (top CD)','MCD (중간폭)':'MCD (middle CD)','BCD (아래폭) · 목표 90 nm':'BCD (bottom CD) · target 90 nm',
+  'dose ↑ → CD ↓':'dose ↑ → CD ↓','기울기 = dose sensitivity':'slope = dose sensitivity','가열판 온도 분포':'Hot-plate temperature profile',
+  '중심과 엣지의':'Centre-to-edge','온도 차이가':'temperature difference','반경 방향 CD 지문으로':'creates a radial CD','ADI CD':'ADI CD','ACI CD':'ACI CD',
+  '가로 폭이 좁아진 양':'Lateral width change','깊이 변화가':'Not an etch-depth','아님':'measurement','세정 직후 급변':'Step after clean','PM 후 경과 시간 (RF hours)':'Time after PM (RF hours)',
+  '평균 + 3σ':'mean + 3σ','평균 − 3σ':'mean − 3σ','한계 이탈':'out of limit','노광':'Litho','rework (ADI에서만 가능)':'rework (ADI only)',
+  '같은 구조를 재도':'Re-measuring the same structure','장비마다 offset이 다르다':'each tool can have a different offset','→ 측정 장비 ID 기록 필수':'→ tool ID must be recorded',
+  '■ 측정':'■ measured','□ skip':'□ skipped','skip 비율은':'skip rate set by','Cp/Cpk로 결정':'Cp / Cpk','스캐너':'Scanner','ADI 계측':'ADI metrology','보정값 되먹임 (run-to-run)':'Correction fed back (run-to-run)',
+  '예산 20%':'20% budget','반복 측정의 3σ':'3σ of repeated readings','같은 site · 같은 recipe · 5회':'same site · same recipe · 5 repeats',
+  '같은 구조를 재도':'Same structure re-measured','장비에 내리는 지시값':'Command sent to the tool','지시했다는 뜻일 뿐':'A command does not prove','그대로 조사됐다는':'that the same energy','보장은 아니다':'reached the wafer',
+  'Setting 32.0 (고정)':'Setting 32.0 (fixed)','Sensor 실측':'Sensor actual','이 괴리가 실효 dose 오차':'This gap is an effective-dose error','시간':'Time',
+  '계측 몫 (TMU)':'Measurement share (TMU)','공정에 남는 몫':'Budget left for process','공정 허용 예산 T':'Process tolerance T','계측 몫은 20% 이내여야 한다':'Target: TMU ≤ 20% of T',
+  '이 흩어짐이 precision':'This scatter = precision','같은 자리를 3회 반복 측정':'Same site measured 3 times','같은 자리, 다른 값 = match 오차':'Same site, different reading = match error','평균':'mean'
+};
+
+const TERM_SVG_OVERRIDE = {
+  reticle: {
+    ko: `<svg viewBox="0 0 320 180" aria-hidden="true"><rect x="28" y="52" width="96" height="64" rx="2" fill="#FFFFFF" stroke="#464646" stroke-width="2"/><g fill="#000000"><rect x="46" y="70" width="20" height="6"/><rect x="76" y="70" width="20" height="6"/><rect x="46" y="88" width="20" height="6"/><rect x="76" y="88" width="13" height="6"/><rect x="46" y="106" width="28" height="6"/></g><path d="M146 84h50" stroke="#9A6814" stroke-width="3"/><path d="M188 76l13 8-13 8z" fill="#9A6814"/><text x="146" y="66" class="cap" fill="#9A6814">1/4 축소</text><rect x="220" y="68" width="66" height="38" rx="2" fill="#FFFFFF" stroke="#464646" stroke-width="2"/><g fill="#000000"><rect x="232" y="79" width="12" height="4"/><rect x="250" y="79" width="12" height="4"/><rect x="232" y="91" width="12" height="4"/><rect x="250" y="91" width="8" height="4"/></g><text x="28" y="142" class="lbl">레티클 (4배 크기)</text><text x="220" y="132" class="lbl">웨이퍼 field</text></svg>`,
+    en: `<svg viewBox="0 0 320 180" aria-hidden="true"><rect x="28" y="52" width="96" height="64" rx="2" fill="#FFFFFF" stroke="#464646" stroke-width="2"/><g fill="#000000"><rect x="46" y="70" width="20" height="6"/><rect x="76" y="70" width="20" height="6"/><rect x="46" y="88" width="20" height="6"/><rect x="76" y="88" width="13" height="6"/><rect x="46" y="106" width="28" height="6"/></g><path d="M146 84h50" stroke="#9A6814" stroke-width="3"/><path d="M188 76l13 8-13 8z" fill="#9A6814"/><text x="136" y="66" class="cap" fill="#9A6814">4x → 1x reduction</text><rect x="220" y="68" width="66" height="38" rx="2" fill="#FFFFFF" stroke="#464646" stroke-width="2"/><g fill="#000000"><rect x="232" y="79" width="12" height="4"/><rect x="250" y="79" width="12" height="4"/><rect x="232" y="91" width="12" height="4"/><rect x="250" y="91" width="8" height="4"/></g><text x="28" y="142" class="lbl">Reticle image (4x)</text><text x="220" y="132" class="lbl">Wafer field (1x)</text></svg>`
+  },
+  cdsem: {
+    ko: `<svg viewBox="0 0 340 190" aria-hidden="true"><path d="M72 28v30" stroke="#55639A" stroke-width="4"/><path d="M52 58h40L72 94z" fill="none" stroke="#55639A" stroke-width="3"/><rect x="34" y="122" width="78" height="20" fill="#F7E5DB" stroke="#464646" stroke-width="2"/><text x="34" y="162" class="lbl">전자빔 · top-down</text><text x="154" y="54" class="lbl">2차 전자 신호 파형</text><path d="M152 124 L164 78 L182 78 L194 124 L224 124 L236 78 L254 78 L266 124" fill="none" stroke="#000000" stroke-width="3"/><path d="M164 148h72" stroke="#55639A" stroke-width="3"/><path d="M164 140v16M236 140v16" stroke="#55639A" stroke-width="3"/><text x="164" y="174" class="cap" fill="#55639A">edge 사이 = CD</text></svg>`,
+    en: `<svg viewBox="0 0 340 190" aria-hidden="true"><path d="M72 28v30" stroke="#55639A" stroke-width="4"/><path d="M52 58h40L72 94z" fill="none" stroke="#55639A" stroke-width="3"/><rect x="34" y="122" width="78" height="20" fill="#F7E5DB" stroke="#464646" stroke-width="2"/><text x="34" y="162" class="lbl">Electron beam · top-down</text><text x="142" y="54" class="lbl">Secondary-electron waveform</text><path d="M152 124 L164 78 L182 78 L194 124 L224 124 L236 78 L254 78 L266 124" fill="none" stroke="#000000" stroke-width="3"/><path d="M164 148h72" stroke="#55639A" stroke-width="3"/><path d="M164 140v16M236 140v16" stroke="#55639A" stroke-width="3"/><text x="150" y="174" class="cap" fill="#55639A">CD = edge-to-edge distance</text></svg>`
+  },
+  tmu: {
+    ko: `<svg viewBox="0 0 340 190" aria-hidden="true"><rect x="36" y="72" width="220" height="38" rx="3" fill="#FFFFFF" stroke="#E8D7D0" stroke-width="2"/><rect x="36" y="72" width="44" height="38" rx="3" fill="#EEF0F8" stroke="#55639A" stroke-width="2"/><text x="36" y="56" class="cap" fill="#55639A">계측 몫 (TMU)</text><text x="112" y="96" class="lbl">공정에 남는 몫</text><path d="M36 132h220" stroke="#464646" stroke-width="3"/><path d="M36 123v18M256 123v18" stroke="#464646" stroke-width="3"/><text x="104" y="154" class="lbl">공정 허용 예산 T</text><text x="36" y="176" class="cap" fill="#55639A">계측 몫은 20% 이내여야 한다</text></svg>`,
+    en: `<svg viewBox="0 0 340 190" aria-hidden="true"><rect x="36" y="72" width="220" height="38" rx="3" fill="#FFFFFF" stroke="#E8D7D0" stroke-width="2"/><rect x="36" y="72" width="44" height="38" rx="3" fill="#EEF0F8" stroke="#55639A" stroke-width="2"/><text x="36" y="56" class="cap" fill="#55639A">Measurement share (TMU)</text><text x="110" y="96" class="lbl">Budget left for process</text><path d="M36 132h220" stroke="#464646" stroke-width="3"/><path d="M36 123v18M256 123v18" stroke="#464646" stroke-width="3"/><text x="104" y="154" class="lbl">Process tolerance T</text><text x="36" y="176" class="cap" fill="#55639A">Target: TMU ≤ 20% of T</text></svg>`
+  },
+  peb: {
+    ko: `<svg viewBox="0 0 340 200" aria-hidden="true"><defs><radialGradient id="peb-ko" cx="42%" cy="45%" r="60%"><stop offset="0%" stop-color="#F7D9C9"/><stop offset="42%" stop-color="#F7E9D5"/><stop offset="72%" stop-color="#D9EFEA"/><stop offset="100%" stop-color="#B9DDD6"/></radialGradient></defs><circle cx="96" cy="104" r="66" fill="url(#peb-ko)" stroke="#0F766E" stroke-width="2.5"/><circle cx="96" cy="104" r="46" fill="none" stroke="#0F766E" stroke-opacity=".45" stroke-width="1.5"/><circle cx="96" cy="104" r="24" fill="none" stroke="#B6534A" stroke-opacity=".55" stroke-width="1.5"/><text x="48" y="184" class="lbl">가열판 온도 분포</text><text x="190" y="78" class="lbl">중심과 엣지의</text><text x="190" y="100" class="lbl">온도 차이가</text><text x="190" y="124" class="cap" fill="#0F766E">반경 방향 CD 지문</text><text x="190" y="146" class="lbl">으로 나타남</text></svg>`,
+    en: `<svg viewBox="0 0 340 200" aria-hidden="true"><defs><radialGradient id="peb-en" cx="42%" cy="45%" r="60%"><stop offset="0%" stop-color="#F7D9C9"/><stop offset="42%" stop-color="#F7E9D5"/><stop offset="72%" stop-color="#D9EFEA"/><stop offset="100%" stop-color="#B9DDD6"/></radialGradient></defs><circle cx="96" cy="104" r="66" fill="url(#peb-en)" stroke="#0F766E" stroke-width="2.5"/><circle cx="96" cy="104" r="46" fill="none" stroke="#0F766E" stroke-opacity=".45" stroke-width="1.5"/><circle cx="96" cy="104" r="24" fill="none" stroke="#B6534A" stroke-opacity=".55" stroke-width="1.5"/><text x="32" y="184" class="lbl">Hot-plate temperature profile</text><text x="188" y="76" class="lbl">Centre-to-edge</text><text x="188" y="98" class="lbl">temperature difference</text><text x="188" y="124" class="cap" fill="#0F766E">creates a radial</text><text x="188" y="146" class="cap" fill="#0F766E">CD fingerprint</text></svg>`
+  }
+};
+
+function glossaryName(key) {
+  const x = TERMS[key] || {};
+  return LANG === 'en' ? (TERM_EN_NAME[key] || x.e || x.k || key) : (x.k || key);
+}
+function glossarySecondary(key) {
+  const x = TERMS[key] || {};
+  if (LANG === 'en') return '';
+  return x.e || '';
+}
+function glossaryDesc(key) {
+  const x = TERMS[key] || {};
+  return LANG === 'en' && TERM_EN[key] ? TERM_EN[key] : (x.d || '');
+}
+function localizeSvgText(svg) {
+  if (LANG !== 'en' || !svg) return svg || '';
+  return svg.replace(/>([^<>]+)</g, (m, raw) => {
+    const lead = raw.match(/^\s*/)?.[0] || '';
+    const trail = raw.match(/\s*$/)?.[0] || '';
+    const core = raw.trim();
+    return `>${lead}${SVG_TEXT_EN[core] || core}${trail}<`;
+  });
+}
+function glossarySvg(key) {
+  const o = TERM_SVG_OVERRIDE[key];
+  const raw = o ? (LANG === 'en' ? o.en : o.ko) : (TERMS[key]?.s || '');
+  const svg = localizeSvgText(raw);
+  return svg ? `<div class="gvisual">${svg}</div>` : '';
+}
+function glossaryTitleHtml(key, tag='h3') {
+  const sec = glossarySecondary(key);
+  return `<${tag}>${esc(glossaryName(key))}${sec ? `<span class="en">${esc(sec)}</span>` : ''}</${tag}>`;
+}
+
 const KO_RULE = {"PHOTO_DOSE": {"label": "노광 dose drift", "risk": "정상", "module": "Photo", "cause": "웨이퍼 평균 ADI CD가 통째로 이동했고, 반경 성분·슬릿 지문·레티클 반복 성분은 모두 관리 한계 안이다. 즉 어긋남이 웨이퍼 특정 위치에 몰리지 않고 전면에 균일하게 걸린 형태(wafer mean shift)이며, 이는 웨이퍼 전체에 동일하게 작용하는 인자의 지문이다. 노광량(dose)이 여기에 해당한다. Setting값(Recipe Input)은 유지되어 있는데 Energy Sensor 실측값만 이탈했다면 실효 dose와 Setting 사이에 괴리가 생긴 것이고, 이는 Dose Mapper / Energy Sensor Calibration 이탈을 먼저 의심해야 하는 상황이다.", "action": "순서가 중요하다. (1) Setting값과 Energy Sensor 실측값의 괴리부터 확인한다. 괴리가 있으면 Recipe를 건드리기 전에 Dose Mapper / Energy Sensor Calibration을 재수행한다. Setting만 조정하면 실효 dose는 그대로여서 재발한다. (2) PM / Inform 이력에서 해당 시점의 변경점을 조회한다 — Laser Source 교체, 조명계 광학 부품 교체, 최근 Calibration 수행 일자. CD 변화 시점과 일치하는 변경점이 있으면 1차 유력 원인으로 지목한다. (3) Energy Sensor 시계열이 단발성 step 변화인지 지속 drift인지 구분한다. step이면 변경점 연계, drift면 센서 열화·오염을 본다. (4) 광원 특성 파라미터를 함께 조회한다 — Pulse Energy Stability(Energy Sigma), Bandwidth(E95), 조명계 Transmission Efficiency. Source 교체 후 파장 특성이 달라지면 같은 Setting에서도 실효 dose가 달라진다. (5) Track 측 Develop / PEB 조건에 변경점이 없음을 확인해 Photo 원인 귀속의 배제 근거를 확보한다. (6) 조치 후 rework lot으로 Before/After CD 회복 여부를 검증한다. ADI 시점이므로 스펙 이탈 웨이퍼는 아직 rework window 안에 있다. (7) 재발 방지 — Energy Sensor 실측값에 SPC 관리도를 걸고 Setting 대비 편차가 한계를 넘으면 알람이 뜨는 OCAP을 수립한다. Source 교체를 Change Control Checklist에 Calibration 필수 항목으로 반영한다."}, "PHOTO_TRACK_RADIAL": {"label": "트랙/PEB 반경 프로파일 변화", "risk": "주의", "module": "Photo(Track)", "cause": "ADI 잔차를 (r/R)²로 회귀했을 때 반경 계수가 관리 한계를 넘었다. 웨이퍼 중심과 엣지의 CD 차이가 벌어진 형태이고, 웨이퍼 평균 자체는 크게 움직이지 않았다. dose처럼 전면에 균일하게 걸리는 인자로는 이 모양이 나오지 않는다. PEB plate 온도 프로파일이나 코팅 두께의 반경 분포가 바뀐 형태이며, ΔCD(etch bias)는 정상이므로 Etch 이후 요인은 배제된다.", "action": "(1) 해당 Track의 PEB plate 온도 맵(zone별 설정값과 실측값)을 조회한다. zone 히터 이상이나 온도 보정 테이블 변경 이력이 있는지 본다. (2) 코터 회전 프로파일과 레지스트 도포 두께의 반경 분포를 확인한다. (3) Track PM / Inform 이력에서 해당 시점의 변경점을 조회한다. (4) 반경 성분은 스캐너 dose 보정으로 상쇄되지 않는다. wafer mean만 맞추는 R2R 피드백으로 덮으면 중심과 엣지가 반대 방향으로 벌어져 CDU가 더 나빠진다. dose 보정으로 대응하지 말 것."}, "RETICLE_CD_ERROR": {"label": "레티클 CD 오차", "risk": "주의", "module": "Photo(Reticle)", "cause": "특정 site에서만 편차가 나타나고 모든 field에서 동일하게 반복된다. 웨이퍼·반경 좌표계와 무관하므로 마스크 자체의 CD 오차로 귀속된다.", "action": "(1) 해당 레티클을 다른 스캐너에서 노광해 동일 site에서 같은 편차가 재현되는지 확인한다. 재현되면 레티클, 스캐너를 따라가면 스캐너 지문이다. (2) 마스크 CD 측정 성적서와 최근 세정·수리 이력을 조회한다. (3) Pellicle 오염이나 마스크 CD 열화 가능성을 함께 본다. (4) 스캐너 dose나 Etch recipe를 먼저 건드리지 말 것. 이 성분은 site에 고정되어 있어 전면 보정으로는 상쇄되지 않는다."}, "ETCH_CHAMBER": {"label": "식각 챔버 편차 / PM drift", "risk": "위험", "module": "Etch", "cause": "ADI는 정상인데 ΔCD가 이동했고, 특정 챔버에서만 나타나며 웨이퍼 반경 성분을 동반한다. 플라즈마 균일도·가스 흐름·ESC 온도 변화 또는 PM 이후 누적 drift로 귀속된다.", "action": "(1) 해당 챔버를 격리하고 chamber matching 웨이퍼로 etch bias를 재측정한다. (2) RF hours 대비 bias 추이를 확인해 seasoning drift인지 단발성 이상인지 가른다. PM 직후 급변(first wafer effect) 구간과 그 이후 완만한 drift 구간을 구분해서 본다. (3) OES / RF / 압력 트레이스에서 해당 기간의 변화점을 조회한다. (4) 챔버 PM 이력과 wet clean 일자를 CD 변화 시점과 대조한다. (5) ACI는 되돌릴 수 없다. 이후 로트는 ADI Target을 임시 보정해 최종 CD를 스펙 안으로 넣고, 챔버 조치 완료 후 원복한다."}, "METROLOGY_TOOL_DRIFT": {"label": "계측 장비 offset drift", "risk": "위험", "module": "Metrology", "cause": "ΔCD가 이동했지만 특정 챔버에 몰리지 않고, 특정 계측 장비로 측정한 로트에서만 나타난다. 공정이 건드리지 않은 monitor wafer의 재측정값이 같은 방향으로 이동했으므로 공정 변화가 아니라 계측 장비의 offset drift다.", "action": "(1) 공정 조치를 보류한다. 이 상태에서 챔버 recipe를 건드리면 정상 설비를 틀어놓게 된다. (2) 해당 CD-SEM의 monitor wafer 재측정 이력과 최근 calibration 일자를 조회하고 재캘리브레이션을 수행한다. (3) 두 장비의 tool-to-tool matching offset을 재산출한다. (4) 영향 기간에 해당 장비로 측정된 로트를 모두 재판정한다. (5) monitor wafer 점검 주기를 단축할지 검토한다. 이번 사례에서 판정 보류가 발생한 원인이 감시 주기 부족이었다. (6) TMU 항을 분해해 precision과 tool-to-tool match 중 어느 쪽이 예산을 먹는지 본다. match가 주범이면 fleet matching 재조정, precision이 주범이면 recipe(프레임 수, 배율, landing energy)나 장비 컨디션을 본다."}, "INDETERMINATE": {"label": "판정 보류", "risk": "주의", "module": "-", "cause": "이상은 탐지되었으나 원인을 특정할 증거가 부족하다. 챔버 편중과 계측 drift가 모두 기준에 못 미치거나, 근거 데이터가 없는 경우다.", "action": "추가 측정 요청 — 해당 챔버 매칭 웨이퍼, monitor wafer 임시 재측정, 단면 taper 확인. 근거 없이 조치 대상을 지정하지 않는다."}, "NORMAL": {"label": "정상", "risk": "정상", "module": "-", "cause": "모든 성분이 관리 한계 내에 있다.", "action": "조치 없음."}};
 /* ============================================================
    CD 이상 원인 분석 — 화면 로직
@@ -451,11 +589,20 @@ const REASON_KO = {
   'The final call is constrained by the deterministic Verification Gate, not the LLM/planner.': '최종 판정은 LLM이 아니라 결정론적 검증 게이트가 결정한다.',
 };
 const ruleOf = v => (typeof KO_RULE !== 'undefined' ? KO_RULE[v] : null);
-const verdictLabel = l => LANG === 'ko' ? (VERDICT_KO[l.verdict] || l.label) : l.label;
+const enRuleOf = v => EN_RULE[v] || null;
+const verdictLabel = l => LANG === 'ko' ? (VERDICT_KO[l.verdict] || l.label) : (enRuleOf(l.verdict)?.label || l.label || l.verdict);
 const shortLabel = v => SHORT[LANG][v] || v;
 const riskLabel = r => LANG === 'ko' ? (RISK_KO[r] || r) : r;
-const causeText = l => LANG === 'ko' ? (ruleOf(l.verdict)?.cause || l.cause) : l.cause;
-const actionText = l => LANG === 'ko' ? (ruleOf(l.verdict)?.action || l.action) : l.action;
+const causeText = l => LANG === 'ko' ? (ruleOf(l.verdict)?.cause || l.cause) : (enRuleOf(l.verdict)?.cause || l.cause);
+const actionText = l => LANG === 'ko' ? (ruleOf(l.verdict)?.action || l.action) : (enRuleOf(l.verdict)?.action || l.action);
+const moduleText = l => {
+  if (!l?.module || l.module === '-') return '';
+  return LANG === 'ko' ? (MODULE_KO[l.module] || l.module) : (enRuleOf(l.verdict)?.module || l.module);
+};
+const verdictHeading = l => {
+  const v = verdictLabel(l), m = moduleText(l);
+  return m ? `${v} · ${m}` : v;
+};
 const gateLabel = c => LANG === 'ko' ? (GATE_KO[c]?.[0] || c) : (GATE_KO[c]?.[1] || c);
 const toolLabel = k => LANG === 'ko' ? (TOOL_KO[k]?.[0] || k) : (TOOL_KO[k]?.[1] || k);
 const reasonText = r => LANG === 'ko' ? (REASON_KO[r] || r) : r;
@@ -481,8 +628,8 @@ function showPop(html, anchor) {
 const hidePop = () => { pop.style.display = 'none'; };
 function termHTML(key) {
   const x = TERMS[key]; if (!x) return '';
-  const d = LANG === 'en' && TERM_EN[key] ? TERM_EN[key] : x.d;
-  return `<h4>${esc(x.k)}<span class="en">${esc(x.e)}</span></h4><p>${esc(d)}</p>${x.s || ''}`;
+  const sec = glossarySecondary(key);
+  return `<h4>${esc(glossaryName(key))}${sec ? `<span class="en">${esc(sec)}</span>` : ''}</h4><p>${esc(glossaryDesc(key))}</p>${glossarySvg(key)}`;
 }
 document.addEventListener('mouseover', e => {
   const el = e.target.closest('.term,.info,.verify-tip'); if (el) showPop(termHTML(el.dataset.t), el);
@@ -652,7 +799,7 @@ function openLot(id, push = true) {
 
   <div class="dsec"><h3>${esc(t('d.changed'))}</h3><p>${esc(changed)}</p></div>
   <div class="dsec"><h3>${esc(t('d.cause'))}</h3>
-    <p><b style="color:${COLOR[l.verdict]}">${esc(verdictLabel(l))}</b>${l.module && l.module !== '-' ? ' · ' + esc(LANG === 'ko' ? (MODULE_KO[l.module] || l.module) : l.module) : ''}</p>
+    <p class="cause-title"><b style="color:${COLOR[l.verdict]}">${esc(verdictHeading(l))}</b></p>
     <p class="cause" style="margin-top:6px">${esc(causeText(l))}</p></div>
   <div class="dsec"><h3>${esc(t('d.act'))}</h3>
     ${A.steps.length
@@ -993,11 +1140,9 @@ function renderGlossary() {
   $('#gcats').innerHTML = Object.entries(GCAT).map(([k, v]) =>
     `<button class="chip" data-g="${k}" aria-pressed="${k === gcat}">${esc(LANG === 'ko' ? v.ko : v.en)}</button>`).join('');
   $$('#gcats [data-g]').forEach(b => b.onclick = () => { gcat = b.dataset.g; renderGlossary(); });
-  $('#glist').innerHTML = GCAT[gcat].keys.filter(k => TERMS[k]).map(k => {
-    const x = TERMS[k], d = LANG === 'en' && TERM_EN[k] ? TERM_EN[k] : x.d;
-    return `<div class="gcard"><h3>${esc(x.k)}<span class="en">${esc(x.e)}</span></h3>
-      <p>${esc(d)}</p>${x.s || ''}</div>`;
-  }).join('');
+  $('#glist').innerHTML = GCAT[gcat].keys.filter(k => TERMS[k]).map(k =>
+    `<div class="gcard">${glossaryTitleHtml(k)}<p>${esc(glossaryDesc(k))}</p>${glossarySvg(k)}</div>`
+  ).join('');
 }
 
 /* ── 기준값 ───────────────────────────────────────────────── */
@@ -1024,9 +1169,9 @@ function renderRef() {
   $('#ruleList').innerHTML = DATA.rules.map(r => {
     const k = ruleOf(r.id);
     return `<div class="mini" style="grid-template-columns:1fr">
-      <div><b>${esc(LANG === 'ko' && k ? k.label : r.label)}</b>
-      <small>${esc(r.id)} · ${esc(LANG === 'ko' && k ? k.module : r.module)}</small>
-      <p class="sub" style="margin-top:7px;max-width:90ch">${esc(LANG === 'ko' && k ? k.cause : r.cause)}</p></div></div>`;
+      <div><b>${esc(LANG === 'ko' && k ? k.label : (EN_RULE[r.id]?.label || r.label))}</b>
+      <small>${esc(r.id)}${(LANG === 'ko' ? (k?.module || r.module) : (EN_RULE[r.id]?.module || r.module || '')) ? ' · ' + esc(LANG === 'ko' ? (k?.module || r.module) : (EN_RULE[r.id]?.module || r.module)) : ''}</small>
+      <p class="sub" style="margin-top:7px;max-width:90ch">${esc(LANG === 'ko' && k ? k.cause : (EN_RULE[r.id]?.cause || r.cause))}</p></div></div>`;
   }).join('');
 }
 
