@@ -311,9 +311,9 @@ const SHORT = {
 const RISK_KO = {Normal:'정상', Watch:'주의', High:'위험'};
 const MODULE_KO = {Photo:'Photo(노광)', 'Photo (Track)':'Photo(Track)', 'Photo (Reticle)':'Photo(레티클)',
   Etch:'Etch(식각)', Metrology:'Metrology(계측)'};
-const COLOR = {NORMAL:'#464646', PHOTO_DOSE:'#2B003F', PHOTO_TRACK_RADIAL:'#2B003F',
-  RETICLE_CD_ERROR:'#2B003F', ETCH_CHAMBER:'#000000', METROLOGY_TOOL_DRIFT:'#464646',
-  INDETERMINATE:'#2B003F'};
+const COLOR = {NORMAL:'#0F766E', PHOTO_DOSE:'#6B3C7A', PHOTO_TRACK_RADIAL:'#55639A',
+  RETICLE_CD_ERROR:'#55639A', ETCH_CHAMBER:'#B6534A', METROLOGY_TOOL_DRIFT:'#0F766E',
+  INDETERMINATE:'#9A6814'};
 const BCLASS = {Normal:'b-ok', Watch:'b-watch', High:'b-bad'};
 /* 상단은 3단계 상태로 단순화하고, 세부 verdict는 근거 영역에서 그대로 보존한다. */
 function status3(l) {
@@ -967,7 +967,7 @@ function renderValidation() {
     ? `<thead><tr><th>${LANG === 'ko' ? '주입한 이상' : 'Injected'}</th>${preds.map(p => `<th class="num">${esc(name[p] || p)}</th>`).join('')}</tr></thead>
        <tbody>${Object.keys(c).sort().map(r => `<tr><td>${esc(name[r] || r)}</td>${preds.map(p => {
          const v = c[r][p] || 0;
-         return `<td class="num" style="${r === p ? 'font-weight:700' : v ? 'color:#2B003F' : 'color:#464646'}">${v}</td>`;
+         return `<td class="num" style="${r === p ? 'font-weight:700;color:#0F766E' : v ? 'color:#B6534A;font-weight:600' : 'color:#8A8088'}">${v}</td>`;
        }).join('')}</tr>`).join('')}</tbody>`
     : `<tbody><tr><td class="sub">${LANG === 'ko' ? '검증 데이터를 불러오지 못했습니다.' : 'Validation data unavailable.'}</td></tr></tbody>`;
   const sm = VAL?.summary || {};

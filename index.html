@@ -303,6 +303,107 @@ pre.rawjson{background:var(--sunk);border:1px solid var(--line2);border-radius:8
 .kpi b{display:block;font-size:23px;font-weight:600;font-family:"IBM Plex Mono",monospace}
 .kpi small{color:var(--muted);font-size:12px}
 footer{border-top:1px solid var(--line);padding:22px 0 50px;color:var(--ink2);font-size:12.5px}
+
+
+/* ── Semantic accent palette · 2026-09 final ──────────────────────
+   Base palette stays anchored in #2B003F / #464646 / #FFFFFF / #FFEEE5 / #000000.
+   Additional accents are deliberately muted so color communicates meaning rather than decoration. */
+:root{
+  --plum:#6B3C7A; --plum-soft:#F3ECF6;
+  --teal:#0F766E; --teal-soft:#E7F3F1;
+  --indigo:#55639A; --indigo-soft:#EEF0F8;
+  --amber:#9A6814; --amber-soft:#FFF3DA;
+  --coral:#B6534A; --coral-soft:#FCE9E5;
+  --ok:var(--teal); --okbg:var(--teal-soft);
+  --bad:var(--coral); --badbg:var(--coral-soft);
+  --hold:var(--indigo);
+  --cold:var(--indigo); --hot:var(--coral);
+}
+
+/* Brand is the navigation/current-location color. Semantic colors are reserved for meaning. */
+.mark{background:var(--brand)}
+nav button[aria-current=page]{background:linear-gradient(180deg,var(--plum-soft),rgba(243,236,246,.45));color:var(--brand)}
+.currentloc{background:var(--plum-soft);padding:2px 7px;border-radius:6px}
+
+/* Home: varied accents establish hierarchy without turning the page into a rainbow. */
+.hero{background:
+  radial-gradient(circle at 92% 10%,rgba(107,60,122,.12),transparent 28%),
+  radial-gradient(circle at 78% 88%,rgba(15,118,110,.10),transparent 30%),
+  linear-gradient(135deg,#FFFFFF 0%,#FFF7F2 58%,#F2F8F7 100%)}
+.hero::before{content:"";position:absolute;width:230px;height:230px;border-radius:50%;left:-135px;bottom:-135px;background:rgba(85,99,154,.08);pointer-events:none}
+.eyebrow{background:var(--plum-soft);color:var(--plum)}
+.hero-stat:nth-child(1) strong{color:var(--brand)}
+.hero-stat:nth-child(2) strong{color:var(--teal)}
+.hero-stat:nth-child(3) strong{color:var(--indigo)}
+.flow-step:nth-child(1) .num{background:var(--brand)}
+.flow-step:nth-child(2) .num{background:var(--teal)}
+.flow-step:nth-child(3) .num{background:var(--indigo)}
+.flow-step:nth-child(1){border-left:3px solid var(--brand)}
+.flow-step:nth-child(2){border-left:3px solid var(--teal)}
+.flow-step:nth-child(3){border-left:3px solid var(--indigo)}
+.home-card{position:relative;overflow:hidden;background:#fff}
+.home-card::before{content:"";position:absolute;left:0;top:0;right:0;height:4px;background:var(--brand)}
+.home-card:nth-child(1)::before{background:var(--indigo)}
+.home-card:nth-child(2)::before{background:var(--plum)}
+.home-card:nth-child(3)::before{background:var(--teal)}
+.home-card:nth-child(1) .kicker,.home-card:nth-child(1) strong{color:var(--indigo)}
+.home-card:nth-child(2) .kicker,.home-card:nth-child(2) strong{color:var(--plum)}
+.home-card:nth-child(3) .kicker,.home-card:nth-child(3) strong{color:var(--teal)}
+
+/* State colors: teal=clear/verified, amber=review, coral=action, indigo=withheld/info. */
+.b-ok,.p-ok,.s-ok{background:var(--teal-soft);color:var(--teal)}
+.b-watch,.p-review,.s-near{background:var(--amber-soft);color:var(--amber)}
+.b-bad,.p-action,.s-bad{background:var(--coral-soft);color:var(--coral)}
+.b-hold{background:var(--indigo-soft);color:var(--indigo)}
+.b-gate,.p-verify{background:var(--indigo-soft);color:var(--indigo);border-color:rgba(85,99,154,.24)}
+.chip.alarm[aria-pressed=true]{background:var(--coral);border-color:var(--coral);color:#fff}
+.allclear{background:var(--teal-soft);border-color:rgba(15,118,110,.20);color:var(--teal)}
+.outcard{border-color:var(--coral);background:var(--coral-soft)}
+.outcard .k,.bad{color:var(--coral)}
+tr.alert td{background:var(--coral-soft)}
+
+/* Detail reading order gets its own accent per decision stage. */
+.decision{border-top:4px solid var(--brand)}
+.decision .dsec{position:relative;padding-left:16px}
+.decision .dsec::before{content:"";position:absolute;left:0;top:17px;bottom:17px;width:3px;border-radius:3px;background:var(--indigo)}
+.decision .dsec:nth-of-type(3)::before{background:var(--plum)}
+.decision .dsec:nth-of-type(4)::before{background:var(--teal)}
+.decision .dsec:nth-of-type(2) h3{color:var(--indigo)}
+.decision .dsec:nth-of-type(3) h3{color:var(--plum)}
+.decision .dsec:nth-of-type(4) h3{color:var(--teal)}
+.actnote{background:var(--teal-soft);border-color:rgba(15,118,110,.18)}
+.jump .gbtn:first-child{color:var(--indigo);border-color:rgba(85,99,154,.25)}
+.jump .gbtn:nth-child(2){color:var(--plum);border-color:rgba(107,60,122,.25)}
+
+/* Technical evidence: diverging scale uses cool→neutral→warm rather than gray→purple. */
+.heat .bar{background:linear-gradient(90deg,var(--indigo),#F7F4F2 50%,var(--coral))}
+.step::before{background:var(--indigo)}
+.tracehead{background:linear-gradient(90deg,var(--indigo-soft),#fff)}
+
+/* Glossary: repeated cards rotate through four restrained semantic accents. */
+.gcard{--tone:var(--brand);--tone-soft:var(--plum-soft);position:relative;overflow:hidden;background:linear-gradient(180deg,var(--tone-soft) 0 6px,#fff 6px 100%);border-color:rgba(70,70,70,.14);box-shadow:0 5px 18px rgba(43,0,63,.035)}
+.gcard:nth-child(4n+1){--tone:var(--coral);--tone-soft:var(--coral-soft)}
+.gcard:nth-child(4n+2){--tone:var(--teal);--tone-soft:var(--teal-soft)}
+.gcard:nth-child(4n+3){--tone:var(--indigo);--tone-soft:var(--indigo-soft)}
+.gcard:nth-child(4n+4){--tone:var(--amber);--tone-soft:var(--amber-soft)}
+.gcard h3{color:var(--tone)}
+.gcard .en{color:var(--ink2)}
+.gcard svg [stroke="#2B003F"]{stroke:var(--tone)!important}
+.gcard svg [fill="#2B003F"]{fill:var(--tone)!important}
+.gcard svg text[fill="#2B003F"]{fill:var(--tone)!important}
+
+/* KPI values and validation cells get restrained accents for scanability. */
+.kpi div:nth-child(4n+1) b{color:var(--brand)}
+.kpi div:nth-child(4n+2) b{color:var(--teal)}
+.kpi div:nth-child(4n+3) b{color:var(--indigo)}
+.kpi div:nth-child(4n+4) b{color:var(--amber)}
+
+/* Interactive emphasis is color + shape/weight, never color alone. */
+.gbtn.primary{background:var(--brand);border-color:var(--brand)}
+.gbtn.primary:hover{background:var(--plum);border-color:var(--plum)}
+.linkbtn:hover,.term:hover,.info:hover{color:var(--plum)}
+:focus-visible{outline-color:var(--indigo)}
+
 </style>
 </head>
 <body>
