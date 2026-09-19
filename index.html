@@ -23,6 +23,11 @@ body{margin:0;background:var(--page);color:var(--ink);
   font-family:"IBM Plex Sans KR",-apple-system,"Segoe UI",sans-serif;font-weight:350;
   font-size:15px;line-height:1.7;overflow-wrap:break-word}
 .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.skip{position:absolute;left:-9999px;top:8px;z-index:100;background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none}
+.skip:focus{left:16px}
+.announce{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
 h1,h2,h3,h4{margin:0;line-height:1.3;font-weight:600;letter-spacing:-.012em}
 p{margin:0 0 .7em}p:last-child{margin:0}
 button,input,select{font:inherit;color:inherit}
@@ -38,6 +43,10 @@ header{background:var(--panel);border-bottom:1px solid var(--line);position:stic
   display:grid;place-items:center;font-size:12px;font-weight:600;letter-spacing:.04em}
 .brand b{display:block;font-size:15.5px;font-weight:600}
 .brand span{display:block;font-size:11.5px;color:var(--muted);line-height:1.4}
+.homebtn{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 11px;cursor:pointer;color:var(--ink2);font-size:12.5px;white-space:nowrap}
+.homebtn:hover{background:var(--sunk)}
+.homebtn svg{width:15px;height:15px}
+
 .search{flex:1;position:relative;min-width:120px}
 .search input{width:100%;border:1px solid var(--line);background:var(--sunk);
   padding:9px 13px 9px 36px;font-size:14px;border-radius:9px}
@@ -46,6 +55,7 @@ header{background:var(--panel);border-bottom:1px solid var(--line);position:stic
 .lang{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex:0 0 auto}
 .lang button{border:0;background:none;padding:7px 12px;cursor:pointer;font-size:12.5px;
   color:var(--muted)}
+.lang button,.homebtn,.gbtn,.chip,nav button{min-height:40px}
 .lang button[aria-pressed=true]{background:var(--ink);color:#fff;font-weight:500}
 nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin-top:10px}
 nav::-webkit-scrollbar{display:none}
@@ -64,6 +74,42 @@ main{padding:24px 0 80px}
 .panel h3{font-size:15px}
 .sub{color:var(--muted);font-size:12.5px}
 @media(max-width:700px){.panel{padding:18px 16px;border-radius:10px}}
+
+/* ── 정보 계층 / 접근성 ── */
+.intro{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:22px;align-items:center;background:linear-gradient(135deg,#fff 0%,#F7F3F8 100%)}
+.intro h1{font-size:clamp(21px,2.6vw,30px);margin-bottom:8px}
+.intro p{color:var(--ink2);max-width:78ch}
+.quick{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 16px}
+.pill{display:inline-flex;align-items:center;padding:5px 15px;border-radius:999px;font-size:13.5px;font-weight:600;border:0}
+.p-ok{background:var(--okbg);color:var(--ok)}
+.p-review{background:#F1ECF3;color:var(--hold)}
+.p-action{background:var(--badbg);color:var(--bad)}
+.p-verify{background:var(--sunk);color:var(--muted);border:1px solid var(--line);font-weight:500;border-bottom:1.5px dotted var(--brand);cursor:help}
+.asof{margin-top:10px;font-size:12px;color:var(--muted)}
+.decision .dsec{padding:16px 0;border-top:1px solid var(--line2)}
+.decision .dsec h3{font-size:12.5px;color:var(--muted);font-weight:500;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px}
+.decision .dsec p{font-size:15.5px;color:var(--ink)}
+.decision .dsec p.cause{font-size:14.5px;color:var(--ink2)}
+.jump{display:flex;gap:8px;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--line2)}
+td .pl{font-weight:500}
+td .tech{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+td.src{font-size:12px;color:var(--muted);white-space:nowrap}
+.s-near{background:#F6F1E9;color:var(--photo)}
+.bad{color:var(--bad)}
+.evidence-note{margin:4px 0 14px}
+.table-title{margin-top:26px}
+details.disclosure{padding:0;overflow:clip}
+details.disclosure>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:19px 24px;cursor:pointer;font-size:15px}
+details.disclosure>summary::-webkit-details-marker{display:none}
+details.disclosure>summary span{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+details.disclosure>summary strong{font-size:16px}
+details.disclosure>summary small{color:var(--muted);font-size:12px;font-weight:400}
+details.disclosure>summary::after{content:'＋';color:var(--muted);font-size:18px;line-height:1}
+details.disclosure[open]>summary::after{content:'−'}
+details.disclosure[open]>summary{border-bottom:1px solid var(--line2)}
+.disclosure-body{padding:20px 24px 24px}
+@media(max-width:700px){.intro{grid-template-columns:1fr}.homebtn span{display:none}details.disclosure>summary{padding:16px}.disclosure-body{padding:16px}.crumb .spacer{display:none}.crumb{align-items:stretch}.crumb .gbtn{flex:1}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
 
 /* ── 필터 바 ── */
 .filters{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:4px}
@@ -228,6 +274,8 @@ footer{border-top:1px solid var(--line);padding:22px 0 50px;color:var(--muted);f
 </style>
 </head>
 <body>
+<a href="#main" class="skip" data-t="skip">본문으로 건너뛰기</a>
+<div id="announce" class="announce" aria-live="polite" aria-atomic="true"></div>
 
 <header>
   <div class="wrap">
@@ -238,8 +286,12 @@ footer{border-top:1px solid var(--line);padding:22px 0 50px;color:var(--muted);f
       </div>
       <div class="search">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-        <input id="q" type="search" data-ph="search" aria-label="로트 검색">
+        <input id="q" type="search" data-ph="search" data-aria="search" aria-label="로트 검색" aria-describedby="qHint">
       </div>
+      <button class="homebtn" id="homeBtn" type="button" data-aria="home" aria-label="홈">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 10.5 12 3l8.5 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-4.5v-6h-5v6H5a1.5 1.5 0 0 1-1.5-1.5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+        <span data-t="home">홈</span>
+      </button>
       <div class="lang" role="group" aria-label="Language">
         <button data-lang="ko" aria-pressed="true">한국어</button>
         <button data-lang="en" aria-pressed="false">EN</button>
@@ -255,24 +307,37 @@ footer{border-top:1px solid var(--line);padding:22px 0 50px;color:var(--muted);f
   </div>
 </header>
 
-<main class="wrap">
+<main class="wrap" id="main" tabindex="-1">
 
 <!-- 로트 목록 -->
 <section class="view" id="v-lots">
+  <div class="panel intro" id="introCard">
+    <div>
+      <h1 data-t="intro.title">CD 이상을 어디서부터 확인해야 할지 빠르게 좁혀보세요</h1>
+      <p data-t="intro.body">로트를 고르면 상태 → 변화 → 추정 원인 → 권고 조치 → 기술 근거 순서로 보여줍니다.</p>
+    </div>
+    <div class="sub mono">ADI → ACI · Litho / Etch / Metrology</div>
+  </div>
   <div class="panel" id="listCard">
     <header>
       <h2 data-t="list.title">처리할 로트를 고르세요</h2>
-      <span class="sub" id="listCount"></span>
+      <span class="sub" id="listCount" aria-live="polite"></span>
     </header>
-    <div class="filters">
+    <p class="sub" id="qHint" data-t="q.hint" style="margin:-6px 0 12px">예: L0319, SCN-02, RET-B, CH-A</p>
+    <div class="quick">
+      <span class="sub" data-t="q.quick">빠른 시작</span>
+      <button class="gbtn" id="qAbn" data-t="q.abn">검토가 필요한 로트만</button>
+      <button class="gbtn" id="qFirst" data-t="q.first">첫 이상 로트 열기</button>
+    </div>
+    <div class="filters" role="group" data-aria="filter.group" aria-label="로트 필터">
       <button class="chip alarm" id="fAbn" aria-pressed="false"></button>
-      <select id="fVerdict"></select>
-      <select id="fScanner"></select>
-      <select id="fChamber"></select>
-      <select id="fMetro"></select>
-      <input class="numin mono" id="fDayMin" type="number" min="0" placeholder="0" aria-label="min day">
-      <span class="sub">~</span>
-      <input class="numin mono" id="fDayMax" type="number" min="0" placeholder="39" aria-label="max day">
+      <select id="fVerdict" data-aria="filter.verdict" aria-label="판정 필터"></select>
+      <select id="fScanner" data-aria="filter.scanner" aria-label="스캐너 필터"></select>
+      <select id="fChamber" data-aria="filter.chamber" aria-label="챔버 필터"></select>
+      <select id="fMetro" data-aria="filter.metro" aria-label="계측 장비 필터"></select>
+      <input class="numin mono" id="fDayMin" type="number" min="0" placeholder="0" data-aria="filter.daymin" aria-label="최소 생산일">
+      <span class="sub" aria-hidden="true">~</span>
+      <input class="numin mono" id="fDayMax" type="number" min="0" placeholder="39" data-aria="filter.daymax" aria-label="최대 생산일">
       <button class="linkbtn" id="fReset" data-t="list.reset">초기화</button>
     </div>
     <div id="lotlist" role="listbox" aria-label="lots"></div>
