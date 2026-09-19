@@ -569,6 +569,89 @@ tr.alert td{background:var(--coral-soft)}
   .filters > .linkbtn{flex:0 0 auto}
 }
 
+
+
+/* ── V1 final-pass: decision-first + HITL + agent path + QA ── */
+.queue-diff-legend{margin:4px 0 8px;color:var(--ink2);font-size:12.5px;line-height:1.55}
+.meta-chip.diff{box-shadow:inset 3px 0 0 var(--plum);padding-left:10px}
+.diff-mark{display:inline-flex;align-items:center;margin-left:6px;padding:1px 5px;border-radius:999px;background:var(--plum);color:#fff;font:700 9.5px/1.5 "IBM Plex Sans KR",sans-serif;letter-spacing:.02em}
+.signal-count.alert b{color:var(--coral)}
+.lotrow:focus-visible{background:var(--brand-soft)}
+
+.decision .summary-copy{font-size:15px;line-height:1.75;color:var(--ink2)}
+.action-preview{margin:8px 0 0;padding-left:22px}
+.action-preview li{margin:7px 0;color:var(--ink);font-size:14.5px;line-height:1.65}
+.more-hint{margin-top:8px;color:var(--ink2);font-size:12.5px}
+.ctxchips{display:flex;gap:7px;flex-wrap:wrap}
+
+.human-review{margin-top:18px;padding:18px;border:1px solid rgba(85,99,154,.26);border-radius:14px;background:linear-gradient(135deg,var(--indigo-soft),#fff)}
+.human-review.auto{border-color:rgba(15,118,110,.22);background:linear-gradient(135deg,var(--teal-soft),#fff)}
+.human-kicker{display:block;margin-bottom:5px;color:var(--indigo);font-size:11px;font-weight:800;letter-spacing:.065em;text-transform:uppercase}
+.human-review.auto .human-kicker{color:var(--teal)}
+.human-review h3{font-size:15px;color:var(--ink);margin-bottom:5px}
+.human-review p{font-size:13.5px!important;line-height:1.65;color:var(--ink2)!important}
+.human-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+.human-actions .gbtn{min-height:44px}
+.human-actions .gbtn[aria-pressed=true]{background:var(--brand);color:#fff;border-color:var(--brand)}
+.human-actions .gbtn:disabled{opacity:.5;cursor:not-allowed;background:var(--sunk)}
+.human-state{margin-top:10px!important;padding-top:10px;border-top:1px solid rgba(85,99,154,.16);font-weight:700}
+.human-note{margin-top:8px!important;font-size:12px!important}
+
+.branch-wrap{margin-top:4px}
+.branch-intro{margin-bottom:15px;color:var(--ink2);font-size:13px;line-height:1.6}
+.branch-flow{display:grid;grid-template-columns:minmax(120px,1fr) 28px minmax(160px,1.15fr) 28px minmax(210px,1.45fr) 28px minmax(120px,.9fr);gap:6px;align-items:stretch}
+.branch-arrow{display:grid;place-items:center;color:var(--muted);font-weight:800}
+.branch-node{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;min-width:0}
+.branch-node.active{border-color:rgba(43,0,63,.35);background:var(--brand-soft)}
+.branch-node .stepno{display:block;color:var(--muted);font:700 10px "IBM Plex Mono",monospace;margin-bottom:5px}
+.branch-node b{display:block;font-size:13px;color:var(--ink);line-height:1.35}
+.branch-node small{display:block;margin-top:5px;color:var(--ink2);font-size:11.5px;line-height:1.5}
+.branch-options{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.branch-option{padding:7px 8px;border:1px solid var(--line2);border-radius:8px;color:var(--muted);font-size:11.5px;background:#fff}
+.branch-option.selected{border-color:var(--brand-mid);background:#fff;color:var(--brand);font-weight:800;box-shadow:inset 3px 0 0 var(--brand)}
+.branch-result{border-color:rgba(15,118,110,.25)}
+.branch-result.hold{border-color:rgba(154,104,20,.28);background:var(--amber-soft)}
+.branch-result.pass{background:var(--teal-soft)}
+
+.chart-viewport{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.chart-step{cursor:help;stroke:var(--amber);stroke-width:2.5;fill:#fff}
+.step-diamond{fill:var(--amber);stroke:#fff;stroke-width:1.5;cursor:help}
+.step-legend{display:inline-flex;align-items:center;gap:6px;color:var(--ink2)}
+.step-legend::before{content:'◆';color:var(--amber);font-size:13px}
+
+.gate-table table{min-width:0}
+.full-action-copy .steps{margin-top:10px}
+.full-action-copy .cause{font-size:14px;line-height:1.75;color:var(--ink2)}
+
+@media(max-width:760px){
+  body{font-size:16px}
+  .panel{padding:16px 14px}
+  .decision .dsec{padding:14px 0 14px 14px}
+  .decision .dsec p,.action-preview li{font-size:15px}
+  .crumb{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .crumb>.sub,.crumb>.spacer,.crumb>.currentloc{display:none}
+  .crumb .gbtn,.crumb .linkbtn{min-height:44px;width:100%;justify-content:center;border:1px solid var(--line);border-radius:9px;text-decoration:none}
+  .human-actions{display:grid;grid-template-columns:1fr}
+  .human-actions .gbtn{width:100%}
+  .branch-flow{grid-template-columns:1fr;gap:8px}
+  .branch-arrow{transform:rotate(90deg);min-height:20px}
+  .branch-options{grid-template-columns:1fr 1fr}
+  .meta-chip{max-width:100%;overflow-wrap:anywhere}
+  .queue-diff-legend{font-size:13px}
+  .chart{min-width:720px}
+  .chart-viewport{margin:0 -4px;padding-bottom:4px}
+  .outgrid{grid-template-columns:1fr}
+  .gate-table{overflow:visible}
+  .gate-table table{font-size:13.5px}
+  .gate-table th,.gate-table td{white-space:normal;word-break:keep-all}
+  .ctxchips .ctxchip{font-size:12px}
+}
+@media(max-width:380px){
+  .branch-options{grid-template-columns:1fr}
+  .headbadges{gap:6px}
+  .pill,.verify-tip{font-size:12.5px!important;padding:5px 10px!important}
+}
+
 </style>
 </head>
 <body>
@@ -706,6 +789,7 @@ tr.alert td{background:var(--coral-soft)}
           </div>
         </div>
       </details>
+      <p class="queue-diff-legend" data-t="queue.difflegend">보라색 강조는 바로 위에 표시된 로트와 달라진 공정 경로입니다.</p>
       <div id="lotlist" role="listbox" aria-label="lots"></div>
     </div>
   </div>
@@ -718,17 +802,17 @@ tr.alert td{background:var(--coral-soft)}
   <div class="panel">
     <header><h2 data-t="tr.trend">생산일별 추이</h2><span class="sub" data-t="tr.trendsub">점 하나가 로트 · 클릭하면 해당 판정으로 이동</span></header>
     <div class="segs" id="metricPick"></div>
-    <svg class="chart" id="trendChart" viewBox="0 0 1000 360" role="img"></svg>
+    <div class="chart-viewport"><svg class="chart" id="trendChart" viewBox="0 0 1000 360" role="img"></svg></div>
     <div class="legend" id="trendLegend"></div>
   </div>
   <div class="panel">
     <header><h2 data-t="tr.mon">CD-SEM 안정성</h2><span class="sub" data-t="tr.monsub">모니터 웨이퍼 반복 측정 · 기준선 대비 이동량</span></header>
-    <svg class="chart" id="monChart" viewBox="0 0 1000 320" role="img"></svg>
+    <div class="chart-viewport"><svg class="chart" id="monChart" viewBox="0 0 1000 320" role="img"></svg></div>
     <div class="legend" id="monLegend"></div>
   </div>
   <div class="panel">
     <header><h2 data-t="tr.tmu">TMU / 공정 예산</h2><span class="sub" id="tmuSub"></span></header>
-    <svg class="chart" id="tmuChart" viewBox="0 0 1000 320" role="img"></svg>
+    <div class="chart-viewport"><svg class="chart" id="tmuChart" viewBox="0 0 1000 320" role="img"></svg></div>
     <div class="legend" id="tmuLegend"></div>
   </div>
   <div class="panel">
