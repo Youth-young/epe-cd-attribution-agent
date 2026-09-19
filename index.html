@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CD 이상 원인 판정 콘솔</title>
-<meta name="description" content="ADI·ACI 계측 데이터로 CD 이상의 원인이 노광인지 식각인지 계측인지 판정하는 에이전트 콘솔.">
+<title>CD 이상 원인 분석</title>
+<meta name="description" content="ADI·ACI 계측 데이터로 CD 이상의 원인을 Litho·Etch·Metrology 관점에서 좁혀주는 분석 도구.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -414,6 +414,97 @@ tr.alert td{background:var(--coral-soft)}
 .verify-tip{width:auto!important;height:auto!important;display:inline-flex!important;place-items:unset!important;margin-left:0!important;padding:5px 13px!important;line-height:1.2!important;white-space:nowrap!important}
 .p-verified{background:var(--teal-soft);color:var(--teal);border-color:rgba(15,118,110,.25);border-bottom:1.5px dotted var(--teal)}
 .p-holdgate{background:var(--amber-soft);color:var(--amber);border-color:rgba(154,104,20,.25);border-bottom:1.5px dotted var(--amber)}
+
+
+/* ── Final glossary/detail polish · 2026-09 ──────────────────── */
+.glist{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(360px,1fr));
+  gap:18px;
+}
+.gcard{
+  min-width:0;
+  border:1px solid var(--line2);
+  border-radius:15px;
+  padding:22px 24px 24px;
+  background:#fff;
+  overflow:hidden;
+}
+.gcard h3{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:baseline;
+  gap:5px 10px;
+  margin:0;
+  font-size:16px;
+  line-height:1.42;
+}
+.gcard .en{
+  display:inline-block;
+  margin-left:0;
+  color:var(--ink2);
+  font-weight:400;
+  font-size:13px;
+  line-height:1.4;
+}
+.gcard p{
+  margin-top:11px;
+  font-size:14px;
+  line-height:1.82;
+  color:var(--ink2);
+  max-width:70ch;
+}
+.gvisual{
+  margin-top:18px;
+  padding:14px 12px 10px;
+  min-height:170px;
+  border-radius:12px;
+  background:linear-gradient(180deg,#FFFFFF 0%,#FCFAF9 100%);
+  border:1px solid var(--line2);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+.gvisual svg{
+  display:block;
+  margin:0;
+  width:100%;
+  max-width:390px;
+  height:auto;
+  overflow:visible;
+}
+.gvisual svg text{
+  font-family:"IBM Plex Sans KR",-apple-system,"Segoe UI",sans-serif;
+}
+.gvisual svg .cap{font-size:11px;font-weight:700}
+.gvisual svg .lbl{font-size:10px;fill:#464646}
+.gvisual svg .sub{font-size:9px;fill:#6B6268}
+.gvisual .diagram-key{
+  font-weight:700;
+  letter-spacing:-.01em;
+}
+#pop .gvisual{min-height:0;margin-top:12px;padding:10px;background:#fff}
+#pop .gvisual svg{max-width:320px}
+#pop h4{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
+#pop h4 .en{margin-left:0}
+
+/* keep status/verification badges on one line */
+.headbadges{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pill,.verify-tip{white-space:nowrap!important;word-break:keep-all!important;line-height:1.2!important}
+.verify-tip{min-width:max-content!important}
+
+/* detail heading should never break awkwardly around a bare separator */
+.cause-title{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.cause-title .module{color:var(--ink2);font-weight:500}
+
+@media(max-width:760px){
+  .glist{grid-template-columns:1fr}
+  .gcard{padding:18px 18px 20px}
+  .gvisual{min-height:150px;padding:10px 8px}
+  .gvisual svg{max-width:100%}
+}
+
 </style>
 </head>
 <body>
