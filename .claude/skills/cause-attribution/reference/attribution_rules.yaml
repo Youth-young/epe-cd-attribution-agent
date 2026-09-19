@@ -1,0 +1,166 @@
+# Attribution rules
+# Each rule defines (1) where the signal lives in coordinate space,
+# (2) which evidence is mandatory, (3) the attributed cause, and
+# (4) the recommended disposition/action.
+# Conditions under `require` are re-checked by the deterministic Verification Gate.
+
+version: 1
+
+metrics:
+  adi_offset:    Wafer-mean ADI CD minus target (nm). Scalar component applied across the whole wafer.
+  adi_radial:    Coefficient of the ADI residual regressed on (r/R)^2 (nm). Wafer-radial coordinate system.
+  adi_slit:      Amplitude converted from the intra-field X-direction slope (nm). Scanner slit coordinate system.
+  adi_reticle:   Residual that repeats at a fixed site after removing the slit component (nm). Reticle coordinate system.
+  delta_bias:    Mean (ACI - ADI) minus the reference etch bias (nm).
+  delta_radial:  Coefficient of delta-CD regressed on (r/R)^2 (nm).
+  tool_drift:    Monitor-wafer re-measurement shift versus baseline (nm).
+  tmu_ratio:     Percentage of the process tolerance budget (+/-6.0 nm) consumed by measurement uncertainty (TMU).
+                 TMU = RSS(dynamic precision 3sigma, tool-to-tool match).
+                 The working convention is <=20%; above that, process action based on the tool reading is withheld.
+  chamber_dev:   This chamber's windowed mean delta-CD minus the fleet mean (nm).
+  taper_dev:     Change in cross-section taper (BCD-TCD) versus baseline (nm).
+
+rules:
+
+  - id: PHOTO_DOSE
+    label: Photo dose drift
+    module: Photo
+    coordinate: Wafer scalar
+    when: [adi_offset_exceeds]
+    require:
+      - adi_radial_within_limit      # if radial also grows, a Track cause may be more plausible
+      - adi_reticle_within_limit
+    cause: >
+      Wafer-mean ADI CD shifted as a whole, while the radial component, slit fingerprint,
+      and reticle-repeat component remain within control limits. The excursion is not
+      concentrated at a wafer location; it is a uniform wafer-mean shift, the fingerprint
+      of a factor acting across the full wafer. Exposure dose fits this pattern. If the
+      recipe Setting stayed constant while only the Energy Sensor readback moved, effective
+      dose and Setting have separated, which points first to Dose Mapper / Energy Sensor
+      Calibration.
+    action: >
+      Order matters. (1) Check the gap between the recipe Setting and Energy Sensor readback.
+      If a gap exists, re-run Dose Mapper / Energy Sensor Calibration before touching the
+      recipe; changing Setting alone leaves effective dose wrong and the excursion can recur.
+      (2) Query PM / Inform history around the shift for Laser Source replacement, illuminator
+      optical-component changes, and recent calibration dates. A change point aligned with
+      the CD shift is the leading candidate. (3) Determine whether Energy Sensor behavior is
+      a one-time step or sustained drift; a step points to a change event, while drift points
+      to sensor degradation or contamination. (4) Review source characteristics including
+      Pulse Energy Stability (Energy Sigma), Bandwidth (E95), and illuminator Transmission
+      Efficiency. (5) Confirm no concurrent Track-side Develop / PEB change points as exclusion
+      evidence. (6) Verify Before/After CD recovery on a rework lot. (7) Prevent recurrence
+      with SPC on Energy Sensor readback and a calibration item in the source-replacement
+      Change Control Checklist.
+    risk: Normal
+
+  - id: PHOTO_TRACK_RADIAL
+    label: Track/PEB radial profile shift
+    module: Photo (Track)
+    coordinate: Wafer radial
+    when: [adi_radial_exceeds]
+    require: [delta_within_limit_or_absent]
+    cause: >
+      Regressing the ADI residual on (r/R)^2 places the radial coefficient outside its
+      control limit while the wafer mean itself does not move materially. A factor acting
+      uniformly across the wafer, such as dose, cannot create this shape. The fingerprint
+      points to a shift in the PEB plate temperature profile or the radial distribution of
+      coating thickness. Delta-CD remains normal, which excludes post-etch factors.
+    action: >
+      (1) Query the Track PEB plate temperature map, including per-zone setpoints and readbacks,
+      for a zone-heater fault or correction-table change. (2) Review coater spin profile and
+      radial resist-thickness distribution. (3) Query Track PM / Inform history around the
+      excursion. (4) Do not compensate this radial component with scanner dose. A wafer-mean
+      R2R correction would push center and edge in opposite directions and can worsen CDU.
+    risk: Watch
+
+  - id: RETICLE_CD_ERROR
+    label: Reticle CD error
+    module: Photo (Reticle)
+    coordinate: Site-fixed within field
+    when: [adi_reticle_exceeds]
+    require: [adi_reticle_repeats_across_fields]
+    cause: >
+      The deviation appears only at specific sites and repeats identically across every field.
+      It is independent of wafer and radial coordinates, so the signature is attributed to a
+      CD error on the reticle itself.
+    action: >
+      (1) Expose this reticle on a different scanner and check whether the same sites reproduce
+      the deviation. If it reproduces, the error follows the reticle; if it follows the scanner,
+      it is a scanner fingerprint. (2) Review the mask CD measurement certificate and recent
+      cleaning / repair history. (3) Check for pellicle contamination or mask CD degradation.
+      (4) Do not touch scanner dose or etch recipe first; this site-fixed component cannot be
+      cancelled by a wafer-level correction.
+    risk: Watch
+
+  - id: ETCH_CHAMBER
+    label: Etch chamber deviation / PM drift
+    module: Etch
+    coordinate: Wafer radial + chamber
+    when: [delta_bias_exceeds]
+    require:
+      - chamber_specific
+      - metrology_healthy
+      - tmu_within_budget
+      - metrology_evidence_fresh
+      - taper_not_contradicting
+    cause: >
+      ADI is normal but delta-CD has shifted, confined to a specific chamber and accompanied
+      by a wafer-radial component. The fingerprint is consistent with plasma uniformity,
+      gas-flow, ESC-temperature change, or cumulative drift following PM.
+    action: >
+      (1) Isolate the chamber and re-measure etch bias on a chamber-matching wafer. (2) Plot
+      bias versus RF hours to distinguish seasoning drift from a one-off excursion, separating
+      the immediate post-PM first-wafer effect from slower drift. (3) Query OES / RF / pressure
+      traces for change points. (4) Cross-check chamber PM and wet-clean dates against the CD
+      shift. (5) ACI cannot be reworked; until the chamber is fixed, temporarily bias the ADI
+      target on subsequent lots to bring final CD inside spec, then revert after confirmation.
+    risk: High
+
+  - id: METROLOGY_TOOL_DRIFT
+    label: Metrology tool offset drift
+    module: Metrology
+    coordinate: Tool-dependent
+    when: [delta_bias_exceeds]
+    require:
+      - tool_drift_exceeds
+    cause: >
+      Delta-CD has shifted, but the excursion is not concentrated in one chamber and appears
+      only in lots measured by a specific metrology tool. The monitor wafer, which the process
+      never touches, re-measured with a shift in the same direction. This supports a metrology
+      tool offset drift rather than a process change.
+    action: >
+      (1) Hold process action. Changing chamber recipes in this state can mis-tune otherwise
+      healthy equipment. (2) Review the CD-SEM monitor-wafer history and most recent calibration,
+      then re-run calibration. (3) Recompute tool-to-tool matching offset. (4) Redisposition
+      every lot measured by this tool during the affected window. (5) Review whether the monitor
+      cadence should be shortened. (6) Decompose TMU into precision and tool-to-tool match; if
+      matching dominates, re-tune fleet matching, and if precision dominates, review recipe
+      parameters or tool condition.
+    risk: High
+
+  - id: INDETERMINATE
+    label: Disposition withheld
+    module: "-"
+    coordinate: "-"
+    when: [delta_bias_exceeds]
+    require: []
+    cause: >
+      An excursion was detected, but there is not enough evidence to identify a defensible
+      cause. Neither chamber concentration nor metrology drift meets its threshold, or the
+      supporting evidence is missing.
+    action: >
+      Request additional measurement: a chamber-matching wafer, an ad-hoc monitor-wafer
+      re-measurement, and a cross-section taper check. Do not name a disposition target
+      without evidence.
+    risk: Watch
+
+  - id: NORMAL
+    label: Normal
+    module: "-"
+    coordinate: "-"
+    when: []
+    require: []
+    cause: All monitored components are within their control limits.
+    action: No action required.
+    risk: Normal

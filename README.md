@@ -29,6 +29,37 @@ CD 잔차를 좌표계별 성분으로 분해해 조치 대상 모듈을 정하�
 **좌표계 성분 분해와의 결합**, **Setting값과 Sensor 실측값의 분리**,
 **근거 부족 시 판정을 거부하는 게이트** 세 가지다.
 
+## 설계 주장과 그 근거
+
+| 주장 | 근거 |
+|---|---|
+| 숫자는 LLM이 만들지 않는다 | `agent/tools.py` 6종이 유일한 수치 출처 · `tests/test_planner.py` |
+| 도구 선택은 LLM, 판정은 코드 | `agent/planner.py` — planner 제안은 기록만, verdict는 게이트가 확정 |
+| 근거가 부족하면 판정하지 않는다 | 게이트 5조건 · 기권 3건 · `NEEDS_MORE_EVIDENCE` |
+| 계측 장비도 용의선상에 올린다 | TMU가 공정 예산 20% 초과 시 공정 귀속 차단 |
+| 스킬은 하나의 책임만 갖는다 | 3분할 + Trigger·도구·판단기준·DoD · `tests/test_architecture.py`가 강제 |
+| 정답을 보지 않고 판정했다 | `tests/test_architecture.py` — 엔진이 ground_truth를 읽지 못함 |
+| 오류를 문서화하고 재검증했다 | [`validation/error_analysis.md`](validation/error_analysis.md) |
+
+## 두 개의 planner
+
+```
+deterministic  지표 분기로 도구를 고른다. 기본값이자 평가 baseline.
+llm            LLM이 도구를 고르고 사유를 쓴다. 판정은 여전히 게이트가 한다.
+```
+
+```bash
+python engine/tools.py investigate L0081              # deterministic
+python validation/planner_eval.py --lots 40 --dry-run # 하네스 점검 (네트워크 불필요)
+ANTHROPIC_API_KEY=... python validation/planner_eval.py --lots 40 --repeats 3
+```
+
+`planner_eval.py`가 재는 것은 "어느 쪽이 정답인가"가 아니다.
+결정론 경로는 이미 블라인드 평가를 통과했으므로, 묻는 것은 세 가지다 —
+**판정 일치율**, **불일치를 게이트가 잡았는가**, **같은 로트를 반복해도 흔들리지 않는가**.
+
+> LLM planner의 실제 실행 결과는 아직 없다. 하네스만 완성된 상태다.
+
 ## 왜 만들었나
 
 미세화가 진행될수록 EPE(Edge Placement Error = Overlay + CD variation) 예산이 줄어
@@ -88,8 +119,8 @@ TIS는 0°/180° 회전으로 정의되는 오버레이 전용 항이라 CD-SEM�
 generator/  물리 성분 합으로 합성 데이터 생성
 engine/     분해 · 관리 한계 산출 · 귀속 · Verification Gate  ← 숫자는 전부 여기서
             tools.py — 에이전트가 호출하는 CLI 도구 표면
-.claude/skills/epe-attribution/
-            SKILL.md + reference/attribution_rules.yaml (점진적 공개)
+.claude/skills/ cd-signature → cause-attribution → disposition-report
+            각 SKILL.md에 Trigger·도구·판단 기준·DoD 선언 (점진적 공개)
 index.html  판정 결과 뷰어 (순수 HTML/CSS/JS, 프레임워크 없음)
             개요·용어·로트 판정·추이와 감시·검증 5개 화면으로 분리
             전문 용어는 마우스를 올리면 그림과 함께 설명이 뜬다
@@ -185,7 +216,9 @@ PROLITH는 노광 **전**에 조건에서 CD를 예측해 process window를 정�
 
 | 스킬 | 출처 | 어디에 |
 |---|---|---|
-| `epe-attribution` | 직접 작성 | 로트 판정 — SKILL.md + 규칙 KB + CLI 도구 6종 |
+| `cd-signature` | 직접 작성 | 1단계 — CD 성분 분해와 이탈 판정 |
+| `cause-attribution` | 직접 작성 | 2단계 — 원인 모듈 귀속. 규칙 KB 보유 |
+| `disposition-report` | 직접 작성 | 3단계 — 게이트 실행과 조치 판정 |
 | `/review` | gstack | 커밋 전 코드 검토 |
 | `/qa` | gstack | 배포 후 실제 브라우저 검증 |
 | `/document-release` | gstack | 코드 변경 후 문서 동기화 |
@@ -267,7 +300,7 @@ python engine/tools.py tmu --day 36
 python engine/tools.py verify L0283
 ```
 
-Claude Code를 이 폴더에서 실행하면 `.claude/skills/epe-attribution`이 자동 인식된다.
+Claude Code를 이 폴더에서 실행하면 `.claude/skills/`의 스킬 3종이 자동 인식된다.
 
 ```
 L0283 로트 판정해줘
