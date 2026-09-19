@@ -124,7 +124,7 @@ const TERM_EN = {
 };
 const KO_RULE = {"PHOTO_DOSE": {"label": "노광 dose drift", "risk": "정상", "module": "Photo", "cause": "웨이퍼 평균 ADI CD가 통째로 이동했고, 반경 성분·슬릿 지문·레티클 반복 성분은 모두 관리 한계 안이다. 즉 어긋남이 웨이퍼 특정 위치에 몰리지 않고 전면에 균일하게 걸린 형태(wafer mean shift)이며, 이는 웨이퍼 전체에 동일하게 작용하는 인자의 지문이다. 노광량(dose)이 여기에 해당한다. Setting값(Recipe Input)은 유지되어 있는데 Energy Sensor 실측값만 이탈했다면 실효 dose와 Setting 사이에 괴리가 생긴 것이고, 이는 Dose Mapper / Energy Sensor Calibration 이탈을 먼저 의심해야 하는 상황이다.", "action": "순서가 중요하다. (1) Setting값과 Energy Sensor 실측값의 괴리부터 확인한다. 괴리가 있으면 Recipe를 건드리기 전에 Dose Mapper / Energy Sensor Calibration을 재수행한다. Setting만 조정하면 실효 dose는 그대로여서 재발한다. (2) PM / Inform 이력에서 해당 시점의 변경점을 조회한다 — Laser Source 교체, 조명계 광학 부품 교체, 최근 Calibration 수행 일자. CD 변화 시점과 일치하는 변경점이 있으면 1차 유력 원인으로 지목한다. (3) Energy Sensor 시계열이 단발성 step 변화인지 지속 drift인지 구분한다. step이면 변경점 연계, drift면 센서 열화·오염을 본다. (4) 광원 특성 파라미터를 함께 조회한다 — Pulse Energy Stability(Energy Sigma), Bandwidth(E95), 조명계 Transmission Efficiency. Source 교체 후 파장 특성이 달라지면 같은 Setting에서도 실효 dose가 달라진다. (5) Track 측 Develop / PEB 조건에 변경점이 없음을 확인해 Photo 원인 귀속의 배제 근거를 확보한다. (6) 조치 후 rework lot으로 Before/After CD 회복 여부를 검증한다. ADI 시점이므로 스펙 이탈 웨이퍼는 아직 rework window 안에 있다. (7) 재발 방지 — Energy Sensor 실측값에 SPC 관리도를 걸고 Setting 대비 편차가 한계를 넘으면 알람이 뜨는 OCAP을 수립한다. Source 교체를 Change Control Checklist에 Calibration 필수 항목으로 반영한다."}, "PHOTO_TRACK_RADIAL": {"label": "트랙/PEB 반경 프로파일 변화", "risk": "주의", "module": "Photo(Track)", "cause": "ADI 잔차를 (r/R)²로 회귀했을 때 반경 계수가 관리 한계를 넘었다. 웨이퍼 중심과 엣지의 CD 차이가 벌어진 형태이고, 웨이퍼 평균 자체는 크게 움직이지 않았다. dose처럼 전면에 균일하게 걸리는 인자로는 이 모양이 나오지 않는다. PEB plate 온도 프로파일이나 코팅 두께의 반경 분포가 바뀐 형태이며, ΔCD(etch bias)는 정상이므로 Etch 이후 요인은 배제된다.", "action": "(1) 해당 Track의 PEB plate 온도 맵(zone별 설정값과 실측값)을 조회한다. zone 히터 이상이나 온도 보정 테이블 변경 이력이 있는지 본다. (2) 코터 회전 프로파일과 레지스트 도포 두께의 반경 분포를 확인한다. (3) Track PM / Inform 이력에서 해당 시점의 변경점을 조회한다. (4) 반경 성분은 스캐너 dose 보정으로 상쇄되지 않는다. wafer mean만 맞추는 R2R 피드백으로 덮으면 중심과 엣지가 반대 방향으로 벌어져 CDU가 더 나빠진다. dose 보정으로 대응하지 말 것."}, "RETICLE_CD_ERROR": {"label": "레티클 CD 오차", "risk": "주의", "module": "Photo(Reticle)", "cause": "특정 site에서만 편차가 나타나고 모든 field에서 동일하게 반복된다. 웨이퍼·반경 좌표계와 무관하므로 마스크 자체의 CD 오차로 귀속된다.", "action": "(1) 해당 레티클을 다른 스캐너에서 노광해 동일 site에서 같은 편차가 재현되는지 확인한다. 재현되면 레티클, 스캐너를 따라가면 스캐너 지문이다. (2) 마스크 CD 측정 성적서와 최근 세정·수리 이력을 조회한다. (3) Pellicle 오염이나 마스크 CD 열화 가능성을 함께 본다. (4) 스캐너 dose나 Etch recipe를 먼저 건드리지 말 것. 이 성분은 site에 고정되어 있어 전면 보정으로는 상쇄되지 않는다."}, "ETCH_CHAMBER": {"label": "식각 챔버 편차 / PM drift", "risk": "위험", "module": "Etch", "cause": "ADI는 정상인데 ΔCD가 이동했고, 특정 챔버에서만 나타나며 웨이퍼 반경 성분을 동반한다. 플라즈마 균일도·가스 흐름·ESC 온도 변화 또는 PM 이후 누적 drift로 귀속된다.", "action": "(1) 해당 챔버를 격리하고 chamber matching 웨이퍼로 etch bias를 재측정한다. (2) RF hours 대비 bias 추이를 확인해 seasoning drift인지 단발성 이상인지 가른다. PM 직후 급변(first wafer effect) 구간과 그 이후 완만한 drift 구간을 구분해서 본다. (3) OES / RF / 압력 트레이스에서 해당 기간의 변화점을 조회한다. (4) 챔버 PM 이력과 wet clean 일자를 CD 변화 시점과 대조한다. (5) ACI는 되돌릴 수 없다. 이후 로트는 ADI Target을 임시 보정해 최종 CD를 스펙 안으로 넣고, 챔버 조치 완료 후 원복한다."}, "METROLOGY_TOOL_DRIFT": {"label": "계측 장비 offset drift", "risk": "위험", "module": "Metrology", "cause": "ΔCD가 이동했지만 특정 챔버에 몰리지 않고, 특정 계측 장비로 측정한 로트에서만 나타난다. 공정이 건드리지 않은 monitor wafer의 재측정값이 같은 방향으로 이동했으므로 공정 변화가 아니라 계측 장비의 offset drift다.", "action": "(1) 공정 조치를 보류한다. 이 상태에서 챔버 recipe를 건드리면 정상 설비를 틀어놓게 된다. (2) 해당 CD-SEM의 monitor wafer 재측정 이력과 최근 calibration 일자를 조회하고 재캘리브레이션을 수행한다. (3) 두 장비의 tool-to-tool matching offset을 재산출한다. (4) 영향 기간에 해당 장비로 측정된 로트를 모두 재판정한다. (5) monitor wafer 점검 주기를 단축할지 검토한다. 이번 사례에서 판정 보류가 발생한 원인이 감시 주기 부족이었다. (6) TMU 항을 분해해 precision과 tool-to-tool match 중 어느 쪽이 예산을 먹는지 본다. match가 주범이면 fleet matching 재조정, precision이 주범이면 recipe(프레임 수, 배율, landing energy)나 장비 컨디션을 본다."}, "INDETERMINATE": {"label": "판정 보류", "risk": "주의", "module": "-", "cause": "이상은 탐지되었으나 원인을 특정할 증거가 부족하다. 챔버 편중과 계측 drift가 모두 기준에 못 미치거나, 근거 데이터가 없는 경우다.", "action": "추가 측정 요청 — 해당 챔버 매칭 웨이퍼, monitor wafer 임시 재측정, 단면 taper 확인. 근거 없이 조치 대상을 지정하지 않는다."}, "NORMAL": {"label": "정상", "risk": "정상", "module": "-", "cause": "모든 성분이 관리 한계 내에 있다.", "action": "조치 없음."}};
 /* ============================================================
-   CD 이상 원인 판정 콘솔 — 화면 로직
+   CD 이상 원인 분석 — 화면 로직
    판정·게이트·에이전트 로직은 건드리지 않는다. 표시 계층만 담당.
    ============================================================ */
 const M = DATA.meta, LIM = DATA.limits, CEN = DATA.centers;
@@ -141,17 +141,18 @@ try { LANG = localStorage.getItem('cdlang') || 'ko'; } catch (e) {}
 
 /* ── UI 문구 ───────────────────────────────────────────────── */
 const T = {
-  brand:        ['CD 이상 원인 판정 콘솔', 'CD Excursion Attribution Console'],
-  brandsub:     ['노광·식각·계측 중 원인 모듈을 가려냅니다', 'Attributes CD excursions to Litho, Etch, or Metrology'],
+  brand:        ['CD 이상 원인 분석', 'CD Excursion Attribution'],
+  brandsub:     ['ADI·ACI 근거로 Litho·Etch·Metrology 원인을 좁힙니다', 'Evidence-based attribution across Litho, Etch, and Metrology'],
   search:       ['로트·장비·챔버 검색', 'Search lot, tool, chamber'],
-  'nav.lots':   ['로트 판정', 'Lots'],
+  'nav.lots':   ['로트 검토', 'Lot Review'],
   'nav.trends': ['추이와 감시', 'Trends'],
   'nav.valid':  ['검증 결과', 'Validation'],
   'nav.terms':  ['용어 사전', 'Glossary'],
   'nav.ref':    ['기준값', 'Reference'],
-  'list.title': ['처리할 로트를 고르세요', 'Select a lot to disposition'],
+  'list.title': ['로트 검토', 'Lot Review'],
+  'list.sub':   ['조치가 필요한 로트를 우선 확인하고, 필요하면 전체 로트로 범위를 넓혀 검토합니다.', 'Review lots needing action first, then broaden to all lots when needed.'],
   'list.reset': ['초기화', 'Reset'],
-  'list.abn':   ['조치 검토 필요', 'Needs review'],
+  'list.abn':   ['검토 필요만', 'Needs review'],
   'list.all':   ['전체 판정', 'All verdicts'],
   'list.sc':    ['전체 스캐너', 'All scanners'],
   'list.ch':    ['전체 챔버', 'All chambers'],
@@ -174,7 +175,7 @@ const T = {
   st_ok:        ['정상', 'Normal'],
   st_review:    ['검토 필요', 'Review'],
   st_action:    ['조치 필요', 'Action required'],
-  verified:     ['검증됨', 'Verified'],
+  verified:     ['검증 완료', 'Verified'],
   needev:       ['근거 부족', 'Needs evidence'],
   'th.plain':   ['지표', 'Indicator'],
   'th.margin':  ['한계까지', 'Margin'],
@@ -194,13 +195,13 @@ const T = {
   'hero.body1':['로트를 고르면','Choose a lot and read it in this order:'],
   'hero.flow':['상태 → 변화 → 추정 원인 → 권고 조치 → 기술 근거','status → change → likely cause → recommended action → technical evidence'],
   'hero.body2':['순서로 보여줍니다. 처음 보는 사람은 결론부터, 엔지니어는 근거까지 내려가며 확인할 수 있습니다.','First-time users can start with the decision; engineers can drill down to the evidence.'],
-  'hero.start':['검토가 필요한 로트 보기','View lots needing review'],
+  'hero.start':['로트 검토 시작','Start lot review'],
   'hero.first':['첫 이상 로트 열기','Open first flagged lot'],
-  'hero.glossary':['용어 먼저 보기','Open glossary'],
+  'hero.glossary':['용어 사전','Glossary'],
   'hero.stat.lots':['평가 로트','lots evaluated'],
   'hero.stat.modules':['원인 모듈 후보 · Litho / Etch / Metrology','candidate modules · Litho / Etch / Metrology'],
   'hero.stat.steps':['읽기 단계 · 상태에서 기술 근거까지','reading steps · decision to technical evidence'],
-  'hero.visual.title':['이 콘솔에서 바로 할 수 있는 일','What this console helps you do'],
+  'hero.visual.title':['이 분석 도구에서 할 수 있는 일','What this analysis tool helps you do'],
   'hero.visual.1t':['우선 확인할 로트 찾기','Find the lots that need attention first'],
   'hero.visual.1d':['검색과 필터로 검토가 필요한 로트를 먼저 찾습니다.','Use search and filters to surface lots that need review.'],
   'hero.visual.2t':['이상 신호를 공정 좌표계로 분리','Separate the excursion by process signature'],
@@ -209,7 +210,7 @@ const T = {
   'hero.visual.3d':['추천 조치, Evidence, Investigation Trace, Verification Gate를 이어서 확인합니다.','Continue into recommended actions, Evidence, Investigation Trace and the Verification Gate.'],
   'homecard.begin.k':['For beginners','For beginners'],
   'homecard.begin.t':['처음 방문했다면','If this is your first visit'],
-  'homecard.begin.p':['이 웹은 CD 이상이 생겼을 때 노광·식각·계측 중 어느 모듈부터 확인할지 좁혀주는 콘솔입니다.','This console helps narrow a CD excursion to the first module you should inspect: Litho, Etch, or Metrology.'],
+  'homecard.begin.p':['이 웹은 CD 이상이 생겼을 때 노광·식각·계측 중 어느 모듈부터 확인할지 근거를 따라 좁혀주는 분석 도구입니다.','This analysis tool narrows a CD excursion to the first module you should inspect: Litho, Etch, or Metrology.'],
   'homecard.begin.1':['홈에서 전체 흐름을 먼저 파악','Start here to understand the workflow'],
   'homecard.begin.2':['검토가 필요한 로트만 빠르게 필터링','Filter quickly to lots needing review'],
   'homecard.begin.3':['모르는 용어는 용어 사전에서 확인','Use the glossary for unfamiliar terms'],
@@ -484,16 +485,16 @@ function termHTML(key) {
   return `<h4>${esc(x.k)}<span class="en">${esc(x.e)}</span></h4><p>${esc(d)}</p>${x.s || ''}`;
 }
 document.addEventListener('mouseover', e => {
-  const el = e.target.closest('.term,.info'); if (el) showPop(termHTML(el.dataset.t), el);
+  const el = e.target.closest('.term,.info,.verify-tip'); if (el) showPop(termHTML(el.dataset.t), el);
 });
 document.addEventListener('mouseout', e => {
-  if (e.target.closest('.term,.info') && !e.relatedTarget?.closest('#pop')) hidePop();
+  if (e.target.closest('.term,.info,.verify-tip') && !e.relatedTarget?.closest('#pop')) hidePop();
 });
 document.addEventListener('focusin', e => {
-  const el = e.target.closest('.term,.info'); if (el) showPop(termHTML(el.dataset.t), el);
+  const el = e.target.closest('.term,.info,.verify-tip'); if (el) showPop(termHTML(el.dataset.t), el);
 });
 document.addEventListener('click', e => {
-  const el = e.target.closest('.term,.info');
+  const el = e.target.closest('.term,.info,.verify-tip');
   if (el) { e.preventDefault(); showPop(termHTML(el.dataset.t), el); }
   else if (!e.target.closest('#pop')) hidePop();
 });
@@ -504,7 +505,7 @@ addEventListener('scroll', hidePop, {passive: true});
 const infoBtn = k => k && TERMS[k] ? `<button class="info" type="button" data-t="${k}" aria-label="${LANG === 'ko' ? '설명 보기' : 'Show definition'}">i</button>` : '';
 
 /* ── 상태 ─────────────────────────────────────────────────── */
-const S = {view: 'lots', lot: null, q: '', abn: false, verdict: '', scanner: '', chamber: '',
+const S = {view: 'home', lot: null, q: '', abn: true, verdict: '', scanner: '', chamber: '',
            metro: '', dmin: null, dmax: null, metric: 'dbias', waf: 'adi'};
 
 function outCount(l) { return (l.ev || []).filter(e => e.hit).length; }
@@ -588,6 +589,7 @@ function renderList() {
 
 /* ── 로트 상세 ────────────────────────────────────────────── */
 function openLot(id, push = true) {
+  if (S.view !== 'lots') showView('lots');
   const l = DATA.lots.find(x => x.lot === id); if (!l) return;
   S.lot = id; S.waf = 'adi';
   /* 로트마다 주소를 남긴다 — 링크 공유와 브라우저 뒤로가기가 모두 동작한다 */
@@ -596,7 +598,7 @@ function openLot(id, push = true) {
     if (location.pathname + location.hash !== want) push ? history.pushState(null, '', want)
                                                         : history.replaceState(null, '', want);
   } catch (e) {}
-  $('#listCard').hidden = true; $('#introCard').hidden = true; $('#homeOverview').hidden = true; $('#detail').hidden = false;
+  $('#listCard').hidden = true; $('#detail').hidden = false;
   const inv = INV[id], g = gateOk(l), outs = (l.ev || []).filter(e => e.hit);
   const A = actionSteps(actionText(l));
 
@@ -642,7 +644,7 @@ function openLot(id, push = true) {
       <h1 id="lotTitle" tabindex="-1">${l.lot}</h1>
       <div class="headbadges">
         <span class="pill ${st.cls}">${esc(t(st.k))}</span>
-        <button class="pill p-verify info" data-t="${g ? 'gate_ok' : 'gate_hold'}" type="button">${esc(g ? t('verified') : t('needev'))}</button>
+        <button class="pill p-verify verify-tip ${g ? 'p-verified' : 'p-holdgate'}" data-t="${g ? 'gate_ok' : 'gate_hold'}" type="button">${esc(g ? t('verified') : t('needev'))}</button>
       </div>
       <div class="asof">${esc(t('d.prod'))} <span class="mono">${esc(l.date)}</span></div>
     </div>
@@ -714,7 +716,7 @@ function openLot(id, push = true) {
   </div>
 </details>`;
 
-  $('#bHome').onclick = () => { showView('lots'); closeLot(); };
+  $('#bHome').onclick = goHome;
   $('#bBack').onclick = closeLot;
   $('#bCopy').onclick = async () => {
     try { await navigator.clipboard.writeText(location.href); $('#bCopy').textContent = t('copied'); }
@@ -734,7 +736,7 @@ function openLot(id, push = true) {
     paintWafer(l);
   });
   paintWafer(l);
-  scrollTo({top: 0, behavior: SCROLL_BEHAVIOR});
+  scrollTo({top: 0, behavior: 'auto'});
   requestAnimationFrame(() => {
     $('#lotTitle')?.focus();
     const a = $('#announce'); if (a) a.textContent = `${l.lot} · ${t(st.k)} · ${verdictLabel(l)}`;
@@ -742,7 +744,7 @@ function openLot(id, push = true) {
 }
 function closeLot(push = true) {
   const prevLot = S.lot;
-  S.lot = null; $('#detail').hidden = true; $('#listCard').hidden = false; $('#introCard').hidden = false; $('#homeOverview').hidden = false;
+  S.lot = null; $('#detail').hidden = true; $('#listCard').hidden = false;
   try { if (location.hash) push ? history.pushState(null, '', location.pathname)
                                 : history.replaceState(null, '', location.pathname); } catch (e) {}
   requestAnimationFrame(() => document.querySelector(`.lotrow[data-lot="${prevLot}"]`)?.focus());
@@ -1029,13 +1031,17 @@ function renderRef() {
 }
 
 /* ── 화면 전환 · 언어 ─────────────────────────────────────── */
-const VIEWS = ['lots', 'trends', 'valid', 'terms', 'ref'];
+const VIEWS = ['home', 'lots', 'trends', 'valid', 'terms', 'ref'];
 let drawn = {};
 function showView(v) {
   S.view = v;
   VIEWS.forEach(k => $('#v-' + k).hidden = k !== v);
   $$('#nav button').forEach(b => b.dataset.v === v
     ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
+  if ($('#homeBtn')) {
+    if (v === 'home') $('#homeBtn').setAttribute('aria-current', 'page');
+    else $('#homeBtn').removeAttribute('aria-current');
+  }
   if (v === 'trends' && !drawn.tr) { drawTrend(); drawMonitor(); drawTmu(); drawChambers(); drawn.tr = 1; }
   if (v === 'valid' && !drawn.va) { renderValidation(); drawn.va = 1; }
   if (v === 'terms' && !drawn.gl) { renderGlossary(); drawn.gl = 1; }
@@ -1044,7 +1050,7 @@ function showView(v) {
 }
 function applyLang() {
   document.documentElement.lang = LANG;
-  document.title = LANG === 'ko' ? 'CD 이상 원인 판정 콘솔' : 'CD Excursion Attribution Console';
+  document.title = LANG === 'ko' ? 'CD 이상 원인 분석' : 'CD Excursion Attribution';
   $$('[data-t]').forEach(el => el.textContent = t(el.dataset.t));
   $$('[data-ph]').forEach(el => el.placeholder = t(el.dataset.ph));
   $$('[data-aria]').forEach(el => el.setAttribute('aria-label', t(el.dataset.aria)));
@@ -1056,26 +1062,33 @@ function applyLang() {
 }
 
 /* ── 이벤트 ───────────────────────────────────────────────── */
-$('#homeBtn').onclick = () => {
-  showView('lots');
-  if (S.lot) closeLot();
-  requestAnimationFrame(() => $('#introCard')?.scrollIntoView({behavior:SCROLL_BEHAVIOR, block:'start'}));
-};
+function goHome() {
+  S.lot = null;
+  $('#detail').hidden = true;
+  $('#listCard').hidden = false;
+  try { if (location.hash) history.pushState(null, '', location.pathname); } catch (e) {}
+  showView('home');
+}
+$('#homeBtn').onclick = goHome;
 $('#heroStart').onclick = () => {
-  if (!S.abn) { S.abn = true; fillSelects(); renderList(); }
-  $('#listCard')?.scrollIntoView({behavior:SCROLL_BEHAVIOR, block:'start'});
+  S.abn = true;
+  fillSelects(); renderList();
+  showView('lots');
 };
-$('#heroFirst').onclick = () => $('#qFirst')?.click();
 $('#heroGlossary').onclick = () => showView('terms');
 $('#nav').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   showView(b.dataset.v);
-  if (b.dataset.v === 'lots' && S.lot) closeLot();
+  if (b.dataset.v === 'lots' && S.lot) closeLot(false);
 };
 $$('.lang button').forEach(b => b.onclick = () => {
   LANG = b.dataset.lang; try { localStorage.setItem('cdlang', LANG); } catch (e) {} applyLang();
 });
-$('#q').oninput = e => { S.q = e.target.value.trim(); renderList(); };
+$('#q').oninput = e => {
+  S.q = e.target.value.trim();
+  if (S.q && S.view === 'home') { S.abn = false; fillSelects(); showView('lots'); }
+  renderList();
+};
 $('#fAbn').onclick = () => { S.abn = !S.abn; fillSelects(); renderList(); };
 $('#fVerdict').onchange = e => { S.verdict = e.target.value; renderList(); };
 $('#fScanner').onchange = e => { S.scanner = e.target.value; renderList(); };
@@ -1087,11 +1100,6 @@ $('#fReset').onclick = () => {
   Object.assign(S, {q: '', abn: false, verdict: '', scanner: '', chamber: '', metro: '', dmin: null, dmax: null});
   $('#q').value = ''; $('#fDayMin').value = ''; $('#fDayMax').value = '';
   fillSelects(); renderList();
-};
-$('#qAbn').onclick = () => { if (!S.abn) $('#fAbn').click(); $('#lotlist')?.scrollIntoView({behavior:SCROLL_BEHAVIOR, block:'start'}); };
-$('#qFirst').onclick = () => {
-  const first = filtered().find(l => l.verdict !== 'NORMAL') || DATA.lots.find(l => l.verdict !== 'NORMAL');
-  if (first) openLot(first.lot);
 };
 addEventListener('keydown', e => {
   const tag = document.activeElement?.tagName || '';
@@ -1113,5 +1121,5 @@ addEventListener('popstate', syncHash);
 
 /* ── 시작 ─────────────────────────────────────────────────── */
 applyLang();
-showView('lots');
+showView('home');
 syncHash();
