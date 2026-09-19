@@ -288,10 +288,19 @@ ADI 잔차를 **하나의 설계행렬로 동시 회귀**한다.
 ### 4.5 스킬 구성 (harness engineering)
 
 ```
-.claude/skills/epe-attribution/
-├── SKILL.md                          절차 · 도구 목록 · 금지사항 (짧게)
-└── reference/attribution_rules.yaml  규칙 6종 (필요할 때만 읽음)
+.claude/skills/
+├── cd-signature/SKILL.md             1단계 · 무엇이 어떤 모양으로 어긋났나
+├── cause-attribution/
+│   ├── SKILL.md                      2단계 · 어느 모듈의 지문인가
+│   └── reference/attribution_rules.yaml   규칙 6종 (걸린 signature만 읽음)
+└── disposition-report/SKILL.md       3단계 · 조치 가능한가
 ```
+
+책임 단위로 3분할했다. 무한정 쪼개면 단계마다 앞 단계의 컨텍스트를 다시 실어 보내야 하고
+그 경계가 곧 검증 공백이 되므로, **판정 결과가 달라지는 지점**에서만 잘랐다.
+각 스킬은 Trigger · 도구 · 판단 기준 · DoD 네 블록을 선언하며,
+DoD 미충족 시 다음 단계로 넘기지 않고 되돌린다.
+분할 근거와 "왜 2개도 4개도 아닌가"는 `docs/04_skill_decomposition.md`에 있다.
 
 에이전트를 만들었다는 말의 실체는 프롬프트가 아니라 **컨텍스트를 어떻게 통제했는가**다.
 네 가지로 정리된다.
@@ -653,7 +662,7 @@ python run.py
 ```
 
 `index.html`을 열면 판정 결과 뷰어가 뜬다.
-Claude Code를 이 폴더에서 실행하면 `.claude/skills/epe-attribution`이 자동 인식되어
+Claude Code를 이 폴더에서 실행하면 `.claude/skills/`의 스킬 3종이 자동 인식되어
 자연어로 로트 판정을 요청할 수 있다.
 
 **기술 스택** — Python (numpy, pandas, PyYAML) · 순수 HTML/CSS/JavaScript ·

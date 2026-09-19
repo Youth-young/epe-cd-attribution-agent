@@ -1,9 +1,12 @@
-"""First investigation orchestrator.
+"""Investigation orchestrator.
 
-v0.3 deliberately keeps the *planner* deterministic. The important milestone
-is that investigation steps are now explicit tool calls with an observable
-trace. In v0.4 an LLM planner can choose from the same TOOL_REGISTRY while the
-verification gate remains deterministic.
+두 개의 planner가 같은 TOOL_REGISTRY와 같은 검증 게이트를 공유한다.
+
+    deterministic  지표 분기로 도구를 고른다. baseline이자 기본값.
+    llm            LLM이 도구를 고르고 사유를 쓴다. 판정은 여전히 게이트가 한다.
+
+deterministic 경로는 지우지 않는다. LLM planner를 평가하려면 비교 대상이 필요하고,
+API 키가 없는 환경에서도 파이프라인이 그대로 돌아가야 하기 때문이다.
 """
 from __future__ import annotations
 
@@ -23,7 +26,28 @@ def _step(trace: list[dict[str, Any]], tool: str, args: dict[str, Any], result: 
     trace.append({"tool": tool, "args": args, "reason": reason, "result": result})
 
 
-def investigate_lot(lot_id: str) -> dict[str, Any]:
+def investigate_lot(lot_id: str, planner: str = "deterministic", client: Any = None) -> dict[str, Any]:
+    """로트 하나를 조사한다.
+
+    planner="deterministic" (기본) — 지표 분기 기반. 재현성이 보장된다.
+    planner="llm"                  — LLM이 도구를 고른다. client가 필요하다.
+
+    어느 쪽이든 최종 verdict는 verify_disposition()이 정한다.
+    """
+    if planner == "llm":
+        from agent.planner import investigate_lot_llm
+
+        if client is None:
+            from agent.llm import build_client
+
+            client = build_client("anthropic")
+        return investigate_lot_llm(lot_id, client)
+    if planner != "deterministic":
+        raise ValueError(f"unknown planner: {planner}")
+    return _investigate_deterministic(lot_id)
+
+
+def _investigate_deterministic(lot_id: str) -> dict[str, Any]:
     trace: list[dict[str, Any]] = []
 
     ctx = get_lot_context(lot_id)
@@ -99,6 +123,7 @@ def investigate_lot(lot_id: str) -> dict[str, Any]:
 
     return {
         "lot": lot_id,
+        "planner": "deterministic",
         "status": "DISPOSITION_READY" if gate["passed"] else "NEEDS_MORE_EVIDENCE",
         "verdict": gate["verdict"] if gate["passed"] else "INDETERMINATE",
         "action": gate["action"],

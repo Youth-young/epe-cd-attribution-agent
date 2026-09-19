@@ -1,0 +1,27 @@
+{
+ "mode": "llm",
+ "summary": {
+  "lots": 30,
+  "verdict_match": 30,
+  "verdict_match_pct": 100.0,
+  "mismatches": 0,
+  "mismatches_caught_by_gate": 0,
+  "planner_proposals_overridden_by_gate": 0,
+  "rejected_tool_calls": 0,
+  "avg_tool_calls_baseline": 6.6,
+  "avg_tool_calls_llm": 5.43,
+  "reproducibility_runs": 1,
+  "reproducible_lots": null
+ },
+ "verdict_pairs": {
+  "ETCH_CHAMBER -> ETCH_CHAMBER": 5,
+  "INDETERMINATE -> INDETERMINATE": 3,
+  "METROLOGY_TOOL_DRIFT -> METROLOGY_TOOL_DRIFT": 5,
+  "NORMAL -> NORMAL": 5,
+  "PHOTO_DOSE -> PHOTO_DOSE": 4,
+  "PHOTO_TRACK_RADIAL -> PHOTO_TRACK_RADIAL": 4,
+  "RETICLE_CD_ERROR -> RETICLE_CD_ERROR": 4
+ },
+ "mismatch_detail": [],
+ "reproducibility": []
+}

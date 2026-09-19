@@ -18,8 +18,15 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 CFG = yaml.safe_load(open(ROOT / "config" / "config.yaml", encoding="utf-8"))
-_KB_PATH = next(p for p in [ROOT / ".claude/skills/epe-attribution/reference/attribution_rules.yaml",
-                            ROOT / "skills/epe-attribution/reference/attribution_rules.yaml"] if p.exists())
+# 규칙 KB 경로. v0.4에서 스킬을 책임 단위로 3분할하면서 KB는 cause-attribution 밑으로 옮겼다.
+# 구 경로도 후보로 남겨 이전 레이아웃에서도 그대로 동작하게 한다.
+_KB_CANDIDATES = [
+    ROOT / ".claude/skills/cause-attribution/reference/attribution_rules.yaml",
+    ROOT / "skills/cause-attribution/reference/attribution_rules.yaml",
+    ROOT / ".claude/skills/epe-attribution/reference/attribution_rules.yaml",
+    ROOT / "skills/epe-attribution/reference/attribution_rules.yaml",
+]
+_KB_PATH = next(p for p in _KB_CANDIDATES if p.exists())
 KB = yaml.safe_load(open(_KB_PATH, encoding="utf-8"))
 RULES = {r["id"]: r for r in KB["rules"]}
 
