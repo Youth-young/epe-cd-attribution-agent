@@ -405,7 +405,14 @@ const T = {
   'queue.openreview':['검토 필요 로트 보기', 'View lots needing review'],
   'queue.openall':['전체 로트 보기', 'View all lots'],
   'queue.note':['로트를 선택하면 상태 → 변화 → 추정 원인 → 조치 순서로 먼저 보여주고, 기술 근거는 필요할 때 펼쳐봅니다.','Open a lot to see status → change → likely cause → action first; technical evidence stays available on demand.'],
+  'queue.difflegend':['보라색 강조는 바로 위에 표시된 로트와 달라진 공정 경로입니다.','Purple highlights mark process-path values that differ from the visible lot immediately above.'],
+  'queue.changed':['변경','Changed'],
   'detail.technical':['기술 세부정보', 'Technical details'],
+  'd.fullreview':['판정 설명과 전체 권고 조치', 'Full rationale and recommended actions'],
+  'd.context':['로트 공정 경로', 'Lot process path'],
+  'd.actionmore':['추가 권고 조치는 아래에서 확인할 수 있습니다.', 'Additional recommended actions are available below.'],
+  'd.agentpath':['Agent 판단 갈래길', 'Agent decision path'],
+  'd.agentpathsub':['판정 결과와 Verification Gate를 기준으로 이번 로트의 선택 경로를 요약합니다. 회색은 고려했지만 선택되지 않은 갈래입니다.','This summarizes the selected path from the disposition and Verification Gate. Gray branches were considered but not selected.'],
   'copylink':['링크 복사', 'Copy link'],
   'copied':['링크 복사됨', 'Link copied'],
   'd.out':      ['한계를 벗어난 지표', 'Out-of-limit components'],
@@ -419,6 +426,33 @@ const T = {
   'd.trace':    ['조사 경로', 'Investigation trace'],
   'd.tracesub': ['에이전트가 실제로 호출한 도구 순서', 'Tool calls the agent actually made'],
   'd.tracesum': ['도구 {n}회 호출 · 이탈 지표 {o}개 · 게이트 {g}', '{n} tool calls · {o} out of limit · gate {g}'],
+  'human.kicker':['Engineer review','Engineer review'],
+  'human.title':['사람 확인 지점','Human review checkpoint'],
+  'human.desc':['에이전트는 권고까지만 제시합니다. 실제 공정·설비 조치 전에는 엔지니어 확인이 필요합니다.','The agent stops at a recommendation. An engineer must review it before any real process or equipment action.'],
+  'human.session':['이 데모의 선택은 화면 세션의 검토 기록만 바꾸며 실제 설비를 제어하지 않습니다.','These controls only update the review state in this browser session; they do not control equipment.'],
+  'human.approve':['권고 조치 승인','Approve recommendation'],
+  'human.evidence':['추가 근거 요청','Request more evidence'],
+  'human.hold':['판정 보류','Withhold disposition'],
+  'human.auto':['조치 권고가 없어 추가 승인 없이 확인할 수 있습니다.','No action is proposed, so no additional approval is required.'],
+  'human.blocked':['Verification Gate가 미충족이라 권고 조치 승인을 선택할 수 없습니다.','The Verification Gate is not satisfied, so recommendation approval is disabled.'],
+  'human.state.approve':['검토 기록: 권고 조치 승인','Review state: recommendation approved'],
+  'human.state.evidence':['검토 기록: 추가 근거 요청','Review state: more evidence requested'],
+  'human.state.hold':['검토 기록: 판정 보류','Review state: disposition withheld'],
+  'branch.signal':['이상 신호','Signal check'],
+  'branch.none':['이탈 없음','No excursion'],
+  'branch.count':['이탈 지표 {n}개','{n} out-of-limit indicators'],
+  'branch.metro':['계측 신뢰성','Measurement reliability'],
+  'branch.metrohit':['계측 drift branch 선택','Metrology-drift branch selected'],
+  'branch.metropass':['계측 이상 근거 부족 → 공정 signature 확인','No metrology trigger → inspect process signature'],
+  'branch.signature':['원인 signature','Source signature'],
+  'branch.litho':['Litho','Litho'],
+  'branch.etch':['Etch','Etch'],
+  'branch.metrology':['Metrology','Metrology'],
+  'branch.withheld':['보류','Withheld'],
+  'branch.verify':['검증','Verification'],
+  'branch.pass':['Gate 통과','Gate passed'],
+  'branch.hold':['Gate 보류','Gate withheld'],
+  'branch.normal':['정상','Normal'],
   'd.wafer':    ['웨이퍼 맵', 'Wafer map'],
   'd.wafersub': ['점 하나가 CD-SEM 측정 site입니다. 올리면 실측값이 나옵니다', 'Each dot is a CD-SEM site. Hover for the measured value'],
   'd.wadi':     ['ADI CD 잔차', 'ADI CD residual'],
@@ -442,6 +476,13 @@ const T = {
   raw:          ['원본 응답 보기', 'View raw result'],
   'tr.trend':   ['생산일별 추이', 'Metric trend by production day'],
   'tr.trendsub':['점 하나가 로트 · 클릭하면 해당 판정으로 이동', 'One dot per lot · click to open its disposition'],
+  'tr.step':['급변 표시','Notable step change'],
+  'tr.stepnote':['직전 생산일 대비 변화가 평소 변동보다 큰 지점입니다. 원인으로 단정하지 않고 PM·Calibration·계측 범위를 먼저 확인합니다.','The change versus the previous production day is unusually large. Treat it as a review point, not a cause; first check PM, calibration and measurement coverage.'],
+  'tr.delta':['직전 생산일 대비 변화','Change vs previous production day'],
+  'tr.check':['확인 항목','Check'],
+  'tr.checktrend':['PM / change event / calibration / 측정 범위','PM / change event / calibration / measurement coverage'],
+  'tr.checkmetro':['Calibration / monitor wafer 주기 / tool 상태','Calibration / monitor-wafer cadence / tool condition'],
+  'tr.checktmu':['precision과 tool-to-tool match 중 어떤 항이 증가했는지','Which term increased: precision or tool-to-tool match'],
   'tr.mon':     ['CD-SEM 안정성', 'CD-SEM stability'],
   'tr.monsub':  ['모니터 웨이퍼 반복 측정 · 기준선 대비 이동량', 'Monitor-wafer re-measurement · drift from baseline'],
   'tr.tmu':     ['TMU / 공정 예산', 'TMU / process budget'],
@@ -649,6 +690,88 @@ function actionSteps(text) {
   const parts = s.slice(s.indexOf('(1)')).split(/\((?=\d+\))/).map(x => x.replace(/^\d+\)\s*/, '').trim()).filter(Boolean);
   return {lead, steps: parts};
 }
+function summarizeCopy(text, n = 2) {
+  const parts = String(text || '').match(/[^.!?]+[.!?]?/g) || [];
+  const out = parts.map(x => x.trim()).filter(Boolean).slice(0, n).join(' ');
+  return out || String(text || '');
+}
+const HUMAN_REVIEW = Object.create(null);
+function reviewStateText(v) {
+  if (v === 'approve') return t('human.state.approve');
+  if (v === 'evidence') return t('human.state.evidence');
+  if (v === 'hold') return t('human.state.hold');
+  return '';
+}
+function humanReviewMarkup(l, gateReady) {
+  if (l.verdict === 'NORMAL') return `<section class="human-review auto" aria-label="${esc(t('human.title'))}">
+    <span class="human-kicker">${esc(t('human.kicker'))}</span><h3>${esc(t('human.title'))}</h3>
+    <p>${esc(t('human.auto'))}</p><p class="human-note">${esc(t('human.session'))}</p></section>`;
+  const cur = HUMAN_REVIEW[l.lot] || '';
+  return `<section class="human-review" id="humanReview" aria-label="${esc(t('human.title'))}">
+    <span class="human-kicker">${esc(t('human.kicker'))}</span><h3>${esc(t('human.title'))}</h3>
+    <p>${esc(t('human.desc'))}</p>
+    ${gateReady ? '' : `<p class="human-note"><b>${esc(t('human.blocked'))}</b></p>`}
+    <div class="human-actions" role="group" aria-label="${esc(t('human.title'))}">
+      <button class="gbtn" type="button" data-review="approve" aria-pressed="${cur === 'approve'}" ${gateReady ? '' : 'disabled'}>${esc(t('human.approve'))}</button>
+      <button class="gbtn" type="button" data-review="evidence" aria-pressed="${cur === 'evidence'}">${esc(t('human.evidence'))}</button>
+      <button class="gbtn" type="button" data-review="hold" aria-pressed="${cur === 'hold'}">${esc(t('human.hold'))}</button>
+    </div>
+    <p class="human-state" id="humanState" aria-live="polite">${esc(reviewStateText(cur))}</p>
+    <p class="human-note">${esc(t('human.session'))}</p>
+  </section>`;
+}
+function bindHumanReview(l) {
+  $$('#detail [data-review]').forEach(b => b.onclick = () => {
+    HUMAN_REVIEW[l.lot] = b.dataset.review;
+    $$('#detail [data-review]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    const st = $('#humanState'); if (st) st.textContent = reviewStateText(b.dataset.review);
+    const a = $('#announce'); if (a) a.textContent = reviewStateText(b.dataset.review);
+  });
+}
+function branchGroup(l) {
+  if (l.verdict === 'METROLOGY_TOOL_DRIFT') return 'metrology';
+  if (l.verdict === 'ETCH_CHAMBER') return 'etch';
+  if (['PHOTO_DOSE','PHOTO_TRACK_RADIAL','RETICLE_CD_ERROR'].includes(l.verdict)) return 'litho';
+  if (l.verdict === 'INDETERMINATE') return 'withheld';
+  return 'normal';
+}
+function branchPathMarkup(l, gateReady, outs, inv) {
+  const g = branchGroup(l), count = outs.length;
+  const option = (k, label) => `<span class="branch-option ${g === k ? 'selected' : ''}">${esc(label)}</span>`;
+  if (g === 'normal') return `<div class="branch-wrap"><p class="branch-intro">${esc(t('d.agentpathsub'))}</p>
+    <div class="branch-flow">
+      <div class="branch-node active"><span class="stepno">01</span><b>${esc(t('branch.signal'))}</b><small>${esc(t('branch.none'))}</small></div>
+      <div class="branch-arrow">→</div>
+      <div class="branch-node branch-result pass"><span class="stepno">02</span><b>${esc(t('branch.normal'))}</b><small>${esc(t('branch.pass'))}</small></div>
+    </div></div>`;
+  const metroText = g === 'metrology' ? t('branch.metrohit') : t('branch.metropass');
+  return `<div class="branch-wrap"><p class="branch-intro">${esc(t('d.agentpathsub'))}</p>
+    <div class="branch-flow">
+      <div class="branch-node active"><span class="stepno">01</span><b>${esc(t('branch.signal'))}</b><small>${esc(t('branch.count', {n:count}))}</small></div>
+      <div class="branch-arrow">→</div>
+      <div class="branch-node active"><span class="stepno">02</span><b>${esc(t('branch.metro'))}</b><small>${esc(metroText)}</small></div>
+      <div class="branch-arrow">→</div>
+      <div class="branch-node active"><span class="stepno">03</span><b>${esc(t('branch.signature'))}</b><div class="branch-options">${option('metrology',t('branch.metrology'))}${option('litho',t('branch.litho'))}${option('etch',t('branch.etch'))}${option('withheld',t('branch.withheld'))}</div></div>
+      <div class="branch-arrow">→</div>
+      <div class="branch-node branch-result ${gateReady ? 'pass' : 'hold'}"><span class="stepno">04</span><b>${esc(t('branch.verify'))}</b><small>${esc(gateReady ? t('branch.pass') : t('branch.hold'))} · ${esc(String(inv?.tool_calls ?? 0))} ${esc(LANG === 'ko' ? '회 도구 호출' : 'tool calls')}</small></div>
+    </div></div>`;
+}
+function median(xs) {
+  const a = xs.filter(Number.isFinite).slice().sort((x,y)=>x-y); if (!a.length) return 0;
+  const m = Math.floor(a.length/2); return a.length%2 ? a[m] : (a[m-1]+a[m])/2;
+}
+function notableSteps(rows, valueFn, minJump) {
+  const r = rows.slice().sort((a,b)=>a.day-b.day), diffs=[];
+  for (let i=1;i<r.length;i++) if (r[i].day !== r[i-1].day) diffs.push(Math.abs(valueFn(r[i])-valueFn(r[i-1])));
+  const threshold = Math.max(minJump || 0, median(diffs) * 3);
+  const out=[];
+  for (let i=1;i<r.length;i++) {
+    if (r[i].day === r[i-1].day) continue;
+    const delta=valueFn(r[i])-valueFn(r[i-1]);
+    if (Math.abs(delta) >= threshold && Math.abs(delta) > 0) out.push({row:r[i],prev:r[i-1],delta,threshold});
+  }
+  return out;
+}
 /* ── 팝업 ─────────────────────────────────────────────────── */
 const pop = $('#pop');
 function showPop(html, anchor) {
@@ -801,12 +924,12 @@ function renderList() {
     $('#emptyReset').onclick = () => $('#fReset').click();
     return;
   }
-  const changedChip = (label, value, changed) => `<span class="meta-chip${changed ? ' diff' : ''}"${changed ? ` title="${esc(LANG === 'ko' ? '이전 표시 로트와 다른 값' : 'Changed from the previous visible lot')}"` : ''}>${esc(label)} ${esc(value || '—')}</span>`;
+  const changedChip = (label, value, changed) => `<span class="meta-chip${changed ? ' diff' : ''}"${changed ? ` title="${esc(LANG === 'ko' ? '바로 위 로트와 다른 값' : 'Different from the visible lot immediately above')}"` : ''}>${esc(label)} ${esc(value || '—')}${changed ? `<span class="diff-mark">${esc(t('queue.changed'))}</span>` : ''}</span>`;
   box.innerHTML = rows.slice(0, 400).map((l, i) => {
     const prev = i ? rows[i - 1] : null;
     const o = outCount(l), g = gateOk(l);
     const sig = o
-      ? `<span class="signal-count"><b>${o}</b><span>${esc(LANG === 'ko' ? '개 이탈' : 'out of limit')}</span></span>`
+      ? `<span class="signal-count alert"><b>${o}</b><span>${esc(LANG === 'ko' ? '개 이탈' : 'out of limit')}</span></span>`
       : `<span class="signal-count"><b>0</b><span>${esc(LANG === 'ko' ? '개 이탈' : 'out of limit')}</span></span>`;
     return `<button class="lotrow" role="option" data-lot="${l.lot}" aria-selected="false">
       <span class="dot" style="background:${COLOR[l.verdict]}"></span>
@@ -832,7 +955,6 @@ function openLot(id, push = true) {
   if (S.view !== 'lots') showView('lots');
   const l = DATA.lots.find(x => x.lot === id); if (!l) return;
   S.lot = id; S.waf = 'adi';
-  /* 로트마다 주소를 남긴다 — 링크 공유와 브라우저 뒤로가기가 모두 동작한다 */
   try {
     const want = location.pathname + '#lot=' + id;
     if (location.pathname + location.hash !== want) push ? history.pushState(null, '', want)
@@ -841,6 +963,8 @@ function openLot(id, push = true) {
   $('#listCard').hidden = true; $('#detail').hidden = false;
   const inv = INV[id], g = gateOk(l), outs = (l.ev || []).filter(e => e.hit);
   const A = actionSteps(actionText(l));
+  const causeFull = causeText(l), causeShort = summarizeCopy(causeFull, 2);
+  const previewSteps = A.steps.slice(0, 2);
 
   const chips = [];
   if (l.module && l.module !== '-') chips.push(LANG === 'ko' ? (MODULE_KO[l.module] || l.module) : l.module);
@@ -879,6 +1003,10 @@ function openLot(id, push = true) {
 
   const st = status3(l);
   const changed = outs.length ? outs.map(e => plainLabel(e.k)).join(' · ') : t('d.nochange');
+  const previewAction = previewSteps.length
+    ? `<ol class="action-preview">${previewSteps.map(x => `<li>${esc(x)}</li>`).join('')}</ol>${A.steps.length > previewSteps.length ? `<p class="more-hint">${esc(t('d.actionmore'))}</p>` : ''}`
+    : `<p class="summary-copy">${esc(A.lead)}</p>`;
+
   $('#detail').innerHTML = `
 <div class="crumb" aria-label="${esc(LANG === 'ko' ? '현재 위치' : 'Breadcrumb')}">
   <button class="gbtn" id="bHome">${esc(t('home'))}</button>
@@ -893,7 +1021,7 @@ function openLot(id, push = true) {
 
 <div class="panel decision">
   <div class="lothead">
-    <div style="flex:1;min-width:240px">
+    <div style="flex:1;min-width:220px">
       <h1 id="lotTitle" tabindex="-1">${l.lot}</h1>
       <div class="headbadges">
         <span class="pill ${st.cls}">${esc(t(st.k))}</span>
@@ -906,19 +1034,37 @@ function openLot(id, push = true) {
   <div class="dsec"><h3>${esc(t('d.changed'))}</h3><p>${esc(changed)}</p></div>
   <div class="dsec"><h3>${esc(t('d.cause'))}</h3>
     <p class="cause-title"><b style="color:${COLOR[l.verdict]}">${esc(verdictHeading(l))}</b></p>
-    <p class="cause" style="margin-top:6px">${esc(causeText(l))}</p></div>
-  <div class="dsec"><h3>${esc(t('d.act'))}</h3>
-    ${A.steps.length
-      ? `${A.lead ? `<p style="margin-bottom:10px">${esc(A.lead)}</p>` : ''}<ol class="steps">${A.steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol>`
-      : `<p>${esc(A.lead)}</p>`}
-    ${l.extra ? `<div class="actnote mono">${esc(l.extra)}</div>` : ''}</div>
+    <p class="summary-copy" style="margin-top:6px">${esc(causeShort)}</p></div>
+  <div class="dsec"><h3>${esc(t('d.act'))}</h3>${previewAction}</div>
+
+  ${humanReviewMarkup(l, g)}
 
   <div class="jump">
+    <button class="gbtn" data-open-jump="actionPanel">${esc(t('d.fullreview'))}</button>
+    <button class="gbtn" data-open-jump="branchPanel">${esc(t('d.agentpath'))}</button>
     <button class="gbtn" data-open-jump="evPanel">${esc(t('d.evbtn'))}</button>
-    <button class="gbtn" data-open-jump="tracePanel">${esc(t('d.tracebtn'))}</button>
   </div>
-  <div class="ctxchips">${chips.map(c => `<span class="ctxchip">${esc(c)}</span>`).join('')}</div>
 </div>
+
+<details class="panel disclosure" id="actionPanel">
+  <summary><span><strong>${esc(t('d.fullreview'))}</strong><small>${esc(verdictHeading(l))}</small></span></summary>
+  <div class="disclosure-body full-action-copy">
+    <h3>${esc(t('d.cause'))}</h3><p class="cause">${esc(causeFull)}</p>
+    <h3 style="margin-top:20px">${esc(t('d.act'))}</h3>
+    ${A.steps.length ? `${A.lead ? `<p>${esc(A.lead)}</p>` : ''}<ol class="steps">${A.steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol>` : `<p>${esc(A.lead)}</p>`}
+    ${l.extra ? `<div class="actnote mono">${esc(l.extra)}</div>` : ''}
+  </div>
+</details>
+
+<details class="panel disclosure" id="branchPanel">
+  <summary><span><strong>${esc(t('d.agentpath'))}</strong><small>${esc(branchGroup(l) === 'normal' ? t('branch.normal') : verdictHeading(l))}</small></span></summary>
+  <div class="disclosure-body">${branchPathMarkup(l, g, outs, inv)}</div>
+</details>
+
+<details class="panel disclosure" id="contextPanel">
+  <summary><span><strong>${esc(t('d.context'))}</strong><small>${esc(l.scanner)} · ${esc(l.chamber)} · ${esc(l.adiTool)}</small></span></summary>
+  <div class="disclosure-body"><div class="ctxchips">${chips.map(c => `<span class="ctxchip">${esc(c)}</span>`).join('')}</div></div>
+</details>
 
 <details class="panel disclosure" id="evPanel">
   <summary><span><strong>${esc(t('d.all'))}</strong><small>${outs.length ? esc(`${outs.length} ${LANG === 'ko' ? '개 이탈' : 'out of limit'}`) : esc(t('d.whynormal', {n:(l.ev || []).length}))}</small></span></summary>
@@ -941,7 +1087,7 @@ function openLot(id, push = true) {
   <summary><span><strong>${esc(t('d.gate'))}</strong><small>${esc(g ? t('verified') : t('needev'))}</small></span></summary>
   <div class="disclosure-body">
     <p class="sub evidence-note">${esc(t('d.gatesub'))}</p>
-    <div class="tw"><table><thead><tr><th scope="col">${esc(t('th.cond'))}</th><th scope="col">${esc(t('th.met'))}</th></tr></thead>
+    <div class="tw gate-table"><table><thead><tr><th scope="col">${esc(t('th.cond'))}</th><th scope="col">${esc(t('th.met'))}</th></tr></thead>
       <tbody>${gateRows}</tbody></table></div>
   </div>
 </details>
@@ -979,6 +1125,7 @@ function openLot(id, push = true) {
   };
   $('#bPrev').onclick = () => step(-1);
   $('#bNext').onclick = () => step(1);
+  bindHumanReview(l);
   $$('#detail [data-open-jump]').forEach(b => b.onclick = () => {
     const el = $('#' + b.dataset.openJump); if (!el) return;
     el.open = true; el.scrollIntoView({behavior:SCROLL_BEHAVIOR, block:'start'});
@@ -1008,6 +1155,11 @@ function step(d) {
   if (i > -1 && rows[i + d]) openLot(rows[i + d].lot);
 }
 
+function eventPreviewText(e) {
+  const d=String(e?.description || '');
+  if (LANG === 'en' && /[가-힣]/.test(d)) return '';
+  return d;
+}
 function renderTrace(inv) {
   if (!inv?.trace?.length) return `<p class="empty">${esc(LANG === 'ko' ? '이 로트의 조사 기록이 없습니다.' : 'No trace available.')}</p>`;
   return inv.trace.map((s, i) => {
@@ -1017,7 +1169,7 @@ function renderTrace(inv) {
       <div class="why">${esc(reasonText(s.reason))}</div>
       <details class="raw"><summary>${esc(t('raw'))}</summary>
         ${evs.length ? `<div class="evs">${evs.slice(0, 3).map(e =>
-          `<div><span class="mono">D${e.day_index}</span> · ${esc(e.event_type)}${e.component ? ' · ' + esc(e.component) : ''} — ${esc(e.description || '')}</div>`).join('')}
+          `<div><span class="mono">D${e.day_index}</span> · ${esc(e.event_type)}${e.component ? ' · ' + esc(e.component) : ''}${eventPreviewText(e) ? ' — ' + esc(eventPreviewText(e)) : ''}</div>`).join('')}
           ${evs.length > 3 ? `<div class="sub">+${evs.length - 3}</div>` : ''}</div>` : ''}
         <pre class="rawjson">${esc(JSON.stringify(s.result, null, 2))}</pre></details>
     </div>`;
@@ -1115,6 +1267,15 @@ function drawTrend() {
       fill-opacity="${p.l.verdict === 'NORMAL' ? .3 : .95}" stroke="${out ? '#fff' : 'none'}" stroke-width="1.2"
       tabindex="0" role="button" data-lot="${p.l.lot}" aria-label="${p.l.lot} ${num(p.v)} nm"/>`;
   });
+  const byDay = {};
+  pts.forEach(p => (byDay[p.d] = byDay[p.d] || []).push(p.v));
+  const daily = Object.keys(byDay).map(day => ({day:+day, value:byDay[day].reduce((a,b)=>a+b,0)/byDay[day].length})).sort((a,b)=>a.day-b.day);
+  const jumps = notableSteps(daily, x => x.value, Math.max(m.lim * .45, .08));
+  jumps.forEach(j => {
+    const x=A.X(j.row.day), y=A.Y(j.row.value);
+    s += `<path class="step-diamond" d="M ${x} ${y-8} L ${x+8} ${y} L ${x} ${y+8} L ${x-8} ${y} Z"
+      tabindex="0" role="img" data-step="${j.row.day}|${j.row.value}|${j.delta}" aria-label="${esc(t('tr.step'))}"/>`;
+  });
   const g = $('#trendChart'); g.innerHTML = s;
   g.querySelectorAll('.pt').forEach(c => {
     const lot = DATA.lots.find(x => x.lot === c.dataset.lot);
@@ -1126,10 +1287,16 @@ function drawTrend() {
     c.addEventListener('click', e => { e.stopPropagation(); hidePop(); showView('lots'); openLot(c.dataset.lot); });
     c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); c.click(); } });
   });
+  g.querySelectorAll('.step-diamond').forEach(c => {
+    const [day,val,delta]=c.dataset.step.split('|').map(Number);
+    const show=()=>showPop(`<h4>${esc(t('tr.step'))} · D${day}</h4><p><b>${esc(t('tr.delta'))}</b> <span class="mono">${delta>=0?'+':''}${num(delta)} nm</span><br><b>${esc(m.n)}</b> <span class="mono">${num(val)} nm</span></p><p style="margin-top:7px"><b>${esc(t('tr.check'))}</b><br>${esc(t('tr.checktrend'))}</p><p class="sub" style="margin-top:6px">${esc(t('tr.stepnote'))}</p>`,c);
+    c.addEventListener('mouseenter',show);c.addEventListener('focus',show);c.addEventListener('click',e=>{e.stopPropagation();show();});
+  });
   $('#trendLegend').innerHTML = [['NORMAL', shortLabel('NORMAL')], ['PHOTO_DOSE', 'Litho'],
     ['ETCH_CHAMBER', 'Etch'], ['METROLOGY_TOOL_DRIFT', 'Metrology'], ['INDETERMINATE', shortLabel('INDETERMINATE')]]
     .map(([k, n]) => `<span><i style="background:${COLOR[k]}"></i>${esc(n)}</span>`).join('') +
-    `<span><i style="background:rgba(99,70,112,.15)"></i>${esc(t('th.limit'))} ±${num(m.lim)} nm</span>`;
+    `<span><i style="background:rgba(99,70,112,.15)"></i>${esc(t('th.limit'))} ±${num(m.lim)} nm</span>`+
+    `<span class="step-legend">${esc(t('tr.step'))}</span>`;
 }
 const TOOLC = {'CDSEM-A': '#464646', 'CDSEM-B': '#464646'};
 function drawMonitor() {
@@ -1139,18 +1306,31 @@ function drawMonitor() {
     xlab: LANG === 'ko' ? '생산일' : 'Production day',
     ylab: LANG === 'ko' ? '기준선 대비 이동량 (nm)' : 'Drift from baseline (nm)', fmt: v => v.toFixed(1)});
   let s = `<rect x="64" y="${A.Y(LIM.tool_drift)}" width="904" height="${A.Y(-LIM.tool_drift) - A.Y(LIM.tool_drift)}" fill="rgba(99,70,112,.07)"/>${A.s}`;
+  const stepMeta=[];
   Object.keys(TOOLC).forEach((tool, i) => {
-    const r = DATA.monitor.filter(x => x.tool === tool);
+    const r = DATA.monitor.filter(x => x.tool === tool).sort((a,b)=>a.day-b.day);
+    const jumps=notableSteps(r,x=>x.drift,Math.max(LIM.tool_drift*.35,.12));
+    const jumpByDay=new Map(jumps.map(j=>[j.row.day,j]));
     s += `<polyline points="${r.map(d => A.X(d.day) + ',' + A.Y(d.drift)).join(' ')}" fill="none"
       stroke="${TOOLC[tool]}" stroke-width="2.2" stroke-dasharray="${i ? '6 4' : ''}"/>`;
-    r.forEach(d => s += `<circle cx="${A.X(d.day)}" cy="${A.Y(d.drift)}" r="3.4"
-      fill="${Math.abs(d.drift) > LIM.tool_drift ? '#2B003F' : TOOLC[tool]}"/>`);
+    r.forEach(d => {
+      const j=jumpByDay.get(d.day), step=!!j;
+      s += `<circle class="monpt ${step?'chart-step':''}" cx="${A.X(d.day)}" cy="${A.Y(d.drift)}" r="${step?6:3.4}"
+        fill="${Math.abs(d.drift) > LIM.tool_drift ? '#2B003F' : TOOLC[tool]}" ${step?'stroke="#9A6814" stroke-width="2.5"':''}
+        tabindex="0" role="img" data-mon="${tool}|${d.day}|${d.drift}|${j?j.delta:''}"/>`;
+    });
   });
-  $('#monChart').innerHTML = s;
+  const g=$('#monChart');g.innerHTML=s;
+  g.querySelectorAll('.monpt').forEach(c=>{
+    const [tool,day,drift,deltaRaw]=c.dataset.mon.split('|'),delta=deltaRaw===''?null:+deltaRaw;
+    const show=()=>showPop(`<h4>${esc(tool)} · D${esc(day)}</h4><p><b>${LANG==='ko'?'기준선 대비 이동':'Drift from baseline'}</b> <span class="mono">${+drift>=0?'+':''}${num(+drift)} nm</span>${delta===null?'':`<br><b>${esc(t('tr.delta'))}</b> <span class="mono">${delta>=0?'+':''}${num(delta)} nm</span>`}</p>${delta===null?'':`<p style="margin-top:7px"><b>${esc(t('tr.check'))}</b><br>${esc(t('tr.checkmetro'))}</p><p class="sub" style="margin-top:6px">${esc(t('tr.stepnote'))}</p>`}`,c);
+    c.addEventListener('mouseenter',show);c.addEventListener('focus',show);c.addEventListener('click',e=>{e.stopPropagation();show();});
+  });
   $('#monLegend').innerHTML =
     `<span><i class="ln" style="border-color:${TOOLC['CDSEM-A']}"></i>CDSEM-A</span>
      <span><i class="ln" style="border-color:${TOOLC['CDSEM-B']};border-top-style:dashed"></i>CDSEM-B</span>
-     <span><i style="background:rgba(99,70,112,.15)"></i>±${num(LIM.tool_drift)} nm</span>`;
+     <span><i style="background:rgba(99,70,112,.15)"></i>±${num(LIM.tool_drift)} nm</span>
+     <span class="step-legend">${esc(t('tr.step'))}</span>`;
 }
 function drawTmu() {
   const B = M.tmuBudget, top = Math.max(B * 1.6, ...DATA.tmu.map(x => x.ratio)) * 1.1;
@@ -1166,30 +1346,36 @@ function drawTmu() {
     <text x="70" y="${A.Y(B) - 8}" font-size="11" fill="#2B003F">${LANG === 'ko' ? `예산 ${B}% — 초과 시 공정 판정 근거 불가` : `Budget ${B}% — above this, readings cannot justify process action`}</text>`;
   Object.keys(TOOLC).forEach((tool, i) => {
     const r = DATA.tmu.filter(x => x.tool === tool).sort((a, b) => a.day - b.day);
+    const jumps=notableSteps(r,x=>x.ratio,Math.max(8,B*.35));
+    const jumpByDay=new Map(jumps.map(j=>[j.row.day,j]));
     s += `<polyline points="${r.map(d => A.X(d.day) + ',' + A.Y(d.ratio)).join(' ')}" fill="none"
       stroke="${TOOLC[tool]}" stroke-width="2.2" stroke-dasharray="${i ? '6 4' : ''}"/>`;
-    r.forEach(d => s += `<circle class="pt" cx="${A.X(d.day)}" cy="${A.Y(d.ratio)}" r="${d.ratio > B ? 5 : 3.4}"
-      fill="${d.ratio > B ? '#2B003F' : TOOLC[tool]}" tabindex="0" role="img"
-      data-tt="${tool}|${d.day}|${d.prec}|${d.match}|${d.tmu}|${d.ratio}"/>`);
+    r.forEach((d,idx) => {
+      const prev=idx?r[idx-1]:null, crossed=!!prev && prev.ratio<=B && d.ratio>B, j=jumpByDay.get(d.day), step=!!j||crossed;
+      const delta=j?j.delta:(prev?d.ratio-prev.ratio:null);
+      s += `<circle class="pt ${step?'chart-step':''}" cx="${A.X(d.day)}" cy="${A.Y(d.ratio)}" r="${d.ratio > B ? 5.5 : 3.4}"
+        fill="${d.ratio > B ? '#2B003F' : TOOLC[tool]}" ${step?'stroke="#9A6814" stroke-width="2.5"':''} tabindex="0" role="img"
+        data-tt="${tool}|${d.day}|${d.prec}|${d.match}|${d.tmu}|${d.ratio}|${delta===null?'':delta}"/>`;
+    });
   });
   const g = $('#tmuChart'); g.innerHTML = s;
   g.querySelectorAll('.pt').forEach(c => {
-    const [tool, day, prec, mt, tmu, ratio] = c.dataset.tt.split('|');
+    const [tool, day, prec, mt, tmu, ratio, deltaRaw] = c.dataset.tt.split('|'), delta=deltaRaw===''?null:+deltaRaw;
     const show = () => showPop(`<h4>${esc(tool)} · D${day}</h4><p>
       <b>precision 3σ</b> <span class="mono">${prec} nm</span><br>
       <b>tool-to-tool match</b> <span class="mono">${mt} nm</span><br>
       <b>TMU</b> <span class="mono">√(${prec}² + ${mt}²) = ${tmu} nm</span><br>
-      <b>${LANG === 'ko' ? '예산 소비' : 'Budget used'}</b> <span class="mono">${ratio}%</span></p>
-      <p style="margin-top:6px;color:${+ratio > M.tmuBudget ? '#2B003F' : '#2B003F'}">
-      ${+ratio > M.tmuBudget ? (LANG === 'ko' ? '예산 초과 — 이 장비 측정값으로 공정을 조치할 수 없습니다.' : 'Over budget — readings cannot justify process action.')
-        : (LANG === 'ko' ? '예산 이내입니다.' : 'Within budget.')}</p>`, c);
+      <b>${LANG === 'ko' ? '예산 소비' : 'Budget used'}</b> <span class="mono">${ratio}%</span>${delta===null?'':`<br><b>${esc(t('tr.delta'))}</b> <span class="mono">${delta>=0?'+':''}${num(delta)} ${LANG === 'ko' ? '%p' : 'pp'}</span>`}</p>
+      <p style="margin-top:6px;color:#2B003F">${+ratio > M.tmuBudget ? (LANG === 'ko' ? '예산 초과 — 이 장비 측정값으로 공정을 조치할 수 없습니다.' : 'Over budget — readings cannot justify process action.') : (LANG === 'ko' ? '예산 이내입니다.' : 'Within budget.')}</p>
+      ${delta===null?'':`<p style="margin-top:7px"><b>${esc(t('tr.check'))}</b><br>${esc(t('tr.checktmu'))}</p><p class="sub" style="margin-top:6px">${esc(t('tr.stepnote'))}</p>`}`, c);
     c.addEventListener('mouseenter', show); c.addEventListener('focus', show);
     c.addEventListener('click', e => { e.stopPropagation(); show(); });
   });
   $('#tmuLegend').innerHTML =
     `<span><i class="ln" style="border-color:${TOOLC['CDSEM-A']}"></i>CDSEM-A</span>
      <span><i class="ln" style="border-color:${TOOLC['CDSEM-B']};border-top-style:dashed"></i>CDSEM-B</span>
-     <span><i style="background:#2B003F"></i>${LANG === 'ko' ? '예산 초과' : 'Over budget'}</span>`;
+     <span><i style="background:#2B003F"></i>${LANG === 'ko' ? '예산 초과' : 'Over budget'}</span>
+     <span class="step-legend">${esc(t('tr.step'))}</span>`;
 }
 function drawChambers() {
   $('#chamSub').textContent = LANG === 'ko'
@@ -1323,6 +1509,20 @@ function applyLang() {
   if (S.lot) openLot(S.lot);
   if (S.view !== 'lots') showView(S.view); else hidePop();
 }
+function uiCopyQA() {
+  const root = document.querySelector('.view:not([hidden])') || document.body;
+  const issues=[];
+  if (LANG === 'en') {
+    root.querySelectorAll('*').forEach(el => {
+      if (el.closest('pre.rawjson') || el.children.length) return;
+      const txt=(el.textContent||'').trim();
+      if (/[가-힣]/.test(txt)) issues.push(txt.slice(0,120));
+    });
+  }
+  return {language:LANG, visibleHangulInEnglish:[...new Set(issues)], width:innerWidth,
+    horizontalOverflow:document.documentElement.scrollWidth>document.documentElement.clientWidth};
+}
+window.EPE_UI_QA = uiCopyQA;
 
 /* ── 이벤트 ───────────────────────────────────────────────── */
 function goHome() {
