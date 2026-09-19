@@ -404,6 +404,16 @@ tr.alert td{background:var(--coral-soft)}
 .linkbtn:hover,.term:hover,.info:hover{color:var(--plum)}
 :focus-visible{outline-color:var(--indigo)}
 
+
+/* ── Home / Lot Review separation ── */
+.homebtn[aria-current=page]{background:var(--brand-soft);color:var(--brand);border-color:var(--brand-mid);font-weight:700}
+.queue-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.queue-head h2{margin-bottom:4px}
+.queue-head p{max-width:760px;margin:0}
+.headbadges .pill{white-space:nowrap;flex:0 0 auto;min-width:max-content}
+.verify-tip{width:auto!important;height:auto!important;display:inline-flex!important;place-items:unset!important;margin-left:0!important;padding:5px 13px!important;line-height:1.2!important;white-space:nowrap!important}
+.p-verified{background:var(--teal-soft);color:var(--teal);border-color:rgba(15,118,110,.25);border-bottom:1.5px dotted var(--teal)}
+.p-holdgate{background:var(--amber-soft);color:var(--amber);border-color:rgba(154,104,20,.25);border-bottom:1.5px dotted var(--amber)}
 </style>
 </head>
 <body>
@@ -415,7 +425,7 @@ tr.alert td{background:var(--coral-soft)}
     <div class="hbar">
       <div class="brand">
         <div class="mark">CD</div>
-        <div><b data-t="brand">CD 이상 원인 판정 콘솔</b><span data-t="brandsub">노광·식각·계측 중 원인 모듈을 가려냅니다</span></div>
+        <div><b data-t="brand">CD 이상 원인 분석</b><span data-t="brandsub">ADI·ACI 근거로 Litho·Etch·Metrology 원인을 좁힙니다</span></div>
       </div>
       <div class="search">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -431,7 +441,7 @@ tr.alert td{background:var(--coral-soft)}
       </div>
     </div>
     <nav id="nav" aria-label="Primary">
-      <button data-v="lots" aria-current="page" data-t="nav.lots">로트 판정</button>
+      <button data-v="lots" data-t="nav.lots">로트 검토</button>
       <button data-v="trends" data-t="nav.trends">추이와 감시</button>
       <button data-v="valid" data-t="nav.valid">검증 결과</button>
       <button data-v="terms" data-t="nav.terms">용어 사전</button>
@@ -442,17 +452,16 @@ tr.alert td{background:var(--coral-soft)}
 
 <main class="wrap" id="main" tabindex="-1">
 
-<!-- 로트 목록 -->
-<section class="view" id="v-lots">
+<!-- 홈 -->
+<section class="view" id="v-home">
   <div class="panel hero" id="introCard">
     <div class="hero-copy">
       <div class="eyebrow" data-t="hero.eyebrow">Semiconductor decision support</div>
       <h1 data-t="hero.title">CD 이상 원인을 어디서부터 확인해야 할지 빠르게 좁혀보세요</h1>
       <p><span data-t="hero.body1">로트를 고르면</span> <span class="keypoint" data-t="hero.flow">상태 → 변화 → 추정 원인 → 권고 조치 → 기술 근거</span> <span data-t="hero.body2">순서로 보여줍니다. 처음 보는 사람은 결론부터, 엔지니어는 근거까지 내려가며 확인할 수 있습니다.</span></p>
       <div class="hero-cta">
-        <button class="gbtn primary" id="heroStart" data-t="hero.start">검토가 필요한 로트 보기</button>
-        <button class="gbtn" id="heroFirst" data-t="hero.first">첫 이상 로트 열기</button>
-        <button class="gbtn" id="heroGlossary" data-t="hero.glossary">용어 먼저 보기</button>
+        <button class="gbtn primary" id="heroStart" data-t="hero.start">로트 검토 시작</button>
+        <button class="gbtn" id="heroGlossary" data-t="hero.glossary">용어 사전</button>
       </div>
       <div class="hero-stats" aria-label="Overview">
         <div class="hero-stat"><strong id="heroLotCount">320</strong><span data-t="hero.stat.lots">평가 로트</span></div>
@@ -462,7 +471,7 @@ tr.alert td{background:var(--coral-soft)}
     </div>
     <div class="hero-visual">
       <div class="visual-card">
-        <h3 data-t="hero.visual.title">이 콘솔에서 바로 할 수 있는 일</h3>
+        <h3 data-t="hero.visual.title">이 분석 도구에서 할 수 있는 일</h3>
         <div class="flow">
           <div class="flow-step"><div class="num">01</div><div><b data-t="hero.visual.1t">우선 확인할 로트 찾기</b><small data-t="hero.visual.1d">검색과 필터로 검토가 필요한 로트를 먼저 찾습니다.</small></div></div>
           <div class="flow-step"><div class="num">02</div><div><b data-t="hero.visual.2t">이상 신호를 공정 좌표계로 분리</b><small data-t="hero.visual.2d">ADI·ACI·ΔCD·챔버·계측 drift를 함께 보고 원인 후보를 좁힙니다.</small></div></div>
@@ -476,7 +485,7 @@ tr.alert td{background:var(--coral-soft)}
     <article class="home-card">
       <div class="kicker" data-t="homecard.begin.k">For beginners</div>
       <h3 data-t="homecard.begin.t">처음 방문했다면</h3>
-      <p data-t="homecard.begin.p">이 웹은 CD 이상이 생겼을 때 노광·식각·계측 중 어느 모듈부터 확인할지 좁혀주는 콘솔입니다.</p>
+      <p data-t="homecard.begin.p">이 웹은 CD 이상이 생겼을 때 노광·식각·계측 중 어느 모듈부터 확인할지 근거를 따라 좁혀주는 분석 도구입니다.</p>
       <ul><li data-t="homecard.begin.1">홈에서 전체 흐름을 먼저 파악</li><li data-t="homecard.begin.2">검토가 필요한 로트만 빠르게 필터링</li><li data-t="homecard.begin.3">모르는 용어는 용어 사전에서 확인</li></ul>
     </article>
     <article class="home-card">
@@ -492,17 +501,19 @@ tr.alert td{background:var(--coral-soft)}
       <ul><li data-t="homecard.eng.1">계측 drift와 실제 공정 이상 분리</li><li data-t="homecard.eng.2">Track·Reticle·Etch chamber 신호 구분</li><li data-t="homecard.eng.3">판정 근거와 검증 게이트를 함께 추적</li></ul>
     </article>
   </div>
+</section>
+
+<!-- 로트 검토 -->
+<section class="view" id="v-lots" hidden>
   <div class="panel" id="listCard">
-    <header>
-      <h2 data-t="list.title">처리할 로트를 고르세요</h2>
+    <header class="queue-head">
+      <div>
+        <h2 data-t="list.title">로트 검토</h2>
+        <p class="sub" data-t="list.sub">조치가 필요한 로트를 우선 확인하고, 필요하면 전체 로트로 범위를 넓혀 검토합니다.</p>
+      </div>
       <span class="sub" id="listCount" aria-live="polite"></span>
     </header>
-    <p class="sub" id="qHint" data-t="q.hint" style="margin:-6px 0 12px">예: L0319, SCN-02, RET-B, CH-A</p>
-    <div class="quick">
-      <span class="sub" data-t="q.quick">빠른 시작</span>
-      <button class="gbtn" id="qAbn" data-t="q.abn">검토가 필요한 로트만</button>
-      <button class="gbtn" id="qFirst" data-t="q.first">첫 이상 로트 열기</button>
-    </div>
+    <p class="sub" id="qHint" data-t="q.hint" style="margin:-2px 0 12px">예: L0319, SCN-02, RET-B, CH-A</p>
     <div class="filters" role="group" data-aria="filter.group" aria-label="로트 필터">
       <button class="chip alarm" id="fAbn" aria-pressed="false"></button>
       <select id="fVerdict" data-aria="filter.verdict" aria-label="판정 필터"></select>
