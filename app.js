@@ -209,6 +209,10 @@ const SVG_TEXT_EN = {
 };
 
 const TERM_SVG_OVERRIDE = {
+  pitch: {
+    ko: `<svg viewBox="0 0 360 220" aria-hidden="true"><rect x="48" y="62" width="44" height="84" fill="#F7E5DB" stroke="#000000" stroke-width="2.2"/><rect x="158" y="62" width="44" height="84" fill="#F7E5DB" stroke="#000000" stroke-width="2.2"/><rect x="268" y="62" width="44" height="84" fill="#F7E5DB" stroke="#000000" stroke-width="2.2"/><line x1="70" y1="42" x2="70" y2="164" stroke="#0F766E" stroke-width="2" stroke-dasharray="7 5"/><line x1="180" y1="42" x2="180" y2="164" stroke="#0F766E" stroke-width="2" stroke-dasharray="7 5"/><path d="M70 176h110" stroke="#0F766E" stroke-width="4"/><path d="M70 166v20M180 166v20" stroke="#0F766E" stroke-width="3"/><text x="99" y="207" class="cap" fill="#0F766E">pitch (중심 간 거리)</text><text x="220" y="92" class="lbl">설계가 정하는</text><text x="220" y="116" class="lbl">고정값</text></svg>`,
+    en: `<svg viewBox="0 0 360 220" aria-hidden="true"><rect x="48" y="62" width="44" height="84" fill="#F7E5DB" stroke="#000000" stroke-width="2.2"/><rect x="158" y="62" width="44" height="84" fill="#F7E5DB" stroke="#000000" stroke-width="2.2"/><rect x="268" y="62" width="44" height="84" fill="#F7E5DB" stroke="#000000" stroke-width="2.2"/><line x1="70" y1="42" x2="70" y2="164" stroke="#0F766E" stroke-width="2" stroke-dasharray="7 5"/><line x1="180" y1="42" x2="180" y2="164" stroke="#0F766E" stroke-width="2" stroke-dasharray="7 5"/><path d="M70 176h110" stroke="#0F766E" stroke-width="4"/><path d="M70 166v20M180 166v20" stroke="#0F766E" stroke-width="3"/><text x="105" y="207" class="cap" fill="#0F766E">pitch (centre-to-centre)</text><text x="220" y="92" class="lbl">Fixed by</text><text x="220" y="116" class="lbl">design</text></svg>`
+  },
   reticle: {
     ko: `<svg viewBox="0 0 320 180" aria-hidden="true"><rect x="28" y="52" width="96" height="64" rx="2" fill="#FFFFFF" stroke="#464646" stroke-width="2"/><g fill="#000000"><rect x="46" y="70" width="20" height="6"/><rect x="76" y="70" width="20" height="6"/><rect x="46" y="88" width="20" height="6"/><rect x="76" y="88" width="13" height="6"/><rect x="46" y="106" width="28" height="6"/></g><path d="M146 84h50" stroke="#9A6814" stroke-width="3"/><path d="M188 76l13 8-13 8z" fill="#9A6814"/><text x="146" y="66" class="cap" fill="#9A6814">1/4 축소</text><rect x="220" y="68" width="66" height="38" rx="2" fill="#FFFFFF" stroke="#464646" stroke-width="2"/><g fill="#000000"><rect x="232" y="79" width="12" height="4"/><rect x="250" y="79" width="12" height="4"/><rect x="232" y="91" width="12" height="4"/><rect x="250" y="91" width="8" height="4"/></g><text x="28" y="142" class="lbl">레티클 (4배 크기)</text><text x="220" y="132" class="lbl">웨이퍼 field</text></svg>`,
     en: `<svg viewBox="0 0 320 180" aria-hidden="true"><rect x="28" y="52" width="96" height="64" rx="2" fill="#FFFFFF" stroke="#464646" stroke-width="2"/><g fill="#000000"><rect x="46" y="70" width="20" height="6"/><rect x="76" y="70" width="20" height="6"/><rect x="46" y="88" width="20" height="6"/><rect x="76" y="88" width="13" height="6"/><rect x="46" y="106" width="28" height="6"/></g><path d="M146 84h50" stroke="#9A6814" stroke-width="3"/><path d="M188 76l13 8-13 8z" fill="#9A6814"/><text x="136" y="66" class="cap" fill="#9A6814">4x → 1x reduction</text><rect x="220" y="68" width="66" height="38" rx="2" fill="#FFFFFF" stroke="#464646" stroke-width="2"/><g fill="#000000"><rect x="232" y="79" width="12" height="4"/><rect x="250" y="79" width="12" height="4"/><rect x="232" y="91" width="12" height="4"/><rect x="250" y="91" width="8" height="4"/></g><text x="28" y="142" class="lbl">Reticle image (4x)</text><text x="220" y="132" class="lbl">Wafer field (1x)</text></svg>`
@@ -222,8 +226,8 @@ const TERM_SVG_OVERRIDE = {
     en: `<svg viewBox="0 0 340 190" aria-hidden="true"><rect x="36" y="72" width="220" height="38" rx="3" fill="#FFFFFF" stroke="#E8D7D0" stroke-width="2"/><rect x="36" y="72" width="44" height="38" rx="3" fill="#EEF0F8" stroke="#55639A" stroke-width="2"/><text x="36" y="56" class="cap" fill="#55639A">Measurement share (TMU)</text><text x="110" y="96" class="lbl">Budget left for process</text><path d="M36 132h220" stroke="#464646" stroke-width="3"/><path d="M36 123v18M256 123v18" stroke="#464646" stroke-width="3"/><text x="104" y="154" class="lbl">Process tolerance T</text><text x="36" y="176" class="cap" fill="#55639A">Target: TMU ≤ 20% of T</text></svg>`
   },
   peb: {
-    ko: `<svg viewBox="0 0 340 200" aria-hidden="true"><defs><radialGradient id="peb-ko" cx="42%" cy="45%" r="60%"><stop offset="0%" stop-color="#F7D9C9"/><stop offset="42%" stop-color="#F7E9D5"/><stop offset="72%" stop-color="#D9EFEA"/><stop offset="100%" stop-color="#B9DDD6"/></radialGradient></defs><circle cx="96" cy="104" r="66" fill="url(#peb-ko)" stroke="#0F766E" stroke-width="2.5"/><circle cx="96" cy="104" r="46" fill="none" stroke="#0F766E" stroke-opacity=".45" stroke-width="1.5"/><circle cx="96" cy="104" r="24" fill="none" stroke="#B6534A" stroke-opacity=".55" stroke-width="1.5"/><text x="48" y="184" class="lbl">가열판 온도 분포</text><text x="190" y="78" class="lbl">중심과 엣지의</text><text x="190" y="100" class="lbl">온도 차이가</text><text x="190" y="124" class="cap" fill="#0F766E">반경 방향 CD 지문</text><text x="190" y="146" class="lbl">으로 나타남</text></svg>`,
-    en: `<svg viewBox="0 0 340 200" aria-hidden="true"><defs><radialGradient id="peb-en" cx="42%" cy="45%" r="60%"><stop offset="0%" stop-color="#F7D9C9"/><stop offset="42%" stop-color="#F7E9D5"/><stop offset="72%" stop-color="#D9EFEA"/><stop offset="100%" stop-color="#B9DDD6"/></radialGradient></defs><circle cx="96" cy="104" r="66" fill="url(#peb-en)" stroke="#0F766E" stroke-width="2.5"/><circle cx="96" cy="104" r="46" fill="none" stroke="#0F766E" stroke-opacity=".45" stroke-width="1.5"/><circle cx="96" cy="104" r="24" fill="none" stroke="#B6534A" stroke-opacity=".55" stroke-width="1.5"/><text x="32" y="184" class="lbl">Hot-plate temperature profile</text><text x="188" y="76" class="lbl">Centre-to-edge</text><text x="188" y="98" class="lbl">temperature difference</text><text x="188" y="124" class="cap" fill="#0F766E">creates a radial</text><text x="188" y="146" class="cap" fill="#0F766E">CD fingerprint</text></svg>`
+    ko: `<svg viewBox="0 0 360 220" aria-hidden="true"><defs><radialGradient id="peb-ko-v4" gradientUnits="userSpaceOnUse" cx="104" cy="108" r="68"><stop offset="0%" stop-color="#F4CDBE"/><stop offset="42%" stop-color="#F7E4CF"/><stop offset="72%" stop-color="#D6ECE7"/><stop offset="100%" stop-color="#9BCFC6"/></radialGradient></defs><circle cx="104" cy="108" r="68" fill="url(#peb-ko-v4)" stroke="#0F766E" stroke-width="3"/><circle cx="104" cy="108" r="46" fill="none" stroke="#0F766E" stroke-opacity=".5" stroke-width="1.8"/><circle cx="104" cy="108" r="24" fill="none" stroke="#B6534A" stroke-opacity=".65" stroke-width="1.8"/><circle cx="104" cy="108" r="3.2" fill="#B6534A"/><text x="45" y="203" class="lbl">가열판 온도 분포</text><text x="205" y="78" class="lbl">중심과 엣지의</text><text x="205" y="104" class="lbl">온도 차이가</text><text x="205" y="134" class="cap" fill="#0F766E">반경 방향 CD 지문</text><text x="205" y="160" class="lbl">으로 나타남</text></svg>`,
+    en: `<svg viewBox="0 0 360 220" aria-hidden="true"><defs><radialGradient id="peb-en-v4" gradientUnits="userSpaceOnUse" cx="104" cy="108" r="68"><stop offset="0%" stop-color="#F4CDBE"/><stop offset="42%" stop-color="#F7E4CF"/><stop offset="72%" stop-color="#D6ECE7"/><stop offset="100%" stop-color="#9BCFC6"/></radialGradient></defs><circle cx="104" cy="108" r="68" fill="url(#peb-en-v4)" stroke="#0F766E" stroke-width="3"/><circle cx="104" cy="108" r="46" fill="none" stroke="#0F766E" stroke-opacity=".5" stroke-width="1.8"/><circle cx="104" cy="108" r="24" fill="none" stroke="#B6534A" stroke-opacity=".65" stroke-width="1.8"/><circle cx="104" cy="108" r="3.2" fill="#B6534A"/><text x="30" y="203" class="lbl">Hot-plate temperature profile</text><text x="205" y="76" class="lbl">Centre-to-edge</text><text x="205" y="102" class="lbl">temperature difference</text><text x="205" y="132" class="cap" fill="#0F766E">creates a radial</text><text x="205" y="158" class="cap" fill="#0F766E">CD fingerprint</text></svg>`
   }
 };
 
@@ -238,8 +242,8 @@ Object.assign(TERM_SVG_OVERRIDE, {
     en: `<svg viewBox="0 0 340 220" aria-hidden="true"><circle cx="92" cy="102" r="66" fill="none" stroke="#E7CFC4" stroke-width="2"/><g stroke="#464646" stroke-width="1.5"><rect x="44" y="54" width="24" height="24" fill="#FFFFFF"/><rect x="68" y="54" width="24" height="24" fill="#F7E5DB"/><rect x="92" y="54" width="24" height="24" fill="#FFFFFF"/><rect x="116" y="54" width="24" height="24" fill="#F7E5DB"/><rect x="32" y="78" width="24" height="24" fill="#FFFFFF"/><rect x="56" y="78" width="24" height="24" fill="#F7E5DB"/><rect x="80" y="78" width="24" height="24" fill="#FFFFFF"/><rect x="104" y="78" width="24" height="24" fill="#F7E5DB"/><rect x="128" y="78" width="24" height="24" fill="#FFFFFF"/><rect x="44" y="102" width="24" height="24" fill="#F7E5DB"/><rect x="68" y="102" width="24" height="24" fill="#FFFFFF"/><rect x="92" y="102" width="24" height="24" fill="#F7E5DB"/><rect x="116" y="102" width="24" height="24" fill="#FFFFFF"/><rect x="56" y="126" width="24" height="24" fill="#FFFFFF"/><rect x="80" y="126" width="24" height="24" fill="#F7E5DB"/><rect x="104" y="126" width="24" height="24" fill="#FFFFFF"/></g><text x="182" y="76" class="cap" fill="#55639A">One cell = one exposure field</text><text x="182" y="102" class="lbl">• 26 × 33 mm example</text><text x="182" y="124" class="lbl">• dark cells = sampled fields</text><text x="182" y="146" class="lbl">• centre / mid / edge included</text><text x="38" y="196" class="lbl">Nine sampled fields across the wafer radius</text></svg>`
   },
   cd: {
-    ko: `<svg viewBox="0 0 340 230" aria-hidden="true"><rect x="40" y="62" width="42" height="88" fill="#F7E5DB" stroke="#000000" stroke-width="2"/><rect x="132" y="62" width="42" height="88" fill="#F7E5DB" stroke="#000000" stroke-width="2"/><rect x="224" y="62" width="42" height="88" fill="#F7E5DB" stroke="#000000" stroke-width="2"/><path d="M40 42h42" stroke="#B6534A" stroke-width="5"/><path d="M40 30v24M82 30v24" stroke="#B6534A" stroke-width="4"/><text x="54" y="24" class="cap" fill="#B6534A">CD</text><path d="M82 178h50" stroke="#464646" stroke-width="5"/><path d="M82 166v24M132 166v24" stroke="#464646" stroke-width="4"/><text x="90" y="212" class="cap" fill="#464646">space</text><path d="M40 202h92" stroke="#B6534A" stroke-width="5"/><path d="M40 190v24M132 190v24" stroke="#B6534A" stroke-width="4"/><text x="156" y="206" class="cap" fill="#B6534A">pitch = CD + space (fixed)</text><text x="184" y="98" class="lbl">CD가 커지면</text><text x="184" y="122" class="lbl">space는 줄어듭니다</text></svg>`,
-    en: `<svg viewBox="0 0 340 230" aria-hidden="true"><rect x="40" y="62" width="42" height="88" fill="#F7E5DB" stroke="#000000" stroke-width="2"/><rect x="132" y="62" width="42" height="88" fill="#F7E5DB" stroke="#000000" stroke-width="2"/><rect x="224" y="62" width="42" height="88" fill="#F7E5DB" stroke="#000000" stroke-width="2"/><path d="M40 42h42" stroke="#B6534A" stroke-width="5"/><path d="M40 30v24M82 30v24" stroke="#B6534A" stroke-width="4"/><text x="54" y="24" class="cap" fill="#B6534A">CD</text><path d="M82 178h50" stroke="#464646" stroke-width="5"/><path d="M82 166v24M132 166v24" stroke="#464646" stroke-width="4"/><text x="90" y="212" class="cap" fill="#464646">space</text><path d="M40 202h92" stroke="#B6534A" stroke-width="5"/><path d="M40 190v24M132 190v24" stroke="#B6534A" stroke-width="4"/><text x="156" y="206" class="cap" fill="#B6534A">pitch = CD + space (fixed)</text><text x="184" y="98" class="lbl">If CD increases,</text><text x="184" y="122" class="lbl">space decreases.</text></svg>`
+    ko: `<svg viewBox="0 0 380 240" aria-hidden="true"><rect x="44" y="64" width="46" height="92" fill="#F7E5DB" stroke="#000000" stroke-width="2.2"/><rect x="154" y="64" width="46" height="92" fill="#F7E5DB" stroke="#000000" stroke-width="2.2"/><rect x="264" y="64" width="46" height="92" fill="#F7E5DB" stroke="#000000" stroke-width="2.2"/><path d="M44 42h46" stroke="#B6534A" stroke-width="5"/><path d="M44 30v24M90 30v24" stroke="#B6534A" stroke-width="4"/><text x="56" y="24" class="cap" fill="#B6534A">CD</text><path d="M90 184h64" stroke="#464646" stroke-width="5"/><path d="M90 173v22M154 173v22" stroke="#464646" stroke-width="4"/><text x="102" y="215" class="cap" fill="#464646">space</text><path d="M44 222h110" stroke="#B6534A" stroke-width="5"/><path d="M44 211v22M154 211v22" stroke="#B6534A" stroke-width="4"/><text x="190" y="210" class="cap" fill="#B6534A">pitch = CD + space</text><text x="190" y="232" class="lbl">(고정)</text><text x="222" y="94" class="lbl">CD가 커지면</text><text x="222" y="122" class="lbl">space는 줄어듭니다</text></svg>`,
+    en: `<svg viewBox="0 0 380 240" aria-hidden="true"><rect x="44" y="64" width="46" height="92" fill="#F7E5DB" stroke="#000000" stroke-width="2.2"/><rect x="154" y="64" width="46" height="92" fill="#F7E5DB" stroke="#000000" stroke-width="2.2"/><rect x="264" y="64" width="46" height="92" fill="#F7E5DB" stroke="#000000" stroke-width="2.2"/><path d="M44 42h46" stroke="#B6534A" stroke-width="5"/><path d="M44 30v24M90 30v24" stroke="#B6534A" stroke-width="4"/><text x="56" y="24" class="cap" fill="#B6534A">CD</text><path d="M90 184h64" stroke="#464646" stroke-width="5"/><path d="M90 173v22M154 173v22" stroke="#464646" stroke-width="4"/><text x="102" y="215" class="cap" fill="#464646">space</text><path d="M44 222h110" stroke="#B6534A" stroke-width="5"/><path d="M44 211v22M154 211v22" stroke="#B6534A" stroke-width="4"/><text x="190" y="210" class="cap" fill="#B6534A">pitch = CD + space</text><text x="190" y="232" class="lbl">(fixed)</text><text x="222" y="94" class="lbl">If CD increases,</text><text x="222" y="122" class="lbl">space decreases.</text></svg>`
   }
 });
 
@@ -269,7 +273,8 @@ function glossarySvg(key) {
   const o = TERM_SVG_OVERRIDE[key];
   const raw = o ? (LANG === 'en' ? o.en : o.ko) : (TERMS[key]?.s || '');
   const svg = localizeSvgText(raw);
-  return svg ? `<div class="gvisual">${svg}</div>` : '';
+  const kind = o ? 'diagram-modern' : 'diagram-legacy';
+  return svg ? `<div class="gvisual ${kind}">${svg}</div>` : '';
 }
 function glossaryTitleHtml(key, tag='h3') {
   const sec = glossarySecondary(key);
@@ -390,8 +395,8 @@ const T = {
   'filter.daymax':['최대 생산일', 'Maximum production day'],
   'filter.period':['생산 기간 필터', 'Production period filter'],
   'filter.sort':['정렬 기준', 'Sort order'],
-  'sort.lotdesc':['최신 로트순', 'Latest lot ID first'],
-  'sort.lotasc':['오래된 로트순', 'Oldest lot ID first'],
+  'sort.lotdesc':['로트 번호 내림차순', 'Lot ID descending'],
+  'sort.lotasc':['로트 번호 오름차순', 'Lot ID ascending'],
   'sort.daydesc':['최신 생산일순', 'Latest production day first'],
   'filter.advanced':['고급 필터', 'Advanced filters'],
   'period.all':['전체 기간', 'All dates'],
@@ -808,8 +813,8 @@ addEventListener('scroll', hidePop, {passive: true});
 const infoBtn = k => k && TERMS[k] ? `<button class="info" type="button" data-t="${k}" aria-label="${LANG === 'ko' ? '설명 보기' : 'Show definition'}">i</button>` : '';
 
 /* ── 상태 ─────────────────────────────────────────────────── */
-const S = {view: 'home', lot: null, q: '', abn: true, verdict: '', scanner: '', chamber: '',
-           metro: '', period: 0, sort: 'lotdesc', queueOpen: false, metric: 'dbias', waf: 'adi'};
+const S = {view: 'home', lot: null, q: '', abn: false, verdict: '', scanner: '', chamber: '',
+           metro: '', period: 0, sort: 'lotasc', queueOpen: true, metric: 'dbias', waf: 'adi'};
 const MAX_DAY = Math.max(...DATA.lots.map(l => Number(l.day) || 0));
 
 function outCount(l) { return (l.ev || []).filter(e => e.hit).length; }
@@ -850,7 +855,7 @@ function filtered() {
       .some(v => String(v || '').toLowerCase().includes(q)))
   );
 
-  const sortMode = S.sort || 'lotdesc';
+  const sortMode = S.sort || 'lotasc';
   return rows.sort((a, b) => {
     if (sortMode === 'daydesc') {
       return b.day - a.day || compareLotsById(a, b, 'desc');
@@ -889,7 +894,7 @@ function fillSelects() {
   }
   if ($('#fSort')) {
     $('#fSort').innerHTML = [
-      ['lotdesc', t('sort.lotdesc')], ['lotasc', t('sort.lotasc')], ['daydesc', t('sort.daydesc')]
+      ['lotasc', t('sort.lotasc')], ['lotdesc', t('sort.lotdesc')], ['daydesc', t('sort.daydesc')]
     ].map(([v, label]) => `<option value="${v}"${S.sort === v ? ' selected' : ''}>${esc(label)}</option>`).join('');
   }
   const hold = DATA.lots.filter(l => l.verdict === 'INDETERMINATE').length;
@@ -1560,9 +1565,9 @@ $('#fScanner').onchange = e => { S.scanner = e.target.value; renderList(); };
 $('#fChamber').onchange = e => { S.chamber = e.target.value; renderList(); };
 $('#fMetro').onchange = e => { S.metro = e.target.value; renderList(); };
 $('#fPeriod').onchange = e => { S.period = Number(e.target.value) || 0; renderList(); };
-$('#fSort').onchange = e => { S.sort = e.target.value || 'lotdesc'; renderList(); };
+$('#fSort').onchange = e => { S.sort = e.target.value || 'lotasc'; renderList(); };
 $('#fReset').onclick = () => {
-  Object.assign(S, {q: '', abn: false, verdict: '', scanner: '', chamber: '', metro: '', period: 0, sort: 'lotdesc'});
+  Object.assign(S, {q: '', abn: false, verdict: '', scanner: '', chamber: '', metro: '', period: 0, sort: 'lotasc'});
   $('#q').value = '';
   fillSelects(); renderList();
 };

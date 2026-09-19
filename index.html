@@ -652,6 +652,50 @@ tr.alert td{background:var(--coral-soft)}
   .pill,.verify-tip{font-size:12.5px!important;padding:5px 10px!important}
 }
 
+
+
+/* ── v1 visual consistency pass: diagram type + clipping safety ── */
+.gvisual{
+  overflow:hidden;
+  padding:18px 18px 14px;
+  min-height:190px;
+}
+.gvisual svg{
+  width:100%;
+  max-width:430px;
+  height:auto;
+  overflow:visible;
+}
+/* Modern diagrams use a ~340–360 user-unit viewBox. Keep their label size large. */
+.gvisual.diagram-modern svg text{
+  font-family:"IBM Plex Sans KR",-apple-system,"Segoe UI",sans-serif;
+  font-size:14px!important;
+  font-weight:500;
+}
+.gvisual.diagram-modern svg .cap{
+  font-size:15px!important;
+  font-weight:700;
+}
+.gvisual.diagram-modern svg .lbl{
+  font-size:14px!important;
+  font-weight:500;
+  fill:#3F3A3D;
+}
+.gvisual.diagram-modern svg .sub{
+  font-size:13px!important;
+  fill:#5C5559;
+}
+/* Legacy diagrams have a ~200 user-unit viewBox; smaller SVG units render at a similar visual size. */
+.gvisual.diagram-legacy svg text{
+  font-family:"IBM Plex Sans KR",-apple-system,"Segoe UI",sans-serif;
+  font-size:8.5px!important;
+  font-weight:500;
+}
+@media(max-width:760px){
+  .gvisual{padding:14px 10px 12px;min-height:170px}
+  .gvisual svg{max-width:100%}
+}
+
 </style>
 </head>
 <body>
