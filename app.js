@@ -359,8 +359,8 @@ const T = {
   'homecard.read.2':['변화 — 어떤 지표가 한계를 벗어났는지','Change — which indicators moved outside limits'],
   'homecard.read.3':['원인·조치 — 무엇을 먼저 확인할지','Cause & action — what to inspect first'],
   'homecard.read.4':['근거 — Evidence / Trace / Gate','Evidence — Evidence / Trace / Gate'],
-  'homecard.eng.k':['For engineers','For engineers'],
-  'homecard.eng.t':['현업에서는 이렇게 씁니다','How an engineer can use it'],
+  'homecard.eng.k':['Decision support','Decision support'],
+  'homecard.eng.t':['이 도구가 지원하는 판단','Decision support scope'],
   'homecard.eng.p':['단순 이상 탐지를 넘어 원인 후보와 조치 우선순위를 분리해 불필요한 공정 변경을 줄이는 의사결정을 지원합니다.','Beyond anomaly detection, it separates likely sources and action priority to reduce unnecessary process changes.'],
   'homecard.eng.1':['계측 drift와 실제 공정 이상 분리','Separate metrology drift from a true process excursion'],
   'homecard.eng.2':['Track·Reticle·Etch chamber 신호 구분','Distinguish Track, Reticle and Etch chamber signatures'],
@@ -372,6 +372,19 @@ const T = {
   'filter.metro':['계측 장비 필터', 'Metrology tool filter'],
   'filter.daymin':['최소 생산일', 'Minimum production day'],
   'filter.daymax':['최대 생산일', 'Maximum production day'],
+  'filter.period':['생산 기간 필터', 'Production period filter'],
+  'filter.advanced':['고급 필터', 'Advanced filters'],
+  'period.all':['전체 기간', 'All dates'],
+  'period.3':['최근 3 생산일', 'Latest 3 production days'],
+  'period.7':['최근 7 생산일', 'Latest 7 production days'],
+  'period.14':['최근 14 생산일', 'Latest 14 production days'],
+  'queue.lead':['처음에는 처리 우선순위만 확인하세요. 필요한 경우에만 전체 목록과 상세 필터를 펼칠 수 있습니다.','Start with priority only. Open the full queue and detailed filters only when you need them.'],
+  'queue.review':['검토 필요', 'Needs review'],
+  'queue.hold':['판정 보류', 'Withheld'],
+  'queue.normal':['정상', 'Normal'],
+  'queue.openreview':['검토 필요 로트 보기', 'View lots needing review'],
+  'queue.openall':['전체 로트 보기', 'View all lots'],
+  'queue.note':['로트를 선택하면 상태 → 변화 → 추정 원인 → 조치 순서로 먼저 보여주고, 기술 근거는 필요할 때 펼쳐봅니다.','Open a lot to see status → change → likely cause → action first; technical evidence stays available on demand.'],
   'detail.technical':['기술 세부정보', 'Technical details'],
   'copylink':['링크 복사', 'Copy link'],
   'copied':['링크 복사됨', 'Link copied'],
@@ -653,7 +666,8 @@ const infoBtn = k => k && TERMS[k] ? `<button class="info" type="button" data-t=
 
 /* ── 상태 ─────────────────────────────────────────────────── */
 const S = {view: 'home', lot: null, q: '', abn: true, verdict: '', scanner: '', chamber: '',
-           metro: '', dmin: null, dmax: null, metric: 'dbias', waf: 'adi'};
+           metro: '', period: 0, queueOpen: false, metric: 'dbias', waf: 'adi'};
+const MAX_DAY = Math.max(...DATA.lots.map(l => Number(l.day) || 0));
 
 function outCount(l) { return (l.ev || []).filter(e => e.hit).length; }
 /* 긴 측정값 문자열에서 한눈에 읽을 머리값만 뽑고 나머지는 보조줄로 내린다 */
@@ -678,7 +692,7 @@ function filtered() {
     (!S.scanner || l.scanner === S.scanner) &&
     (!S.chamber || l.chamber === S.chamber) &&
     (!S.metro || l.adiTool === S.metro || l.aciTool === S.metro) &&
-    (S.dmin == null || l.day >= S.dmin) && (S.dmax == null || l.day <= S.dmax) &&
+    (!S.period || l.day >= MAX_DAY - (S.period - 1)) &&
     (!q || [l.lot, l.scanner, l.reticle, l.chamber, l.adiTool, l.aciTool]
       .some(v => String(v || '').toLowerCase().includes(q)))
   ).sort((a, b) => (a.verdict === 'NORMAL') - (b.verdict === 'NORMAL') || b.day - a.day
@@ -705,28 +719,62 @@ function fillSelects() {
   const abn = DATA.lots.filter(l => l.verdict !== 'NORMAL').length;
   $('#fAbn').textContent = `${t('list.abn')} ${abn}`;
   $('#fAbn').setAttribute('aria-pressed', String(S.abn));
+  if ($('#fPeriod')) {
+    $('#fPeriod').innerHTML = [
+      [0, t('period.all')], [3, t('period.3')], [7, t('period.7')], [14, t('period.14')]
+    ].map(([v, label]) => `<option value="${v}"${Number(S.period) === Number(v) ? ' selected' : ''}>${esc(label)}</option>`).join('');
+  }
+  const hold = DATA.lots.filter(l => l.verdict === 'INDETERMINATE').length;
+  const normal = DATA.lots.filter(l => l.verdict === 'NORMAL').length;
+  if ($('#sumReview')) $('#sumReview').textContent = abn;
+  if ($('#sumHold')) $('#sumHold').textContent = hold;
+  if ($('#sumNormal')) $('#sumNormal').textContent = normal;
 }
 
 /* ── 로트 목록 ────────────────────────────────────────────── */
+function setQueueOpen(open, mode = 'review') {
+  S.queueOpen = open;
+  if (open) S.abn = mode !== 'all';
+  if ($('#queueIntro')) $('#queueIntro').hidden = open;
+  if ($('#queueTools')) $('#queueTools').hidden = !open;
+  fillSelects();
+  renderList();
+}
+function syncQueueView() {
+  if ($('#queueIntro')) $('#queueIntro').hidden = !!S.queueOpen;
+  if ($('#queueTools')) $('#queueTools').hidden = !S.queueOpen;
+}
+
 function renderList() {
   const rows = filtered();
-  $('#listCount').textContent = `${rows.length}${t('list.of')} / ${DATA.lots.length}`;
+  if ($('#listCount')) $('#listCount').textContent = S.queueOpen ? `${rows.length}${t('list.of')} / ${DATA.lots.length}` : `${DATA.lots.length}`;
   const box = $('#lotlist');
+  if (!box) return;
+  if (!S.queueOpen) { box.innerHTML = ''; return; }
   if (!rows.length) {
     box.innerHTML = `<div class="empty"><p>${esc(t('list.none'))}</p><button class="gbtn" id="emptyReset">${esc(t('list.reset'))}</button></div>`;
     $('#emptyReset').onclick = () => $('#fReset').click();
     return;
   }
-  box.innerHTML = rows.slice(0, 400).map(l => {
+  const changedChip = (label, value, changed) => `<span class="meta-chip${changed ? ' diff' : ''}"${changed ? ` title="${esc(LANG === 'ko' ? '이전 표시 로트와 다른 값' : 'Changed from the previous visible lot')}"` : ''}>${esc(label)} ${esc(value || '—')}</span>`;
+  box.innerHTML = rows.slice(0, 400).map((l, i) => {
+    const prev = i ? rows[i - 1] : null;
     const o = outCount(l), g = gateOk(l);
-    const sig = o ? (LANG === 'ko' ? `이탈 ${o}개` : `${o} out of limit`)
-                  : (LANG === 'ko' ? '전 지표 이내' : 'all within');
+    const sig = o
+      ? `<span class="signal-count"><b>${o}</b><span>${esc(LANG === 'ko' ? '개 이탈' : 'out of limit')}</span></span>`
+      : `<span class="signal-count"><b>0</b><span>${esc(LANG === 'ko' ? '개 이탈' : 'out of limit')}</span></span>`;
     return `<button class="lotrow" role="option" data-lot="${l.lot}" aria-selected="false">
       <span class="dot" style="background:${COLOR[l.verdict]}"></span>
       <span><span class="lotid">${l.lot}</span>
-        <span class="lotmeta">${l.date} · ${esc(l.scanner)} · ${esc(l.chamber)} · ${esc(l.adiTool)}${l.aciMean == null ? ' · ACI skip' : ''}</span></span>
+        <span class="meta-line">
+          <span class="meta-date">${esc(l.date)}</span>
+          ${changedChip('Scanner', l.scanner, !!prev && l.scanner !== prev.scanner)}
+          ${changedChip('Chamber', l.chamber, !!prev && l.chamber !== prev.chamber)}
+          ${changedChip('CD-SEM', l.adiTool, !!prev && l.adiTool !== prev.adiTool)}
+          ${l.aciMean == null ? `<span class="meta-chip">ACI skip</span>` : ''}
+        </span></span>
       <span class="lotright">
-        <span class="sub mono">${sig}</span>
+        ${sig}
         ${g ? '' : `<span class="badge b-hold">${esc(t('gatehold'))}</span>`}
         <span class="badge ${BCLASS[l.risk] || 'b-ok'}">${esc(shortLabel(l.verdict))}</span>
       </span></button>`;
@@ -764,6 +812,19 @@ function openLot(id, push = true) {
       <td class="num">${m ? `<span class="${m.left < 0 ? 'bad' : ''}">${esc(marginLabel(m))}</span>` : '—'}</td>
       <td class="src">${esc(sourceLabel(e.k))}</td>
       <td><span class="state ${st.cls}">${esc(st.text)}</span></td></tr>`;
+  }).join('');
+
+  const evCards = [...(l.ev || [])].sort((a, b) => Number(b.hit) - Number(a.hit)).map(e => {
+    const m = margin(e), st = rowState(e);
+    return `<article class="metric-card ${e.hit ? 'alert' : ''}">
+      <div class="metric-card-head"><strong>${esc(plainLabel(e.k))}</strong><span class="state ${st.cls}">${esc(st.text)}</span></div>
+      <div class="metric-grid">
+        <div class="metric-cell"><small>${esc(t('th.value'))}</small><b>${esc(e.v)}</b></div>
+        <div class="metric-cell"><small>${esc(t('th.limit'))}</small><b>${esc(e.lim)}</b></div>
+        <div class="metric-cell"><small>${esc(t('th.margin'))}</small><b class="${m && m.left < 0 ? 'bad' : ''}">${m ? esc(marginLabel(m)) : '—'}</b></div>
+      </div>
+      <div class="metric-source">${esc(t('th.source'))}: ${esc(sourceLabel(e.k))} · <span class="mono">${esc(evLabel(e.k))}</span></div>
+    </article>`;
   }).join('');
 
   const gateRows = (l.gate || []).length
@@ -814,7 +875,7 @@ function openLot(id, push = true) {
   <div class="ctxchips">${chips.map(c => `<span class="ctxchip">${esc(c)}</span>`).join('')}</div>
 </div>
 
-<details class="panel disclosure" id="evPanel" ${outs.length ? 'open' : ''}>
+<details class="panel disclosure" id="evPanel">
   <summary><span><strong>${esc(t('d.all'))}</strong><small>${outs.length ? esc(`${outs.length} ${LANG === 'ko' ? '개 이탈' : 'out of limit'}`) : esc(t('d.whynormal', {n:(l.ev || []).length}))}</small></span></summary>
   <div class="disclosure-body">
     ${outs.length
@@ -823,10 +884,11 @@ function openLot(id, push = true) {
           <div class="l">${h.rest ? esc(h.rest) + ' · ' : ''}${esc(t('th.limit'))} ${esc(e.lim)} · <span class="mono">${esc(evLabel(e.k))}</span></div></div>`; }).join('')}</div>`
       : `<div class="allclear">✓ ${esc(t('d.whynormal', {n:(l.ev || []).length}))}</div>`}
     <h3 class="table-title">${esc(t('d.all'))}</h3><p class="sub evidence-note">${esc(t('d.allsub'))}</p>
-    <div class="tw"><table><thead><tr><th scope="col">${esc(t('th.plain'))}</th><th class="num" scope="col">${esc(t('th.value'))}</th>
+    <div class="tw evidence-table"><table><thead><tr><th scope="col">${esc(t('th.plain'))}</th><th class="num" scope="col">${esc(t('th.value'))}</th>
       <th class="num" scope="col">${esc(t('th.limit'))}</th><th class="num" scope="col">${esc(t('th.margin'))}</th>
       <th scope="col">${esc(t('th.source'))}</th><th scope="col">${esc(t('th.state'))}</th></tr></thead>
       <tbody>${evRows}</tbody></table></div>
+    <div class="evidence-cards">${evCards}</div>
   </div>
 </details>
 
@@ -891,7 +953,7 @@ function openLot(id, push = true) {
 }
 function closeLot(push = true) {
   const prevLot = S.lot;
-  S.lot = null; $('#detail').hidden = true; $('#listCard').hidden = false;
+  S.lot = null; S.queueOpen = true; $('#detail').hidden = true; $('#listCard').hidden = false; syncQueueView();
   try { if (location.hash) push ? history.pushState(null, '', location.pathname)
                                 : history.replaceState(null, '', location.pathname); } catch (e) {}
   requestAnimationFrame(() => document.querySelector(`.lotrow[data-lot="${prevLot}"]`)?.focus());
@@ -1201,7 +1263,7 @@ function applyLang() {
   $$('[data-aria]').forEach(el => el.setAttribute('aria-label', t(el.dataset.aria)));
   $$('.lang button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === LANG)));
   if ($('#heroLotCount')) $('#heroLotCount').textContent = M.lots;
-  fillSelects(); renderList(); drawn = {};
+  fillSelects(); syncQueueView(); renderList(); drawn = {};
   if (S.lot) openLot(S.lot);
   if (S.view !== 'lots') showView(S.view); else hidePop();
 }
@@ -1216,34 +1278,35 @@ function goHome() {
 }
 $('#homeBtn').onclick = goHome;
 $('#heroStart').onclick = () => {
-  S.abn = true;
-  fillSelects(); renderList();
-  showView('lots');
+  S.queueOpen = false; S.abn = true;
+  showView('lots'); syncQueueView(); fillSelects(); renderList();
 };
 $('#heroGlossary').onclick = () => showView('terms');
 $('#nav').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   showView(b.dataset.v);
   if (b.dataset.v === 'lots' && S.lot) closeLot(false);
+  if (b.dataset.v === 'lots') { syncQueueView(); fillSelects(); renderList(); }
 };
 $$('.lang button').forEach(b => b.onclick = () => {
   LANG = b.dataset.lang; try { localStorage.setItem('cdlang', LANG); } catch (e) {} applyLang();
 });
 $('#q').oninput = e => {
   S.q = e.target.value.trim();
-  if (S.q && S.view === 'home') { S.abn = false; fillSelects(); showView('lots'); }
+  if (S.q && S.view === 'home') { S.queueOpen = true; S.abn = false; showView('lots'); syncQueueView(); fillSelects(); }
   renderList();
 };
+$('#queueOpenAbn').onclick = () => setQueueOpen(true, 'review');
+$('#queueOpenAll').onclick = () => setQueueOpen(true, 'all');
 $('#fAbn').onclick = () => { S.abn = !S.abn; fillSelects(); renderList(); };
 $('#fVerdict').onchange = e => { S.verdict = e.target.value; renderList(); };
 $('#fScanner').onchange = e => { S.scanner = e.target.value; renderList(); };
 $('#fChamber').onchange = e => { S.chamber = e.target.value; renderList(); };
 $('#fMetro').onchange = e => { S.metro = e.target.value; renderList(); };
-$('#fDayMin').oninput = e => { S.dmin = e.target.value === '' ? null : +e.target.value; renderList(); };
-$('#fDayMax').oninput = e => { S.dmax = e.target.value === '' ? null : +e.target.value; renderList(); };
+$('#fPeriod').onchange = e => { S.period = Number(e.target.value) || 0; renderList(); };
 $('#fReset').onclick = () => {
-  Object.assign(S, {q: '', abn: false, verdict: '', scanner: '', chamber: '', metro: '', dmin: null, dmax: null});
-  $('#q').value = ''; $('#fDayMin').value = ''; $('#fDayMax').value = '';
+  Object.assign(S, {q: '', abn: false, verdict: '', scanner: '', chamber: '', metro: '', period: 0});
+  $('#q').value = '';
   fillSelects(); renderList();
 };
 addEventListener('keydown', e => {
@@ -1258,7 +1321,7 @@ addEventListener('keydown', e => {
 /* 주소창 해시로 로트를 직접 열 수 있게 한다. 뒤로가기도 같은 경로로 동작한다. */
 function syncHash() {
   const id = (location.hash.match(/lot=([\w-]+)/) || [])[1];
-  if (id && DATA.lots.some(l => l.lot === id)) { if (S.lot !== id) { showView('lots'); openLot(id, false); } }
+  if (id && DATA.lots.some(l => l.lot === id)) { if (S.lot !== id) { S.queueOpen = true; showView('lots'); syncQueueView(); openLot(id, false); } }
   else if (S.lot) closeLot(false);
 }
 addEventListener('hashchange', syncHash);
@@ -1266,5 +1329,6 @@ addEventListener('popstate', syncHash);
 
 /* ── 시작 ─────────────────────────────────────────────────── */
 applyLang();
+syncQueueView();
 showView('home');
 syncHash();
