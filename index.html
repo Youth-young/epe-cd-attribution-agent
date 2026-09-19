@@ -10,45 +10,48 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ink:#1F0D1E; --ink2:#3D3140; --muted:#6B6270; --line:#DCD7DE; --line2:#EDEAEF;
-  --page:#F6F4F7; --panel:#fff; --sunk:#FAF9FB;
-  --brand:#634670; --photo:#875D33; --etch:#8C3D6B; --metro:#2F6E74;
-  --ok:#4A7052; --okbg:#EDF3EE; --bad:#A8342B; --badbg:#FBEFEE; --hold:#634670;
-  --cold:#2C6DA6; --hot:#BF4630;
+  --ink:#000000; --ink2:#464646; --muted:#464646;
+  --line:rgba(70,70,70,.18); --line2:rgba(70,70,70,.10);
+  --page:#FFEEE5; --panel:#FFFFFF; --sunk:#FFF8F4;
+  --brand:#2B003F; --brand-soft:rgba(43,0,63,.075); --brand-mid:rgba(43,0,63,.16);
+  --photo:#2B003F; --etch:#000000; --metro:#464646;
+  --ok:#2B003F; --okbg:rgba(43,0,63,.075);
+  --bad:#2B003F; --badbg:#FFEEE5; --hold:#464646;
+  --cold:#464646; --hot:#2B003F;
   --maxw:1580px;
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--page);color:var(--ink);
+body{margin:0;background:linear-gradient(180deg,#FFFFFF 0%,#FFEEE5 100%);color:var(--ink);
   font-family:"IBM Plex Sans KR",-apple-system,"Segoe UI",sans-serif;font-weight:350;
   font-size:15px;line-height:1.7;overflow-wrap:break-word}
 .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
-.skip{position:absolute;left:-9999px;top:8px;z-index:100;background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none}
+.skip{position:absolute;left:-9999px;top:8px;z-index:100;background:var(--brand);color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none}
 .skip:focus{left:16px}
 .announce{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 
 h1,h2,h3,h4{margin:0;line-height:1.3;font-weight:600;letter-spacing:-.012em}
 p{margin:0 0 .7em}p:last-child{margin:0}
 button,input,select{font:inherit;color:inherit}
-:focus-visible{outline:2.5px solid var(--brand);outline-offset:2px}
+:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
 @media(max-width:700px){.wrap{padding:0 14px}body{font-size:14.5px}}
 
 /* ── 헤더 ── */
-header{background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50}
+header{background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50}
 .hbar{display:flex;align-items:center;gap:18px;padding:14px 0 0}
 .brand{display:flex;align-items:center;gap:11px;flex:0 0 auto}
 .mark{width:34px;height:34px;border-radius:9px;background:var(--ink);color:#fff;
   display:grid;place-items:center;font-size:12px;font-weight:600;letter-spacing:.04em}
-.brand b{display:block;font-size:15.5px;font-weight:600}
-.brand span{display:block;font-size:11.5px;color:var(--muted);line-height:1.4}
+.brand b{display:block;font-size:15.5px;font-weight:700;color:var(--ink)}
+.brand span{display:block;font-size:11.5px;color:var(--ink2);line-height:1.4}
 .homebtn{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 11px;cursor:pointer;color:var(--ink2);font-size:12.5px;white-space:nowrap}
-.homebtn:hover{background:var(--sunk)}
+.homebtn:hover{background:var(--brand-soft);color:var(--brand);border-color:var(--brand-mid)}
 .homebtn svg{width:15px;height:15px}
 
 .search{flex:1;position:relative;min-width:120px}
-.search input{width:100%;border:1px solid var(--line);background:var(--sunk);
+.search input{width:100%;border:1px solid var(--line);background:#fff;
   padding:9px 13px 9px 36px;font-size:14px;border-radius:9px}
 .search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;
   height:15px;color:var(--muted)}
@@ -56,45 +59,74 @@ header{background:var(--panel);border-bottom:1px solid var(--line);position:stic
 .lang button{border:0;background:none;padding:7px 12px;cursor:pointer;font-size:12.5px;
   color:var(--muted)}
 .lang button,.homebtn,.gbtn,.chip,nav button{min-height:40px}
-.lang button[aria-pressed=true]{background:var(--ink);color:#fff;font-weight:500}
-nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin-top:10px}
+.lang button[aria-pressed=true]{background:var(--brand);color:#fff;font-weight:600}
+nav{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-top:10px}
 nav::-webkit-scrollbar{display:none}
 nav button{background:none;border:0;border-bottom:2.5px solid transparent;padding:9px 14px 11px;
-  cursor:pointer;color:var(--muted);white-space:nowrap;font-size:14px}
-nav button[aria-current=page]{color:var(--ink);border-bottom-color:var(--brand);font-weight:600}
+  cursor:pointer;color:var(--ink2);white-space:nowrap;font-size:14px;border-radius:10px 10px 0 0}
+nav button:hover{color:var(--brand);background:var(--brand-soft)}
+nav button[aria-current=page]{color:var(--brand);background:var(--brand-soft);border-bottom-color:var(--brand);font-weight:700}
 @media(max-width:640px){.brand span{display:none}.hbar{flex-wrap:wrap;gap:10px}.search{order:3;flex-basis:100%}}
 
 main{padding:24px 0 80px}
 .view[hidden]{display:none}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;
-  padding:24px 26px;margin-bottom:18px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;
+  padding:24px 26px;margin-bottom:18px;box-shadow:0 8px 28px rgba(43,0,63,.055)}
 .panel>header{background:none;border:0;position:static;display:flex;align-items:baseline;
   gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:0}
-.panel h2{font-size:17px}
+.panel h2{font-size:17px;color:var(--brand)}
 .panel h3{font-size:15px}
-.sub{color:var(--muted);font-size:12.5px}
+.sub{color:var(--ink2);font-size:12.5px}
 @media(max-width:700px){.panel{padding:18px 16px;border-radius:10px}}
 
 /* ── 정보 계층 / 접근성 ── */
-.intro{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:22px;align-items:center;background:linear-gradient(135deg,#fff 0%,#F7F3F8 100%)}
-.intro h1{font-size:clamp(21px,2.6vw,30px);margin-bottom:8px}
-.intro p{color:var(--ink2);max-width:78ch}
+.hero{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(330px,.92fr);gap:34px;align-items:center;
+  min-height:460px;padding:44px 42px;background:linear-gradient(135deg,#FFFFFF 0%,#FFF7F2 68%,#FFEEE5 100%);overflow:hidden;position:relative}
+.hero::after{content:"";position:absolute;width:330px;height:330px;border-radius:50%;right:-125px;top:-145px;background:rgba(43,0,63,.055);pointer-events:none}
+.hero-copy{position:relative;z-index:1}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;margin-bottom:16px;padding:6px 11px;border-radius:999px;background:var(--brand-soft);color:var(--brand);font-size:11.5px;font-weight:700;letter-spacing:.055em;text-transform:uppercase}
+.hero h1{font-size:clamp(31px,4.4vw,54px);line-height:1.13;letter-spacing:-.035em;margin-bottom:18px;max-width:12.5ch;color:var(--ink)}
+.hero-copy>p{font-size:16.5px;line-height:1.8;color:var(--ink2);max-width:47rem}
+.keypoint{color:var(--brand);font-weight:700}
+.hero-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:28px}
+.hero-stat{background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:14px;padding:14px 15px}
+.hero-stat strong{display:block;color:var(--brand);font:700 25px/1.1 "IBM Plex Mono",monospace}
+.hero-stat span{display:block;margin-top:6px;color:var(--ink2);font-size:11.8px;line-height:1.5}
+.hero-visual{position:relative;z-index:1;display:grid;gap:12px}
+.visual-card{border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.96);padding:20px;box-shadow:0 16px 46px rgba(43,0,63,.09)}
+.visual-card h3{font-size:13px;color:var(--brand);margin-bottom:14px}
+.flow{display:grid;gap:10px}
+.flow-step{display:grid;grid-template-columns:36px 1fr;gap:12px;align-items:start;padding:12px;border:1px solid var(--line2);border-radius:13px;background:#fff}
+.flow-step .num{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--brand);color:#fff;font:700 12px "IBM Plex Mono",monospace}
+.flow-step b{display:block;font-size:13.5px;color:var(--ink)}
+.flow-step small{display:block;margin-top:3px;color:var(--ink2);font-size:11.8px;line-height:1.55}
+.home-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-bottom:18px}
+.home-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:21px 22px;box-shadow:0 6px 20px rgba(43,0,63,.035)}
+.home-card .kicker{font-size:10.8px;font-weight:700;color:var(--brand);letter-spacing:.055em;text-transform:uppercase;margin-bottom:9px}
+.home-card h3{font-size:17px;margin-bottom:8px;color:var(--ink)}
+.home-card p,.home-card li{color:var(--ink2);font-size:13.3px}
+.home-card ul{margin:11px 0 0 18px;padding:0}.home-card li+li{margin-top:5px}
+.home-card strong{color:var(--brand)}
+.currentloc{color:var(--brand)!important;font-weight:700}
+@media(max-width:960px){.hero{grid-template-columns:1fr;min-height:auto;padding:34px 28px}.hero h1{max-width:15ch}.home-grid{grid-template-columns:1fr}.hero-visual{max-width:720px}}
+@media(max-width:700px){.hero{padding:28px 20px}.hero h1{max-width:none}.hero-stats{grid-template-columns:1fr}.hero-cta .gbtn{flex:1 1 100%}}
 .quick{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 16px}
 .pill{display:inline-flex;align-items:center;padding:5px 15px;border-radius:999px;font-size:13.5px;font-weight:600;border:0}
-.p-ok{background:var(--okbg);color:var(--ok)}
-.p-review{background:#F1ECF3;color:var(--hold)}
-.p-action{background:var(--badbg);color:var(--bad)}
+.p-ok{background:var(--okbg);color:var(--brand)}
+.p-review{background:rgba(70,70,70,.08);color:var(--ink2)}
+.p-action{background:var(--brand);color:#fff}
 .p-verify{background:var(--sunk);color:var(--muted);border:1px solid var(--line);font-weight:500;border-bottom:1.5px dotted var(--brand);cursor:help}
 .asof{margin-top:10px;font-size:12px;color:var(--muted)}
 .decision .dsec{padding:16px 0;border-top:1px solid var(--line2)}
-.decision .dsec h3{font-size:12.5px;color:var(--muted);font-weight:500;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px}
+.decision .dsec h3{font-size:12.5px;color:var(--brand);font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px}
 .decision .dsec p{font-size:15.5px;color:var(--ink)}
 .decision .dsec p.cause{font-size:14.5px;color:var(--ink2)}
 .jump{display:flex;gap:8px;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--line2)}
 td .pl{font-weight:500}
 td .tech{display:block;font-size:11px;color:var(--muted);margin-top:2px}
 td.src{font-size:12px;color:var(--muted);white-space:nowrap}
-.s-near{background:#F6F1E9;color:var(--photo)}
+.s-near{background:#FFEEE5;color:var(--brand)}
 .bad{color:var(--bad)}
 .evidence-note{margin:4px 0 14px}
 .table-title{margin-top:26px}
@@ -108,36 +140,36 @@ details.disclosure>summary::after{content:'＋';color:var(--muted);font-size:18p
 details.disclosure[open]>summary::after{content:'−'}
 details.disclosure[open]>summary{border-bottom:1px solid var(--line2)}
 .disclosure-body{padding:20px 24px 24px}
-@media(max-width:700px){.intro{grid-template-columns:1fr}.homebtn span{display:none}details.disclosure>summary{padding:16px}.disclosure-body{padding:16px}.crumb .spacer{display:none}.crumb{align-items:stretch}.crumb .gbtn{flex:1}}
+@media(max-width:700px){.homebtn span{display:none}details.disclosure>summary{padding:16px}.disclosure-body{padding:16px}.crumb .spacer{display:none}.crumb{align-items:stretch}.crumb .gbtn{flex:1}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
 
 /* ── 필터 바 ── */
 .filters{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:4px}
 .chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;
   padding:7px 15px;cursor:pointer;font-size:13.5px;color:var(--ink2);white-space:nowrap}
-.chip[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:500}
-.chip.alarm[aria-pressed=true]{background:var(--bad);border-color:var(--bad)}
+.chip[aria-pressed=true]{background:var(--brand);color:#fff;border-color:var(--brand);font-weight:600}
+.chip.alarm[aria-pressed=true]{background:var(--brand);border-color:var(--brand)}
 select,.numin{border:1px solid var(--line);background:var(--panel);border-radius:8px;
   padding:7px 11px;font-size:13.5px}
 .numin{width:74px}
-.linkbtn{background:none;border:0;color:var(--brand);cursor:pointer;font-size:13px;
+.linkbtn{background:none;border:0;color:var(--brand);cursor:pointer;font-size:13px;font-weight:600;
   text-decoration:underline;text-underline-offset:3px;padding:4px}
 
 /* ── 로트 목록 ── */
 .lotrow{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:16px;align-items:center;
   width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line2);
   padding:15px 6px;cursor:pointer}
-.lotrow:hover{background:var(--sunk)}
+.lotrow:hover{background:#FFF7F2}
 .dot{width:10px;height:10px;border-radius:50%}
 .lotid{font-size:16px;font-weight:600;font-family:"IBM Plex Mono",monospace}
 .lotmeta{color:var(--muted);font-size:12.5px;margin-top:3px}
 .lotright{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 .badge{display:inline-block;padding:3px 11px;border-radius:999px;font-size:12px;font-weight:500;
   white-space:nowrap}
-.b-ok{background:var(--okbg);color:var(--ok)}
-.b-bad{background:var(--badbg);color:var(--bad)}
-.b-watch{background:#F6F1E9;color:var(--photo)}
-.b-hold{background:#F1ECF3;color:var(--hold)}
+.b-ok{background:var(--okbg);color:var(--brand)}
+.b-bad{background:var(--brand);color:#fff}
+.b-watch{background:#FFEEE5;color:var(--brand)}
+.b-hold{background:rgba(70,70,70,.08);color:var(--ink2)}
 .b-gate{background:var(--sunk);color:var(--muted);border:1px solid var(--line)}
 .empty{padding:44px 8px;color:var(--muted);text-align:center}
 
@@ -145,8 +177,8 @@ select,.numin{border:1px solid var(--line);background:var(--panel);border-radius
 .crumb{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
 .gbtn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 14px;
   cursor:pointer;font-size:13.5px;color:var(--ink2)}
-.gbtn:hover{background:var(--sunk)}
-.gbtn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+.gbtn:hover{background:var(--brand-soft);color:var(--brand);border-color:var(--brand-mid)}
+.gbtn.primary{background:var(--brand);color:#fff;border-color:var(--brand);font-weight:700}
 .spacer{flex:1}
 .lothead{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;
   border-bottom:1px solid var(--line2);padding-bottom:18px;margin-bottom:18px}
@@ -270,7 +302,7 @@ pre.rawjson{background:var(--sunk);border:1px solid var(--line2);border-radius:8
 .kpi div{background:var(--panel);padding:16px 18px}
 .kpi b{display:block;font-size:23px;font-weight:600;font-family:"IBM Plex Mono",monospace}
 .kpi small{color:var(--muted);font-size:12px}
-footer{border-top:1px solid var(--line);padding:22px 0 50px;color:var(--muted);font-size:12.5px}
+footer{border-top:1px solid var(--line);padding:22px 0 50px;color:var(--ink2);font-size:12.5px}
 </style>
 </head>
 <body>
@@ -311,12 +343,53 @@ footer{border-top:1px solid var(--line);padding:22px 0 50px;color:var(--muted);f
 
 <!-- 로트 목록 -->
 <section class="view" id="v-lots">
-  <div class="panel intro" id="introCard">
-    <div>
-      <h1 data-t="intro.title">CD 이상을 어디서부터 확인해야 할지 빠르게 좁혀보세요</h1>
-      <p data-t="intro.body">로트를 고르면 상태 → 변화 → 추정 원인 → 권고 조치 → 기술 근거 순서로 보여줍니다.</p>
+  <div class="panel hero" id="introCard">
+    <div class="hero-copy">
+      <div class="eyebrow" data-t="hero.eyebrow">Semiconductor decision support</div>
+      <h1 data-t="hero.title">CD 이상 원인을 어디서부터 확인해야 할지 빠르게 좁혀보세요</h1>
+      <p><span data-t="hero.body1">로트를 고르면</span> <span class="keypoint" data-t="hero.flow">상태 → 변화 → 추정 원인 → 권고 조치 → 기술 근거</span> <span data-t="hero.body2">순서로 보여줍니다. 처음 보는 사람은 결론부터, 엔지니어는 근거까지 내려가며 확인할 수 있습니다.</span></p>
+      <div class="hero-cta">
+        <button class="gbtn primary" id="heroStart" data-t="hero.start">검토가 필요한 로트 보기</button>
+        <button class="gbtn" id="heroFirst" data-t="hero.first">첫 이상 로트 열기</button>
+        <button class="gbtn" id="heroGlossary" data-t="hero.glossary">용어 먼저 보기</button>
+      </div>
+      <div class="hero-stats" aria-label="Overview">
+        <div class="hero-stat"><strong id="heroLotCount">320</strong><span data-t="hero.stat.lots">평가 로트</span></div>
+        <div class="hero-stat"><strong>3</strong><span data-t="hero.stat.modules">원인 모듈 후보 · Litho / Etch / Metrology</span></div>
+        <div class="hero-stat"><strong>5</strong><span data-t="hero.stat.steps">읽기 단계 · 상태에서 기술 근거까지</span></div>
+      </div>
     </div>
-    <div class="sub mono">ADI → ACI · Litho / Etch / Metrology</div>
+    <div class="hero-visual">
+      <div class="visual-card">
+        <h3 data-t="hero.visual.title">이 콘솔에서 바로 할 수 있는 일</h3>
+        <div class="flow">
+          <div class="flow-step"><div class="num">01</div><div><b data-t="hero.visual.1t">우선 확인할 로트 찾기</b><small data-t="hero.visual.1d">검색과 필터로 검토가 필요한 로트를 먼저 찾습니다.</small></div></div>
+          <div class="flow-step"><div class="num">02</div><div><b data-t="hero.visual.2t">이상 신호를 공정 좌표계로 분리</b><small data-t="hero.visual.2d">ADI·ACI·ΔCD·챔버·계측 drift를 함께 보고 원인 후보를 좁힙니다.</small></div></div>
+          <div class="flow-step"><div class="num">03</div><div><b data-t="hero.visual.3t">조치와 검증 근거까지 확인</b><small data-t="hero.visual.3d">추천 조치, Evidence, Investigation Trace, Verification Gate를 이어서 확인합니다.</small></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-grid" id="homeOverview">
+    <article class="home-card">
+      <div class="kicker" data-t="homecard.begin.k">For beginners</div>
+      <h3 data-t="homecard.begin.t">처음 방문했다면</h3>
+      <p data-t="homecard.begin.p">이 웹은 CD 이상이 생겼을 때 노광·식각·계측 중 어느 모듈부터 확인할지 좁혀주는 콘솔입니다.</p>
+      <ul><li data-t="homecard.begin.1">홈에서 전체 흐름을 먼저 파악</li><li data-t="homecard.begin.2">검토가 필요한 로트만 빠르게 필터링</li><li data-t="homecard.begin.3">모르는 용어는 용어 사전에서 확인</li></ul>
+    </article>
+    <article class="home-card">
+      <div class="kicker" data-t="homecard.read.k">How to read</div>
+      <h3 data-t="homecard.read.t">무엇을 읽게 되나요?</h3>
+      <p data-t="homecard.read.p">로트를 열면 중요한 판단부터 기술 근거까지 같은 순서로 읽습니다.</p>
+      <ul><li data-t="homecard.read.1">상태 — 정상 / 검토 / 조치 필요</li><li data-t="homecard.read.2">변화 — 어떤 지표가 한계를 벗어났는지</li><li data-t="homecard.read.3">원인·조치 — 무엇을 먼저 확인할지</li><li data-t="homecard.read.4">근거 — Evidence / Trace / Gate</li></ul>
+    </article>
+    <article class="home-card">
+      <div class="kicker" data-t="homecard.eng.k">For engineers</div>
+      <h3 data-t="homecard.eng.t">현업에서는 이렇게 씁니다</h3>
+      <p data-t="homecard.eng.p">단순 이상 탐지를 넘어 원인 후보와 조치 우선순위를 분리해 불필요한 공정 변경을 줄이는 의사결정을 지원합니다.</p>
+      <ul><li data-t="homecard.eng.1">계측 drift와 실제 공정 이상 분리</li><li data-t="homecard.eng.2">Track·Reticle·Etch chamber 신호 구분</li><li data-t="homecard.eng.3">판정 근거와 검증 게이트를 함께 추적</li></ul>
+    </article>
   </div>
   <div class="panel" id="listCard">
     <header>
