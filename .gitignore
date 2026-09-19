@@ -6,3 +6,4 @@ __pycache__/
 .gstack/
 .pytest_cache/
 .DS_Store
+validation/planner_eval_progress.jsonl
