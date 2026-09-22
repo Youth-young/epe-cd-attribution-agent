@@ -3,232 +3,119 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CD 이상 원인 분석</title>
-<meta name="description" content="ADI·ACI 계측 데이터로 CD 이상의 원인을 Litho·Etch·Metrology 관점에서 좁혀주는 분석 도구.">
+<title>CD 이상 원인 판정 콘솔</title>
+<meta name="description" content="ADI·ACI 계측 데이터로 CD 이상의 원인이 노광인지 식각인지 계측인지 판정하는 에이전트 콘솔.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ink:#000000; --ink2:#303030; --muted:#5A5A5A;
-  --line:rgba(70,70,70,.18); --line2:rgba(70,70,70,.10);
-  --page:#FFEEE5; --panel:#FFFFFF; --sunk:#FFF8F4;
-  --brand:#2B003F; --brand-soft:rgba(43,0,63,.075); --brand-mid:rgba(43,0,63,.16);
-  --photo:#2B003F; --etch:#000000; --metro:#464646;
-  --ok:#2B003F; --okbg:rgba(43,0,63,.075);
-  --bad:#2B003F; --badbg:#FFEEE5; --hold:#464646;
-  --cold:#464646; --hot:#2B003F;
+  --ink:#1F0D1E; --ink2:#3D3140; --muted:#6B6270; --line:#DCD7DE; --line2:#EDEAEF;
+  --page:#F6F4F7; --panel:#fff; --sunk:#FAF9FB;
+  --brand:#634670; --photo:#875D33; --etch:#8C3D6B; --metro:#2F6E74;
+  --ok:#4A7052; --okbg:#EDF3EE; --bad:#A8342B; --badbg:#FBEFEE; --hold:#634670;
+  --cold:#2C6DA6; --hot:#BF4630;
   --maxw:1580px;
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:linear-gradient(180deg,#FFFFFF 0%,#FFEEE5 100%);color:var(--ink);
-  font-family:"IBM Plex Sans KR",-apple-system,"Segoe UI",sans-serif;font-weight:400;
-  font-size:16px;line-height:1.7;overflow-wrap:break-word}
+body{margin:0;background:var(--page);color:var(--ink);
+  font-family:"IBM Plex Sans KR",-apple-system,"Segoe UI",sans-serif;font-weight:350;
+  font-size:15px;line-height:1.7;overflow-wrap:break-word}
 .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
-.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
-.skip{position:absolute;left:-9999px;top:8px;z-index:100;background:var(--brand);color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none}
-.skip:focus{left:16px}
-.announce{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
-
+.lede{font-size:16px;color:var(--ink2);max-width:80ch;margin-bottom:22px}
+.jump{display:flex;gap:8px;flex-wrap:wrap}
+.gbtn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+table.flowtbl td{vertical-align:top;font-size:13.5px;line-height:1.65}
+table.flowtbl td:first-child{white-space:nowrap;width:15%}
+tr.measrow td{background:#E9F1F2}
+#flowDiagram,#thirdSuspect,#judgeFlow{overflow-x:auto;-webkit-overflow-scrolling:touch}
+#flowDiagram svg,#thirdSuspect svg,#judgeFlow svg{width:100%;height:auto;overflow:visible}
+.scrollhint{display:none;font-size:12px;color:var(--muted);margin-top:8px}
+@media(max-width:860px){
+  #flowDiagram svg{min-width:820px}
+  #thirdSuspect svg{min-width:780px}
+  #judgeFlow svg{min-width:800px}
+  .scrollhint{display:block}
+}
 h1,h2,h3,h4{margin:0;line-height:1.3;font-weight:600;letter-spacing:-.012em}
 p{margin:0 0 .7em}p:last-child{margin:0}
 button,input,select{font:inherit;color:inherit}
-:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
+:focus-visible{outline:2.5px solid var(--brand);outline-offset:2px}
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
-@media(max-width:700px){.wrap{padding:0 14px}body{font-size:16px;line-height:1.75}}
+@media(max-width:700px){.wrap{padding:0 14px}body{font-size:14.5px}}
 
 /* ── 헤더 ── */
-header{background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50}
+header{background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50}
 .hbar{display:flex;align-items:center;gap:18px;padding:14px 0 0}
 .brand{display:flex;align-items:center;gap:11px;flex:0 0 auto}
 .mark{width:34px;height:34px;border-radius:9px;background:var(--ink);color:#fff;
   display:grid;place-items:center;font-size:12px;font-weight:600;letter-spacing:.04em}
-.brand b{display:block;font-size:15.5px;font-weight:700;color:var(--ink)}
-.brand span{display:block;font-size:11.5px;color:var(--ink2);line-height:1.4}
-.homebtn{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 11px;cursor:pointer;color:var(--ink2);font-size:12.5px;white-space:nowrap}
-.homebtn:hover{background:var(--brand-soft);color:var(--brand);border-color:var(--brand-mid)}
-.homebtn svg{width:15px;height:15px}
-
+.brand b{display:block;font-size:15.5px;font-weight:600}
+.brand span{display:block;font-size:11.5px;color:var(--muted);line-height:1.4}
 .search{flex:1;position:relative;min-width:120px}
-.search input{width:100%;border:1px solid var(--line);background:#fff;
+.search input{width:100%;border:1px solid var(--line);background:var(--sunk);
   padding:9px 13px 9px 36px;font-size:14px;border-radius:9px}
 .search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;
   height:15px;color:var(--muted)}
 .lang{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex:0 0 auto}
 .lang button{border:0;background:none;padding:7px 12px;cursor:pointer;font-size:12.5px;
   color:var(--muted)}
-.lang button,.homebtn,.gbtn,.chip,nav button{min-height:40px}
-.lang button[aria-pressed=true]{background:var(--brand);color:#fff;font-weight:600}
-nav{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-top:10px}
+.lang button[aria-pressed=true]{background:var(--ink);color:#fff;font-weight:500}
+nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin-top:10px}
 nav::-webkit-scrollbar{display:none}
 nav button{background:none;border:0;border-bottom:2.5px solid transparent;padding:9px 14px 11px;
-  cursor:pointer;color:var(--ink2);white-space:nowrap;font-size:14px;border-radius:10px 10px 0 0}
-nav button:hover{color:var(--brand);background:var(--brand-soft)}
-nav button[aria-current=page]{color:var(--brand);background:var(--brand-soft);border-bottom-color:var(--brand);font-weight:700}
+  cursor:pointer;color:var(--muted);white-space:nowrap;font-size:14px}
+nav button[aria-current=page]{color:var(--ink);border-bottom-color:var(--brand);font-weight:600}
 @media(max-width:640px){.brand span{display:none}.hbar{flex-wrap:wrap;gap:10px}.search{order:3;flex-basis:100%}}
 
 main{padding:24px 0 80px}
 .view[hidden]{display:none}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;
-  padding:24px 26px;margin-bottom:18px;box-shadow:0 8px 28px rgba(43,0,63,.055)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:24px 26px;margin-bottom:18px}
 .panel>header{background:none;border:0;position:static;display:flex;align-items:baseline;
   gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:0}
-.panel h2{font-size:17px;color:var(--brand)}
+.panel h2{font-size:17px}
 .panel h3{font-size:15px}
-.sub{color:var(--ink2);font-size:13.5px}
+.sub{color:var(--muted);font-size:12.5px}
 @media(max-width:700px){.panel{padding:18px 16px;border-radius:10px}}
-
-/* ── 정보 계층 / 접근성 ── */
-.hero{display:grid;grid-template-columns:minmax(0,1.38fr) minmax(300px,.62fr);gap:34px;align-items:center;
-  min-height:460px;padding:44px 42px;background:linear-gradient(135deg,#FFFFFF 0%,#FFF7F2 68%,#FFEEE5 100%);overflow:hidden;position:relative}
-.hero::after{content:"";position:absolute;width:330px;height:330px;border-radius:50%;right:-125px;top:-145px;background:rgba(43,0,63,.055);pointer-events:none}
-.hero-copy{position:relative;z-index:1}
-.eyebrow{display:inline-flex;align-items:center;gap:8px;margin-bottom:16px;padding:6px 11px;border-radius:999px;background:var(--brand-soft);color:var(--brand);font-size:11.5px;font-weight:700;letter-spacing:.055em;text-transform:uppercase}
-.hero h1{font-size:clamp(34px,4vw,52px);line-height:1.16;letter-spacing:-.03em;margin-bottom:18px;max-width:920px;color:var(--ink);text-wrap:balance}
-.hero-copy>p{font-size:17px;line-height:1.82;color:var(--ink2);max-width:52rem}
-.keypoint{color:var(--brand);font-weight:700}
-.hero-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
-.hero-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:28px}
-.hero-stat{background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:14px;padding:14px 15px}
-.hero-stat strong{display:block;color:var(--brand);font:700 25px/1.1 "IBM Plex Mono",monospace}
-.hero-stat span{display:block;margin-top:6px;color:var(--ink2);font-size:11.8px;line-height:1.5}
-.hero-visual{position:relative;z-index:1;display:grid;gap:12px}
-.visual-card{border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.96);padding:20px;box-shadow:0 16px 46px rgba(43,0,63,.09)}
-.visual-card h3{font-size:13px;color:var(--brand);margin-bottom:14px}
-.flow{display:grid;gap:10px}
-.flow-step{display:grid;grid-template-columns:36px 1fr;gap:12px;align-items:start;padding:12px;border:1px solid var(--line2);border-radius:13px;background:#fff}
-.flow-step .num{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--brand);color:#fff;font:700 12px "IBM Plex Mono",monospace}
-.flow-step b{display:block;font-size:13.5px;color:var(--ink)}
-.flow-step small{display:block;margin-top:3px;color:var(--ink2);font-size:12.5px;line-height:1.6}
-.home-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-bottom:18px}
-.home-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:21px 22px;box-shadow:0 6px 20px rgba(43,0,63,.035)}
-.home-card .kicker{font-size:10.8px;font-weight:700;color:var(--brand);letter-spacing:.055em;text-transform:uppercase;margin-bottom:9px}
-.home-card h3{font-size:17px;margin-bottom:8px;color:var(--ink)}
-.home-card p,.home-card li{color:var(--ink2);font-size:14px;line-height:1.7}
-.home-card ul{margin:11px 0 0 18px;padding:0}.home-card li+li{margin-top:5px}
-.home-card strong{color:var(--brand)}
-.currentloc{color:var(--brand)!important;font-weight:700}
-@media(max-width:960px){.hero{grid-template-columns:1fr;min-height:auto;padding:34px 28px}.hero h1{max-width:none}.home-grid{grid-template-columns:1fr}.hero-visual{max-width:720px}}
-@media(max-width:700px){.hero{padding:28px 20px}.hero h1{font-size:clamp(32px,8.8vw,42px);max-width:none;text-wrap:pretty}.hero-stats{grid-template-columns:1fr}.hero-cta .gbtn{flex:1 1 100%}.mobile-onboard{display:block!important;margin-bottom:14px}.begin-desktop{display:none!important}}
-.quick{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 16px}
-.pill{display:inline-flex;align-items:center;padding:5px 15px;border-radius:999px;font-size:13.5px;font-weight:600;border:0}
-.p-ok{background:var(--okbg);color:var(--brand)}
-.p-review{background:rgba(70,70,70,.08);color:var(--ink2)}
-.p-action{background:var(--brand);color:#fff}
-.p-verify{background:var(--sunk);color:var(--muted);border:1px solid var(--line);font-weight:500;border-bottom:1.5px dotted var(--brand);cursor:help}
-.asof{margin-top:10px;font-size:12px;color:var(--muted)}
-.decision .dsec{padding:16px 0;border-top:1px solid var(--line2)}
-.decision .dsec h3{font-size:12.5px;color:var(--brand);font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px}
-.decision .dsec p{font-size:15.5px;color:var(--ink)}
-.decision .dsec p.cause{font-size:14.5px;color:var(--ink2)}
-.jump{display:flex;gap:8px;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--line2)}
-td .pl{font-weight:500}
-td .tech{display:block;font-size:11px;color:var(--muted);margin-top:2px}
-td.src{font-size:12px;color:var(--muted);white-space:nowrap}
-.s-near{background:#FFEEE5;color:var(--brand)}
-.bad{color:var(--bad)}
-.evidence-note{margin:4px 0 14px}
-.table-title{margin-top:26px}
-details.disclosure{padding:0;overflow:clip}
-details.disclosure>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:19px 24px;cursor:pointer;font-size:15px}
-details.disclosure>summary::-webkit-details-marker{display:none}
-details.disclosure>summary span{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
-details.disclosure>summary strong{font-size:16px}
-details.disclosure>summary small{color:var(--muted);font-size:12px;font-weight:400}
-details.disclosure>summary::after{content:'＋';color:var(--muted);font-size:18px;line-height:1}
-details.disclosure[open]>summary::after{content:'−'}
-details.disclosure[open]>summary{border-bottom:1px solid var(--line2)}
-.disclosure-body{padding:20px 24px 24px}
-@media(max-width:700px){.homebtn span{display:none}details.disclosure>summary{padding:16px}.disclosure-body{padding:16px}.crumb .spacer{display:none}.crumb{align-items:stretch}.crumb .gbtn{flex:1}}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
-
-
-/* ── V1 first-pass UX refinement ─────────────────────────── */
-.mobile-onboard{display:none}
-.queue-intro{padding:8px 0 2px}
-.queue-lead{max-width:760px;margin-bottom:18px;color:var(--ink2);font-size:15px}
-.queue-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
-.queue-stat{border:1px solid var(--line);border-radius:14px;background:#fff;padding:16px 18px}
-.queue-stat strong{display:block;font:700 28px/1.1 "IBM Plex Mono",monospace;color:var(--ink)}
-.queue-stat span{display:block;margin-top:6px;font-size:13px;color:var(--ink2);font-weight:600}
-.queue-stat.review{border-top:4px solid var(--coral)}
-.queue-stat.hold{border-top:4px solid var(--amber)}
-.queue-stat.normal{border-top:4px solid var(--teal)}
-.queue-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
-.queue-actions .gbtn{min-height:46px;padding:10px 18px}
-.queue-note{color:var(--muted);font-size:13px}
-.queue-tools[hidden]{display:none!important}
-details.advanced{margin:12px 0 14px;border:1px solid var(--line);border-radius:12px;background:#fff}
-details.advanced>summary{list-style:none;cursor:pointer;padding:13px 15px;font-weight:700;color:var(--ink2);display:flex;justify-content:space-between;align-items:center}
-details.advanced>summary::-webkit-details-marker{display:none}
-details.advanced>summary::after{content:'＋';font-size:18px;color:var(--brand)}
-details.advanced[open]>summary::after{content:'−'}
-.advanced-body{padding:0 15px 15px}
-.meta-line{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:5px}
-.meta-date{font-size:13px;color:var(--muted);margin-right:2px}
-.meta-chip{display:inline-flex;align-items:center;min-height:27px;padding:3px 8px;border-radius:7px;border:1px solid var(--line2);background:var(--sunk);color:var(--ink2);font-size:12.5px;font-family:"IBM Plex Mono",monospace;font-weight:500}
-.meta-chip.diff{font-weight:700;color:var(--brand);border-color:var(--brand-mid);background:var(--plum-soft)}
-.signal-count{display:inline-flex;align-items:baseline;gap:4px;color:var(--ink2);font-size:13px}
-.signal-count b{font:700 17px "IBM Plex Mono",monospace;color:var(--ink)}
-.evidence-cards{display:none}
-.metric-card{border:1px solid var(--line);border-radius:12px;padding:14px 15px;background:#fff}
-.metric-card.alert{border-color:rgba(182,83,74,.45);background:var(--coral-soft)}
-.metric-card-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px}
-.metric-card-head strong{font-size:15px;color:var(--ink)}
-.metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.metric-cell{padding:9px 10px;background:rgba(255,255,255,.72);border:1px solid var(--line2);border-radius:8px}
-.metric-cell small{display:block;color:var(--muted);font-size:11.5px;margin-bottom:3px}
-.metric-cell b{display:block;color:var(--ink);font-family:"IBM Plex Mono",monospace;font-size:14px;word-break:break-word}
-.metric-source{margin-top:9px;color:var(--muted);font-size:12px}
-@media(max-width:760px){
-  .queue-summary{grid-template-columns:1fr 1fr}.queue-stat.normal{grid-column:1/-1}
-  .queue-actions{display:grid;grid-template-columns:1fr}.queue-actions .gbtn{width:100%}
-  .lotrow{grid-template-columns:8px minmax(0,1fr);gap:10px;padding:16px 4px}
-  .lotright{grid-column:2;justify-content:flex-start;gap:8px;margin-top:4px}
-  .lotid{font-size:17px}
-  .lotmeta{font-size:13px}
-  .evidence-table{display:none!important}
-  .evidence-cards{display:grid;gap:10px}
-  .metric-grid{grid-template-columns:1fr 1fr}.metric-cell:last-child{grid-column:1/-1}
-}
 
 /* ── 필터 바 ── */
 .filters{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:4px}
 .chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;
-  padding:8px 15px;cursor:pointer;font-size:14px;color:var(--ink2);white-space:nowrap}
-.chip[aria-pressed=true]{background:var(--brand);color:#fff;border-color:var(--brand);font-weight:600}
-.chip.alarm[aria-pressed=true]{background:var(--brand);border-color:var(--brand)}
+  padding:7px 15px;cursor:pointer;font-size:13.5px;color:var(--ink2);white-space:nowrap}
+.chip[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:500}
+.chip.alarm[aria-pressed=true]{background:var(--bad);border-color:var(--bad)}
 select,.numin{border:1px solid var(--line);background:var(--panel);border-radius:8px;
-  padding:8px 11px;font-size:14px}
+  padding:7px 11px;font-size:13.5px}
 .numin{width:74px}
-.linkbtn{background:none;border:0;color:var(--brand);cursor:pointer;font-size:13px;font-weight:600;
+.linkbtn{background:none;border:0;color:var(--brand);cursor:pointer;font-size:13px;
   text-decoration:underline;text-underline-offset:3px;padding:4px}
 
 /* ── 로트 목록 ── */
 .lotrow{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:16px;align-items:center;
   width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line2);
   padding:15px 6px;cursor:pointer}
-.lotrow:hover{background:#FFF7F2}
+.lotrow:hover{background:var(--sunk)}
 .dot{width:10px;height:10px;border-radius:50%}
-.lotid{font-size:17px;font-weight:700;font-family:"IBM Plex Mono",monospace}
-.lotmeta{color:var(--muted);font-size:13px;margin-top:3px}
+.lotid{font-size:16px;font-weight:600;font-family:"IBM Plex Mono",monospace}
+.lotmeta{color:var(--muted);font-size:12.5px;margin-top:3px}
 .lotright{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 .badge{display:inline-block;padding:3px 11px;border-radius:999px;font-size:12px;font-weight:500;
   white-space:nowrap}
-.b-ok{background:var(--okbg);color:var(--brand)}
-.b-bad{background:var(--brand);color:#fff}
-.b-watch{background:#FFEEE5;color:var(--brand)}
-.b-hold{background:rgba(70,70,70,.08);color:var(--ink2)}
+.b-ok{background:var(--okbg);color:var(--ok)}
+.b-bad{background:var(--badbg);color:var(--bad)}
+.b-watch{background:#F6F1E9;color:var(--photo)}
+.b-hold{background:#F1ECF3;color:var(--hold)}
 .b-gate{background:var(--sunk);color:var(--muted);border:1px solid var(--line)}
 .empty{padding:44px 8px;color:var(--muted);text-align:center}
 
 /* ── 상세 ── */
 .crumb{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
-.gbtn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:9px 14px;
-  cursor:pointer;font-size:14px;color:var(--ink2);font-weight:600}
-.gbtn:hover{background:var(--brand-soft);color:var(--brand);border-color:var(--brand-mid)}
-.gbtn.primary{background:var(--brand);color:#fff;border-color:var(--brand);font-weight:700}
+.gbtn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 14px;
+  cursor:pointer;font-size:13.5px;color:var(--ink2)}
+.gbtn:hover{background:var(--sunk)}
+.gbtn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
 .spacer{flex:1}
 .lothead{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;
   border-bottom:1px solid var(--line2);padding-bottom:18px;margin-bottom:18px}
@@ -352,378 +239,30 @@ pre.rawjson{background:var(--sunk);border:1px solid var(--line2);border-radius:8
 .kpi div{background:var(--panel);padding:16px 18px}
 .kpi b{display:block;font-size:23px;font-weight:600;font-family:"IBM Plex Mono",monospace}
 .kpi small{color:var(--muted);font-size:12px}
-footer{border-top:1px solid var(--line);padding:22px 0 50px;color:var(--ink2);font-size:12.5px}
-
-
-/* ── Semantic accent palette · 2026-09 final ──────────────────────
-   Base palette stays anchored in #2B003F / #464646 / #FFFFFF / #FFEEE5 / #000000.
-   Additional accents are deliberately muted so color communicates meaning rather than decoration. */
-:root{
-  --plum:#6B3C7A; --plum-soft:#F3ECF6;
-  --teal:#0F766E; --teal-soft:#E7F3F1;
-  --indigo:#55639A; --indigo-soft:#EEF0F8;
-  --amber:#9A6814; --amber-soft:#FFF3DA;
-  --coral:#B6534A; --coral-soft:#FCE9E5;
-  --ok:var(--teal); --okbg:var(--teal-soft);
-  --bad:var(--coral); --badbg:var(--coral-soft);
-  --hold:var(--indigo);
-  --cold:var(--indigo); --hot:var(--coral);
-}
-
-/* Brand is the navigation/current-location color. Semantic colors are reserved for meaning. */
-.mark{background:var(--brand)}
-nav button[aria-current=page]{background:linear-gradient(180deg,var(--plum-soft),rgba(243,236,246,.45));color:var(--brand)}
-.currentloc{background:var(--plum-soft);padding:2px 7px;border-radius:6px}
-
-/* Home: varied accents establish hierarchy without turning the page into a rainbow. */
-.hero{background:
-  radial-gradient(circle at 92% 10%,rgba(107,60,122,.12),transparent 28%),
-  radial-gradient(circle at 78% 88%,rgba(15,118,110,.10),transparent 30%),
-  linear-gradient(135deg,#FFFFFF 0%,#FFF7F2 58%,#F2F8F7 100%)}
-.hero::before{content:"";position:absolute;width:230px;height:230px;border-radius:50%;left:-135px;bottom:-135px;background:rgba(85,99,154,.08);pointer-events:none}
-.eyebrow{background:var(--plum-soft);color:var(--plum)}
-.hero-stat:nth-child(1) strong{color:var(--brand)}
-.hero-stat:nth-child(2) strong{color:var(--teal)}
-.hero-stat:nth-child(3) strong{color:var(--indigo)}
-.flow-step:nth-child(1) .num{background:var(--brand)}
-.flow-step:nth-child(2) .num{background:var(--teal)}
-.flow-step:nth-child(3) .num{background:var(--indigo)}
-.flow-step:nth-child(1){border-left:3px solid var(--brand)}
-.flow-step:nth-child(2){border-left:3px solid var(--teal)}
-.flow-step:nth-child(3){border-left:3px solid var(--indigo)}
-.home-card{position:relative;overflow:hidden;background:#fff}
-.home-card::before{content:"";position:absolute;left:0;top:0;right:0;height:4px;background:var(--brand)}
-.home-card:nth-child(1)::before{background:var(--indigo)}
-.home-card:nth-child(2)::before{background:var(--plum)}
-.home-card:nth-child(3)::before{background:var(--teal)}
-.home-card:nth-child(1) .kicker,.home-card:nth-child(1) strong{color:var(--indigo)}
-.home-card:nth-child(2) .kicker,.home-card:nth-child(2) strong{color:var(--plum)}
-.home-card:nth-child(3) .kicker,.home-card:nth-child(3) strong{color:var(--teal)}
-
-/* State colors: teal=clear/verified, amber=review, coral=action, indigo=withheld/info. */
-.b-ok,.p-ok,.s-ok{background:var(--teal-soft);color:var(--teal)}
-.b-watch,.p-review,.s-near{background:var(--amber-soft);color:var(--amber)}
-.b-bad,.p-action,.s-bad{background:var(--coral-soft);color:var(--coral)}
-.b-hold{background:var(--indigo-soft);color:var(--indigo)}
-.b-gate,.p-verify{background:var(--indigo-soft);color:var(--indigo);border-color:rgba(85,99,154,.24)}
-.chip.alarm[aria-pressed=true]{background:var(--coral);border-color:var(--coral);color:#fff}
-.allclear{background:var(--teal-soft);border-color:rgba(15,118,110,.20);color:var(--teal)}
-.outcard{border-color:var(--coral);background:var(--coral-soft)}
-.outcard .k,.bad{color:var(--coral)}
-tr.alert td{background:var(--coral-soft)}
-
-/* Detail reading order gets its own accent per decision stage. */
-.decision{border-top:4px solid var(--brand)}
-.decision .dsec{position:relative;padding-left:16px}
-.decision .dsec::before{content:"";position:absolute;left:0;top:17px;bottom:17px;width:3px;border-radius:3px;background:var(--indigo)}
-.decision .dsec:nth-of-type(3)::before{background:var(--plum)}
-.decision .dsec:nth-of-type(4)::before{background:var(--teal)}
-.decision .dsec:nth-of-type(2) h3{color:var(--indigo)}
-.decision .dsec:nth-of-type(3) h3{color:var(--plum)}
-.decision .dsec:nth-of-type(4) h3{color:var(--teal)}
-.actnote{background:var(--teal-soft);border-color:rgba(15,118,110,.18)}
-.jump .gbtn:first-child{color:var(--indigo);border-color:rgba(85,99,154,.25)}
-.jump .gbtn:nth-child(2){color:var(--plum);border-color:rgba(107,60,122,.25)}
-
-/* Technical evidence: diverging scale uses cool→neutral→warm rather than gray→purple. */
-.heat .bar{background:linear-gradient(90deg,var(--indigo),#F7F4F2 50%,var(--coral))}
-.step::before{background:var(--indigo)}
-.tracehead{background:linear-gradient(90deg,var(--indigo-soft),#fff)}
-
-/* Glossary: repeated cards rotate through four restrained semantic accents. */
-.gcard{--tone:var(--brand);--tone-soft:var(--plum-soft);position:relative;overflow:hidden;background:linear-gradient(180deg,var(--tone-soft) 0 6px,#fff 6px 100%);border-color:rgba(70,70,70,.14);box-shadow:0 5px 18px rgba(43,0,63,.035)}
-.gcard:nth-child(4n+1){--tone:var(--coral);--tone-soft:var(--coral-soft)}
-.gcard:nth-child(4n+2){--tone:var(--teal);--tone-soft:var(--teal-soft)}
-.gcard:nth-child(4n+3){--tone:var(--indigo);--tone-soft:var(--indigo-soft)}
-.gcard:nth-child(4n+4){--tone:var(--amber);--tone-soft:var(--amber-soft)}
-.gcard h3{color:var(--tone)}
-.gcard .en{color:var(--ink2)}
-.gcard svg [stroke="#2B003F"]{stroke:var(--tone)!important}
-.gcard svg [fill="#2B003F"]{fill:var(--tone)!important}
-.gcard svg text[fill="#2B003F"]{fill:var(--tone)!important}
-
-/* KPI values and validation cells get restrained accents for scanability. */
-.kpi div:nth-child(4n+1) b{color:var(--brand)}
-.kpi div:nth-child(4n+2) b{color:var(--teal)}
-.kpi div:nth-child(4n+3) b{color:var(--indigo)}
-.kpi div:nth-child(4n+4) b{color:var(--amber)}
-
-/* Interactive emphasis is color + shape/weight, never color alone. */
-.gbtn.primary{background:var(--brand);border-color:var(--brand)}
-.gbtn.primary:hover{background:var(--plum);border-color:var(--plum)}
-.linkbtn:hover,.term:hover,.info:hover{color:var(--plum)}
-:focus-visible{outline-color:var(--indigo)}
-
-
-/* ── Home / Lot Review separation ── */
-.homebtn[aria-current=page]{background:var(--brand-soft);color:var(--brand);border-color:var(--brand-mid);font-weight:700}
-.queue-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}
-.queue-head h2{margin-bottom:4px}
-.queue-head p{max-width:760px;margin:0}
-.headbadges .pill{white-space:nowrap;flex:0 0 auto;min-width:max-content}
-.verify-tip{width:auto!important;height:auto!important;display:inline-flex!important;place-items:unset!important;margin-left:0!important;padding:5px 13px!important;line-height:1.2!important;white-space:nowrap!important}
-.p-verified{background:var(--teal-soft);color:var(--teal);border-color:rgba(15,118,110,.25);border-bottom:1.5px dotted var(--teal)}
-.p-holdgate{background:var(--amber-soft);color:var(--amber);border-color:rgba(154,104,20,.25);border-bottom:1.5px dotted var(--amber)}
-
-
-/* ── Final glossary/detail polish · 2026-09 ──────────────────── */
-.glist{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(360px,1fr));
-  gap:18px;
-}
-.gcard{
-  min-width:0;
-  border:1px solid var(--line2);
-  border-radius:15px;
-  padding:22px 24px 24px;
-  background:#fff;
-  overflow:hidden;
-}
-.gcard h3{
-  display:flex;
-  flex-wrap:wrap;
-  align-items:baseline;
-  gap:5px 10px;
-  margin:0;
-  font-size:16px;
-  line-height:1.42;
-}
-.gcard .en{
-  display:inline-block;
-  margin-left:0;
-  color:var(--ink2);
-  font-weight:400;
-  font-size:13px;
-  line-height:1.4;
-}
-.gcard p{
-  margin-top:11px;
-  font-size:14px;
-  line-height:1.82;
-  color:var(--ink2);
-  max-width:70ch;
-}
-.gvisual{
-  margin-top:18px;
-  padding:14px 12px 10px;
-  min-height:170px;
-  border-radius:12px;
-  background:linear-gradient(180deg,#FFFFFF 0%,#FCFAF9 100%);
-  border:1px solid var(--line2);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-}
-.gvisual svg{
-  display:block;
-  margin:0;
-  width:100%;
-  max-width:390px;
-  height:auto;
-  overflow:visible;
-}
-.gvisual svg text{
-  font-family:"IBM Plex Sans KR",-apple-system,"Segoe UI",sans-serif;
-}
-.gvisual svg .cap{font-size:11px;font-weight:700}
-.gvisual svg .lbl{font-size:10px;fill:#464646}
-.gvisual svg .sub{font-size:9px;fill:#6B6268}
-.gvisual .diagram-key{
-  font-weight:700;
-  letter-spacing:-.01em;
-}
-#pop .gvisual{min-height:0;margin-top:12px;padding:10px;background:#fff}
-#pop .gvisual svg{max-width:320px}
-#pop h4{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
-#pop h4 .en{margin-left:0}
-
-/* keep status/verification badges on one line */
-.headbadges{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.pill,.verify-tip{white-space:nowrap!important;word-break:keep-all!important;line-height:1.2!important}
-.verify-tip{min-width:max-content!important}
-
-/* detail heading should never break awkwardly around a bare separator */
-.cause-title{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
-.cause-title .module{color:var(--ink2);font-weight:500}
-
-@media(max-width:760px){
-  .glist{grid-template-columns:1fr}
-  .gcard{padding:18px 18px 20px}
-  .gvisual{min-height:150px;padding:10px 8px}
-  .gvisual svg{max-width:100%}
-}
-
-
-/* ── v2 polish overrides ── */
-.keep{white-space:nowrap}
-.queue-note,.queue-lead,.metric-source,.meta-date{color:var(--ink2)}
-.gcard p,.home-card p,.home-card li,.sub,.flow-step small{color:var(--ink2)}
-.gvisual{overflow:hidden}
-.gvisual svg{display:block;width:100%;max-width:100%;height:auto;overflow:visible}
-@media(max-width:700px){
-  .hero h1{letter-spacing:-.035em}
-  #heroTitle .keep{display:inline}
-  .filters > select,.filters > .chip{flex:1 1 calc(50% - 8px)}
-  .filters > .linkbtn{flex:0 0 auto}
-}
-
-
-
-/* ── V1 final-pass: decision-first + HITL + agent path + QA ── */
-.queue-diff-legend{margin:4px 0 8px;color:var(--ink2);font-size:12.5px;line-height:1.55}
-.meta-chip.diff{box-shadow:inset 3px 0 0 var(--plum);padding-left:10px}
-.diff-mark{display:inline-flex;align-items:center;margin-left:6px;padding:1px 5px;border-radius:999px;background:var(--plum);color:#fff;font:700 9.5px/1.5 "IBM Plex Sans KR",sans-serif;letter-spacing:.02em}
-.signal-count.alert b{color:var(--coral)}
-.lotrow:focus-visible{background:var(--brand-soft)}
-
-.decision .summary-copy{font-size:15px;line-height:1.75;color:var(--ink2)}
-.action-preview{margin:8px 0 0;padding-left:22px}
-.action-preview li{margin:7px 0;color:var(--ink);font-size:14.5px;line-height:1.65}
-.more-hint{margin-top:8px;color:var(--ink2);font-size:12.5px}
-.ctxchips{display:flex;gap:7px;flex-wrap:wrap}
-
-.human-review{margin-top:18px;padding:18px;border:1px solid rgba(85,99,154,.26);border-radius:14px;background:linear-gradient(135deg,var(--indigo-soft),#fff)}
-.human-review.auto{border-color:rgba(15,118,110,.22);background:linear-gradient(135deg,var(--teal-soft),#fff)}
-.human-kicker{display:block;margin-bottom:5px;color:var(--indigo);font-size:11px;font-weight:800;letter-spacing:.065em;text-transform:uppercase}
-.human-review.auto .human-kicker{color:var(--teal)}
-.human-review h3{font-size:15px;color:var(--ink);margin-bottom:5px}
-.human-review p{font-size:13.5px!important;line-height:1.65;color:var(--ink2)!important}
-.human-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
-.human-actions .gbtn{min-height:44px}
-.human-actions .gbtn[aria-pressed=true]{background:var(--brand);color:#fff;border-color:var(--brand)}
-.human-actions .gbtn:disabled{opacity:.5;cursor:not-allowed;background:var(--sunk)}
-.human-state{margin-top:10px!important;padding-top:10px;border-top:1px solid rgba(85,99,154,.16);font-weight:700}
-.human-note{margin-top:8px!important;font-size:12px!important}
-
-.branch-wrap{margin-top:4px}
-.branch-intro{margin-bottom:15px;color:var(--ink2);font-size:13px;line-height:1.6}
-.branch-flow{display:grid;grid-template-columns:minmax(120px,1fr) 28px minmax(160px,1.15fr) 28px minmax(210px,1.45fr) 28px minmax(120px,.9fr);gap:6px;align-items:stretch}
-.branch-arrow{display:grid;place-items:center;color:var(--muted);font-weight:800}
-.branch-node{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;min-width:0}
-.branch-node.active{border-color:rgba(43,0,63,.35);background:var(--brand-soft)}
-.branch-node .stepno{display:block;color:var(--muted);font:700 10px "IBM Plex Mono",monospace;margin-bottom:5px}
-.branch-node b{display:block;font-size:13px;color:var(--ink);line-height:1.35}
-.branch-node small{display:block;margin-top:5px;color:var(--ink2);font-size:11.5px;line-height:1.5}
-.branch-options{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
-.branch-option{padding:7px 8px;border:1px solid var(--line2);border-radius:8px;color:var(--muted);font-size:11.5px;background:#fff}
-.branch-option.selected{border-color:var(--brand-mid);background:#fff;color:var(--brand);font-weight:800;box-shadow:inset 3px 0 0 var(--brand)}
-.branch-result{border-color:rgba(15,118,110,.25)}
-.branch-result.hold{border-color:rgba(154,104,20,.28);background:var(--amber-soft)}
-.branch-result.pass{background:var(--teal-soft)}
-
-.chart-viewport{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
-.chart-step{cursor:help;stroke:var(--amber);stroke-width:2.5;fill:#fff}
-.step-diamond{fill:var(--amber);stroke:#fff;stroke-width:1.5;cursor:help}
-.step-legend{display:inline-flex;align-items:center;gap:6px;color:var(--ink2)}
-.step-legend::before{content:'◆';color:var(--amber);font-size:13px}
-
-.gate-table table{min-width:0}
-.full-action-copy .steps{margin-top:10px}
-.full-action-copy .cause{font-size:14px;line-height:1.75;color:var(--ink2)}
-
-@media(max-width:760px){
-  body{font-size:16px}
-  .panel{padding:16px 14px}
-  .decision .dsec{padding:14px 0 14px 14px}
-  .decision .dsec p,.action-preview li{font-size:15px}
-  .crumb{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .crumb>.sub,.crumb>.spacer,.crumb>.currentloc{display:none}
-  .crumb .gbtn,.crumb .linkbtn{min-height:44px;width:100%;justify-content:center;border:1px solid var(--line);border-radius:9px;text-decoration:none}
-  .human-actions{display:grid;grid-template-columns:1fr}
-  .human-actions .gbtn{width:100%}
-  .branch-flow{grid-template-columns:1fr;gap:8px}
-  .branch-arrow{transform:rotate(90deg);min-height:20px}
-  .branch-options{grid-template-columns:1fr 1fr}
-  .meta-chip{max-width:100%;overflow-wrap:anywhere}
-  .queue-diff-legend{font-size:13px}
-  .chart{min-width:720px}
-  .chart-viewport{margin:0 -4px;padding-bottom:4px}
-  .outgrid{grid-template-columns:1fr}
-  .gate-table{overflow:visible}
-  .gate-table table{font-size:13.5px}
-  .gate-table th,.gate-table td{white-space:normal;word-break:keep-all}
-  .ctxchips .ctxchip{font-size:12px}
-}
-@media(max-width:380px){
-  .branch-options{grid-template-columns:1fr}
-  .headbadges{gap:6px}
-  .pill,.verify-tip{font-size:12.5px!important;padding:5px 10px!important}
-}
-
-
-
-/* ── v1 visual consistency pass: diagram type + clipping safety ── */
-.gvisual{
-  overflow:hidden;
-  padding:18px 18px 14px;
-  min-height:190px;
-}
-.gvisual svg{
-  width:100%;
-  max-width:430px;
-  height:auto;
-  overflow:visible;
-}
-/* Modern diagrams use a ~340–360 user-unit viewBox. Keep their label size large. */
-.gvisual.diagram-modern svg text{
-  font-family:"IBM Plex Sans KR",-apple-system,"Segoe UI",sans-serif;
-  font-size:14px!important;
-  font-weight:500;
-}
-.gvisual.diagram-modern svg .cap{
-  font-size:15px!important;
-  font-weight:700;
-}
-.gvisual.diagram-modern svg .lbl{
-  font-size:14px!important;
-  font-weight:500;
-  fill:#3F3A3D;
-}
-.gvisual.diagram-modern svg .sub{
-  font-size:13px!important;
-  fill:#5C5559;
-}
-/* Legacy diagrams have a ~200 user-unit viewBox; smaller SVG units render at a similar visual size. */
-.gvisual.diagram-legacy svg text{
-  font-family:"IBM Plex Sans KR",-apple-system,"Segoe UI",sans-serif;
-  font-size:8.5px!important;
-  font-weight:500;
-}
-@media(max-width:760px){
-  .gvisual{padding:14px 10px 12px;min-height:170px}
-  .gvisual svg{max-width:100%}
-}
-
+footer{border-top:1px solid var(--line);padding:22px 0 50px;color:var(--muted);font-size:12.5px}
 </style>
 </head>
 <body>
-<a href="#main" class="skip" data-t="skip">본문으로 건너뛰기</a>
-<div id="announce" class="announce" aria-live="polite" aria-atomic="true"></div>
 
 <header>
   <div class="wrap">
     <div class="hbar">
       <div class="brand">
         <div class="mark">CD</div>
-        <div><b data-t="brand">CD 이상 원인 분석</b><span data-t="brandsub">ADI·ACI 근거로 Litho·Etch·Metrology 원인을 좁힙니다</span></div>
+        <div><b data-t="brand">CD 이상 원인 판정 콘솔</b><span data-t="brandsub">노광·식각·계측 중 원인 모듈을 가려냅니다</span></div>
       </div>
       <div class="search">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-        <input id="q" type="search" data-ph="search" data-aria="search" aria-label="로트 검색" aria-describedby="qHint">
+        <input id="q" type="search" data-ph="search" aria-label="로트 검색">
       </div>
-      <button class="homebtn" id="homeBtn" type="button" data-aria="home" aria-label="홈">
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 10.5 12 3l8.5 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-4.5v-6h-5v6H5a1.5 1.5 0 0 1-1.5-1.5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
-        <span data-t="home">홈</span>
-      </button>
       <div class="lang" role="group" aria-label="Language">
         <button data-lang="ko" aria-pressed="true">한국어</button>
         <button data-lang="en" aria-pressed="false">EN</button>
       </div>
     </div>
     <nav id="nav" aria-label="Primary">
-      <button data-v="lots" data-t="nav.lots">로트 검토</button>
+      <button data-v="flow" aria-current="page" data-t="nav.flow">공정 흐름</button>
+      <button data-v="lots" data-t="nav.lots">로트 판정</button>
       <button data-v="trends" data-t="nav.trends">추이와 감시</button>
       <button data-v="valid" data-t="nav.valid">검증 결과</button>
       <button data-v="terms" data-t="nav.terms">용어 사전</button>
@@ -732,110 +271,61 @@ tr.alert td{background:var(--coral-soft)}
   </div>
 </header>
 
-<main class="wrap" id="main" tabindex="-1">
+<main class="wrap">
 
-<!-- 홈 -->
-<section class="view" id="v-home">
-  <article class="home-card mobile-onboard">
-    <div class="kicker" data-t="homecard.begin.k">For beginners</div>
-    <h3 data-t="homecard.begin.t">처음 방문했다면</h3>
-    <p data-t="homecard.begin.p">이 웹은 CD 이상이 생겼을 때 노광·식각·계측 중 어느 모듈부터 확인할지 근거를 따라 좁혀주는 분석 도구입니다.</p>
-  </article>
-  <div class="panel hero" id="introCard">
-    <div class="hero-copy">
-      <div class="eyebrow" data-t="hero.eyebrow">Semiconductor decision support</div>
-      <h1 id="heroTitle"><span class="keep">CD 이상 원인을</span> <span class="keep">어디서부터 확인해야 할지</span> <span class="keep">빠르게 좁혀보세요</span></h1>
-      <p><span data-t="hero.body1">로트를 고르면</span> <span class="keypoint" data-t="hero.flow">상태 → 변화 → 추정 원인 → 권고 조치 → 기술 근거</span> <span data-t="hero.body2">순서로 보여줍니다. 처음 보는 사람은 결론부터, 엔지니어는 근거까지 내려가며 확인할 수 있습니다.</span></p>
-      <div class="hero-cta">
-        <button class="gbtn primary" id="heroStart" data-t="hero.start">로트 검토 시작</button>
-        <button class="gbtn" id="heroGlossary" data-t="hero.glossary">용어 사전</button>
-      </div>
-      <div class="hero-stats" aria-label="Overview">
-        <div class="hero-stat"><strong id="heroLotCount">320</strong><span data-t="hero.stat.lots">평가 로트</span></div>
-        <div class="hero-stat"><strong>3</strong><span data-t="hero.stat.modules">원인 모듈 후보 · Litho / Etch / Metrology</span></div>
-        <div class="hero-stat"><strong>5</strong><span data-t="hero.stat.steps">읽기 단계 · 상태에서 기술 근거까지</span></div>
-      </div>
-    </div>
-    <div class="hero-visual">
-      <div class="visual-card">
-        <h3 data-t="hero.visual.title">이 분석 도구에서 할 수 있는 일</h3>
-        <div class="flow">
-          <div class="flow-step"><div class="num">01</div><div><b data-t="hero.visual.1t">우선 확인할 로트 찾기</b><small data-t="hero.visual.1d">검색과 필터로 검토가 필요한 로트를 먼저 찾습니다.</small></div></div>
-          <div class="flow-step"><div class="num">02</div><div><b data-t="hero.visual.2t">이상 신호를 공정 좌표계로 분리</b><small data-t="hero.visual.2d">ADI·ACI·ΔCD·챔버·계측 drift를 함께 보고 원인 후보를 좁힙니다.</small></div></div>
-          <div class="flow-step"><div class="num">03</div><div><b data-t="hero.visual.3t">조치와 검증 근거까지 확인</b><small data-t="hero.visual.3d">추천 조치, Evidence, Investigation Trace, Verification Gate를 이어서 확인합니다.</small></div></div>
-        </div>
-      </div>
+<!-- 공정 흐름 (첫 진입 화면) -->
+<section class="view" id="v-flow">
+  <div class="panel">
+    <header><h2 data-t="f.title">웨이퍼 한 장이 지나는 길</h2>
+      <span class="sub" data-t="f.sub">이 콘솔이 무엇을 보는지 먼저 그림으로 봅니다</span></header>
+    <p class="lede" data-t="f.lead">회로는 빛으로 그리고(노광), 그린 대로 깎아냅니다(식각). 두 번 측정하고, 그 차이로 원인을 찾습니다.</p>
+    <div id="flowDiagram"></div>
+    <p class="scrollhint" data-t="f.scroll">← 옆으로 밀어서 전체를 볼 수 있습니다 →</p>
+    <div class="jump" style="margin-top:20px">
+      <button class="gbtn primary" id="goLots" data-t="f.gostart">로트 판정 화면으로</button>
     </div>
   </div>
 
-  <div class="home-grid" id="homeOverview">
-    <article class="home-card begin-desktop">
-      <div class="kicker" data-t="homecard.begin.k">For beginners</div>
-      <h3 data-t="homecard.begin.t">처음 방문했다면</h3>
-      <p data-t="homecard.begin.p">이 웹은 CD 이상이 생겼을 때 노광·식각·계측 중 어느 모듈부터 확인할지 근거를 따라 좁혀주는 분석 도구입니다.</p>
-      <ul><li data-t="homecard.begin.1">홈에서 전체 흐름을 먼저 파악</li><li data-t="homecard.begin.2">검토가 필요한 로트만 빠르게 필터링</li><li data-t="homecard.begin.3">모르는 용어는 용어 사전에서 확인</li></ul>
-    </article>
-    <article class="home-card">
-      <div class="kicker" data-t="homecard.read.k">How to read</div>
-      <h3 data-t="homecard.read.t">무엇을 읽게 되나요?</h3>
-      <p data-t="homecard.read.p">로트를 열면 중요한 판단부터 기술 근거까지 같은 순서로 읽습니다.</p>
-      <ul><li data-t="homecard.read.1">상태 — 정상 / 검토 / 조치 필요</li><li data-t="homecard.read.2">변화 — 어떤 지표가 한계를 벗어났는지</li><li data-t="homecard.read.3">원인·조치 — 무엇을 먼저 확인할지</li><li data-t="homecard.read.4">근거 — Evidence / Trace / Gate</li></ul>
-    </article>
-    <article class="home-card">
-      <div class="kicker" data-t="homecard.eng.k">Decision support</div>
-      <h3 data-t="homecard.eng.t">이 도구가 지원하는 판단</h3>
-      <p data-t="homecard.eng.p">단순 이상 탐지를 넘어 원인 후보와 조치 우선순위를 분리해 불필요한 공정 변경을 줄이는 의사결정을 지원합니다.</p>
-      <ul><li data-t="homecard.eng.1">계측 drift와 실제 공정 이상 분리</li><li data-t="homecard.eng.2">Track·Reticle·Etch chamber 신호 구분</li><li data-t="homecard.eng.3">판정 근거와 검증 게이트를 함께 추적</li></ul>
-    </article>
+  <div class="panel">
+    <header><h2 data-t="f.steps">각 단계에서 무엇을 고려했나</h2>
+      <span class="sub" data-t="f.stepssub">단계마다 흔들릴 수 있는 것과, 흔들렸을 때 남는 지문을 정리했습니다</span></header>
+    <div class="tw"><table class="flowtbl" id="flowTable"></table></div>
+  </div>
+
+  <div class="panel">
+    <header><h2 data-t="f.third">왜 후보가 세 개인가</h2>
+      <span class="sub" data-t="f.thirdsub">같은 숫자가 움직여도 원인은 세 가지일 수 있습니다</span></header>
+    <div id="thirdSuspect"></div>
+    <p class="scrollhint" data-t="f.scroll">← 옆으로 밀어서 전체를 볼 수 있습니다 →</p>
+  </div>
+
+  <div class="panel">
+    <header><h2 data-t="f.judge">판정은 이 순서로 진행됩니다</h2>
+      <span class="sub" data-t="f.judgesub">되돌릴 수 있는 것을 먼저, 계측을 공정보다 먼저 확인합니다</span></header>
+    <div id="judgeFlow"></div>
+    <p class="scrollhint" data-t="f.scroll">← 옆으로 밀어서 전체를 볼 수 있습니다 →</p>
   </div>
 </section>
 
-<!-- 로트 검토 -->
+<!-- 로트 목록 -->
 <section class="view" id="v-lots" hidden>
   <div class="panel" id="listCard">
-    <header class="queue-head">
-      <div>
-        <h2 data-t="list.title">로트 검토</h2>
-        <p class="sub" data-t="list.sub">조치가 필요한 로트를 우선 확인하고, 필요하면 전체 로트로 범위를 넓혀 검토합니다.</p>
-      </div>
-      <span class="sub" id="listCount" aria-live="polite"></span>
+    <header>
+      <h2 data-t="list.title">처리할 로트를 고르세요</h2>
+      <span class="sub" id="listCount"></span>
     </header>
-    <div class="queue-intro" id="queueIntro">
-      <p class="queue-lead" data-t="queue.lead">처음에는 처리 우선순위만 확인하세요. 필요한 경우에만 전체 목록과 상세 필터를 펼칠 수 있습니다.</p>
-      <div class="queue-summary" aria-label="Lot summary">
-        <div class="queue-stat review"><strong id="sumReview">0</strong><span data-t="queue.review">검토 필요</span></div>
-        <div class="queue-stat hold"><strong id="sumHold">0</strong><span data-t="queue.hold">판정 보류</span></div>
-        <div class="queue-stat normal"><strong id="sumNormal">0</strong><span data-t="queue.normal">정상</span></div>
-      </div>
-      <div class="queue-actions">
-        <button class="gbtn primary" id="queueOpenAbn" data-t="queue.openreview">검토 필요 로트 보기</button>
-        <button class="gbtn" id="queueOpenAll" data-t="queue.openall">전체 로트 보기</button>
-      </div>
-      <p class="queue-note" data-t="queue.note">로트를 선택하면 상태 → 변화 → 추정 원인 → 조치 순서로 먼저 보여주고, 기술 근거는 필요할 때 펼쳐봅니다.</p>
+    <div class="filters">
+      <button class="chip alarm" id="fAbn" aria-pressed="false"></button>
+      <select id="fVerdict"></select>
+      <select id="fScanner"></select>
+      <select id="fChamber"></select>
+      <select id="fMetro"></select>
+      <input class="numin mono" id="fDayMin" type="number" min="0" placeholder="0" aria-label="min day">
+      <span class="sub">~</span>
+      <input class="numin mono" id="fDayMax" type="number" min="0" placeholder="39" aria-label="max day">
+      <button class="linkbtn" id="fReset" data-t="list.reset">초기화</button>
     </div>
-
-    <div class="queue-tools" id="queueTools" hidden>
-      <p class="sub" id="qHint" data-t="q.hint" style="margin:-2px 0 12px">예: L0319, SCN-02, RET-B, CH-A</p>
-      <div class="filters" role="group" data-aria="filter.group" aria-label="로트 필터">
-        <button class="chip alarm" id="fAbn" aria-pressed="false"></button>
-        <select id="fVerdict" data-aria="filter.verdict" aria-label="판정 필터"></select>
-        <select id="fPeriod" data-aria="filter.period" aria-label="생산 기간 필터"></select>
-        <select id="fSort" data-aria="filter.sort" aria-label="정렬 기준"></select>
-        <button class="linkbtn" id="fReset" data-t="list.reset">초기화</button>
-      </div>
-      <details class="advanced" id="advancedFilters">
-        <summary data-t="filter.advanced">고급 필터</summary>
-        <div class="advanced-body">
-          <div class="filters">
-            <select id="fScanner" data-aria="filter.scanner" aria-label="스캐너 필터"></select>
-            <select id="fChamber" data-aria="filter.chamber" aria-label="챔버 필터"></select>
-            <select id="fMetro" data-aria="filter.metro" aria-label="계측 장비 필터"></select>
-          </div>
-        </div>
-      </details>
-      <p class="queue-diff-legend" data-t="queue.difflegend">보라색 강조는 바로 위에 표시된 로트와 달라진 공정 경로입니다.</p>
-      <div id="lotlist" role="listbox" aria-label="lots"></div>
-    </div>
+    <div id="lotlist" role="listbox" aria-label="lots"></div>
   </div>
 
   <div id="detail" hidden></div>
@@ -846,17 +336,17 @@ tr.alert td{background:var(--coral-soft)}
   <div class="panel">
     <header><h2 data-t="tr.trend">생산일별 추이</h2><span class="sub" data-t="tr.trendsub">점 하나가 로트 · 클릭하면 해당 판정으로 이동</span></header>
     <div class="segs" id="metricPick"></div>
-    <div class="chart-viewport"><svg class="chart" id="trendChart" viewBox="0 0 1000 360" role="img"></svg></div>
+    <svg class="chart" id="trendChart" viewBox="0 0 1000 360" role="img"></svg>
     <div class="legend" id="trendLegend"></div>
   </div>
   <div class="panel">
     <header><h2 data-t="tr.mon">CD-SEM 안정성</h2><span class="sub" data-t="tr.monsub">모니터 웨이퍼 반복 측정 · 기준선 대비 이동량</span></header>
-    <div class="chart-viewport"><svg class="chart" id="monChart" viewBox="0 0 1000 320" role="img"></svg></div>
+    <svg class="chart" id="monChart" viewBox="0 0 1000 320" role="img"></svg>
     <div class="legend" id="monLegend"></div>
   </div>
   <div class="panel">
     <header><h2 data-t="tr.tmu">TMU / 공정 예산</h2><span class="sub" id="tmuSub"></span></header>
-    <div class="chart-viewport"><svg class="chart" id="tmuChart" viewBox="0 0 1000 320" role="img"></svg></div>
+    <svg class="chart" id="tmuChart" viewBox="0 0 1000 320" role="img"></svg>
     <div class="legend" id="tmuLegend"></div>
   </div>
   <div class="panel">
