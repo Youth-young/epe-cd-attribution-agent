@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CD 이상 원인 판정 콘솔</title>
-<meta name="description" content="ADI·ACI 계측 데이터로 CD 이상의 원인이 노광인지 식각인지 계측인지 판정하는 에이전트 콘솔.">
+<title>CD Excursion 원인 귀속 Agent</title>
+<meta name="description" content="ADI–AEI CD 데이터로 CD Excursion의 원인 모듈을 Litho·Etch·Metrology 중 하나로 귀속하는 Agent.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -24,6 +24,30 @@ body{margin:0;background:var(--page);color:var(--ink);
   font-size:15px;line-height:1.7;overflow-wrap:break-word}
 .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
 .lede{font-size:16px;color:var(--ink2);max-width:80ch;margin-bottom:22px}
+.brand{display:flex;align-items:center;gap:11px;flex:0 0 auto;background:none;border:0;
+  padding:5px 7px;cursor:pointer;text-align:left;border-radius:9px}
+.brand:hover{background:var(--sunk)}
+.brand .btxt b{display:block;font-size:15px}
+.brand .btxt span{display:block;font-size:11.5px;color:var(--muted);line-height:1.4}
+.hero{padding:34px 30px}
+.kicker{font-size:12.5px;color:var(--brand);font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;margin-bottom:12px}
+.herotitle{font-size:clamp(23px,3.4vw,34px);line-height:1.38;letter-spacing:-.02em;margin-bottom:22px}
+ul.bullets{margin:0 0 22px;padding:0;list-style:none}
+ul.bullets li{position:relative;padding-left:17px;margin-bottom:9px;font-size:14.5px;
+  color:var(--ink2);line-height:1.65;max-width:88ch}
+ul.bullets li::before{content:"";position:absolute;left:0;top:10px;width:5px;height:5px;
+  border-radius:50%;background:var(--brand)}
+ul.bullets li b{color:var(--ink)}
+.twocol{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:26px}
+.twocol h3{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;margin-bottom:12px}
+.guidegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.gocard{text-align:left;border:1px solid var(--line);border-radius:10px;padding:16px 18px;
+  background:var(--panel);cursor:pointer}
+.gocard:hover{border-color:var(--brand);background:var(--sunk)}
+.gocard b{display:block;font-size:14.5px;margin-bottom:5px}
+.gocard span{font-size:12.5px;color:var(--muted);line-height:1.55}
 .jump{display:flex;gap:8px;flex-wrap:wrap}
 .gbtn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
 table.flowtbl td{vertical-align:top;font-size:13.5px;line-height:1.65}
@@ -247,10 +271,10 @@ footer{border-top:1px solid var(--line);padding:22px 0 50px;color:var(--muted);f
 <header>
   <div class="wrap">
     <div class="hbar">
-      <div class="brand">
-        <div class="mark">CD</div>
-        <div><b data-t="brand">CD 이상 원인 판정 콘솔</b><span data-t="brandsub">노광·식각·계측 중 원인 모듈을 가려냅니다</span></div>
-      </div>
+      <button class="brand" id="homeBtn" aria-label="홈">
+        <span class="mark">CD</span>
+        <span class="btxt"><b data-t="brand">CD Excursion 원인 귀속 Agent</b><span data-t="brandsub">ADI–AEI CD 기반 · 원인 모듈 귀속 · 근거 부족 시 보류</span></span>
+      </button>
       <div class="search">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
         <input id="q" type="search" data-ph="search" aria-label="로트 검색">
@@ -261,7 +285,8 @@ footer{border-top:1px solid var(--line);padding:22px 0 50px;color:var(--muted);f
       </div>
     </div>
     <nav id="nav" aria-label="Primary">
-      <button data-v="flow" aria-current="page" data-t="nav.flow">공정 흐름</button>
+      <button data-v="home" aria-current="page" data-t="nav.home">개요</button>
+      <button data-v="flow" data-t="nav.flow">공정 흐름</button>
       <button data-v="lots" data-t="nav.lots">로트 판정</button>
       <button data-v="trends" data-t="nav.trends">추이와 감시</button>
       <button data-v="valid" data-t="nav.valid">검증 결과</button>
@@ -273,8 +298,40 @@ footer{border-top:1px solid var(--line);padding:22px 0 50px;color:var(--muted);f
 
 <main class="wrap">
 
-<!-- 공정 흐름 (첫 진입 화면) -->
-<section class="view" id="v-flow">
+<!-- 개요 (첫 진입 화면) -->
+<section class="view" id="v-home">
+  <div class="panel hero">
+    <p class="kicker" data-t="h.kicker">반도체 포토·식각 공정 · CD 이상 원인 귀속</p>
+    <h1 class="herotitle" data-t="h.title">CD가 스펙을 벗어났을 때,<br>원인이 어느 모듈인지 판정합니다</h1>
+    <ul class="bullets" id="heroBullets"></ul>
+    <div class="jump">
+      <button class="gbtn primary" data-go="lots" data-t="h.golots">로트 판정 보기</button>
+      <button class="gbtn" data-go="flow" data-t="h.goflow">공정 흐름부터 보기</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <header><h2 data-t="h.kpi">한눈에 보는 결과</h2>
+      <span class="sub" data-t="h.kpisub">합성 데이터 320 로트 블라인드 평가 기준</span></header>
+    <div class="kpi" id="homeKpi"></div>
+  </div>
+
+  <div class="panel">
+    <header><h2 data-t="h.problem">문제 정의</h2></header>
+    <div class="twocol">
+      <div><h3 data-t="h.p1">현장 상황</h3><ul class="bullets" id="probList"></ul></div>
+      <div><h3 data-t="h.p2">이 Agent의 접근</h3><ul class="bullets" id="apprList"></ul></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <header><h2 data-t="h.guide">화면 안내</h2></header>
+    <div class="guidegrid" id="guideGrid"></div>
+  </div>
+</section>
+
+<!-- 공정 흐름 -->
+<section class="view" id="v-flow" hidden>
   <div class="panel">
     <header><h2 data-t="f.title">웨이퍼 한 장이 지나는 길</h2>
       <span class="sub" data-t="f.sub">이 콘솔이 무엇을 보는지 먼저 그림으로 봅니다</span></header>
@@ -358,8 +415,15 @@ footer{border-top:1px solid var(--line);padding:22px 0 50px;color:var(--muted);f
 <!-- 검증 -->
 <section class="view" id="v-valid" hidden>
   <div class="panel">
-    <header><h2 data-t="va.kpi">핵심 지표</h2></header>
+    <header><h2 data-t="va.perf">판정 성능</h2>
+      <span class="sub" data-t="va.perfsub">기권을 허용하는 판정기이므로 Coverage와 Selective Accuracy를 함께 본다</span></header>
     <div class="kpi" id="valKpi"></div>
+    <div class="tw" style="margin-top:20px"><table id="perfTable"></table></div>
+  </div>
+  <div class="panel">
+    <header><h2 data-t="va.recall">원인 유형별 검출률</h2>
+      <span class="sub" data-t="va.recallsub">분모는 판정 가능 구간 — AEI 미측정 로트는 ΔCD 산출 불가</span></header>
+    <div class="tw"><table id="recallTable"></table></div>
   </div>
   <div class="panel">
     <header><h2 data-t="va.matrix">블라인드 평가</h2><span class="sub" data-t="va.matrixsub">세로 = 주입한 이상 · 가로 = 에이전트 판정</span></header>

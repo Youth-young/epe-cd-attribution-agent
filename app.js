@@ -139,34 +139,47 @@ try { LANG = localStorage.getItem('cdlang') || 'ko'; } catch (e) {}
 
 /* ── UI 문구 ───────────────────────────────────────────────── */
 const T = {
-  brand:        ['CD 이상 원인 판정 콘솔', 'CD Excursion Attribution Console'],
-  brandsub:     ['노광·식각·계측 중 원인 모듈을 가려냅니다', 'Attributes CD excursions to Litho, Etch, or Metrology'],
+  brand:        ['CD Excursion 원인 귀속 Agent', 'CD Excursion Attribution Agent'],
+  brandsub:     ['ADI–AEI CD 기반 · 원인 모듈 귀속 · 근거 부족 시 보류',
+                 'ADI–AEI CD based · module attribution · withholds when evidence is thin'],
+  'nav.home':   ['개요', 'Overview'],
   search:       ['로트·장비·챔버 검색', 'Search lot, tool, chamber'],
   'nav.flow':   ['공정 흐름', 'Process flow'],
+  'h.kicker':   ['반도체 포토·식각 공정 · CD 이상 원인 귀속',
+                 'Litho & etch · CD excursion attribution'],
+  'h.title':    ['CD가 스펙을 벗어났을 때,<br>원인이 어느 모듈인지 판정합니다',
+                 'When CD leaves spec,<br>this agent names the responsible module'],
+  'h.golots':   ['로트 판정 보기', 'Open the lots'],
+  'h.goflow':   ['공정 흐름부터 보기', 'Start with the process flow'],
+  'h.kpi':      ['한눈에 보는 결과', 'Results at a glance'],
+  'h.kpisub':   ['합성 데이터 320 로트 블라인드 평가 기준', 'Blind evaluation on 320 synthetic lots'],
+  'h.problem':  ['문제 정의', 'Problem definition'],
+  'h.p1':       ['현장 상황', 'The situation'],
+  'h.p2':       ['이 Agent의 접근', 'This agent\u2019s approach'],
+  'h.guide':    ['화면 안내', 'Where to look'],
   'nav.lots':   ['로트 판정', 'Lots'],
-  'f.title':    ['웨이퍼 한 장이 지나는 길', 'The path one wafer takes'],
-  'f.sub':      ['이 콘솔이 무엇을 보는지 먼저 그림으로 봅니다', 'What this console looks at, as a picture first'],
-  'f.lead':     ['회로는 빛으로 그리고(노광), 그린 대로 깎아냅니다(식각). 두 번 측정하고, 그 차이로 원인을 찾습니다.',
-                 'Circuits are printed with light, then etched into the film. We measure twice and use the difference to find the cause.'],
-  'f.steps':    ['각 단계에서 무엇을 고려했나', 'What was considered at each step'],
-  'f.stepssub': ['단계마다 흔들릴 수 있는 것과, 흔들렸을 때 남는 지문을 정리했습니다',
-                 'For each step: what can drift, and the fingerprint it leaves'],
-  'f.third':    ['왜 후보가 세 개인가', 'Why three suspects'],
-  'f.thirdsub': ['같은 숫자가 움직여도 원인은 세 가지일 수 있습니다', 'The same number can move for three different reasons'],
-  'f.judge':    ['판정은 이 순서로 진행됩니다', 'The disposition follows this order'],
-  'f.judgesub': ['되돌릴 수 있는 것을 먼저, 계측을 공정보다 먼저 확인합니다',
-                 'Reversible first; metrology before process'],
+  'f.title':    ['웨이퍼 1장의 공정 경로', 'Process path of one wafer'],
+  'f.sub':      ['측정 2회 · 두 값의 차이로 원인 추적', 'Two measurements · cause traced from their difference'],
+  'f.lead':     ['Litho로 패턴 형성 → Etch로 하부막 전사 · ADI/AEI 2회 측정 · 두 값의 차이(etch bias)가 원인 추적의 기준',
+                 'Litho prints the pattern, etch transfers it · measured at ADI and AEI · their difference (etch bias) anchors the attribution'],
+  'f.steps':    ['단계별 변동 인자와 지문', 'Drift factors and fingerprints by step'],
+  'f.stepssub': ['각 단계의 변동 인자 · CD에 남는 지문 형태', 'What drifts at each step · the CD fingerprint it leaves'],
+  'f.third':    ['원인 후보 3종', 'Three candidate causes'],
+  'f.thirdsub': ['ΔCD 이동만으로는 구분 불가 · 교차 검증 필요', 'A Delta-CD shift alone cannot separate them'],
+  'f.judge':    ['판정 순서', 'Disposition sequence'],
+  'f.judgesub': ['Rework 가능 구간 우선 · Metrology 배제 후 Process 판정',
+                 'Reworkable window first · rule out metrology before process'],
   'f.gostart':  ['로트 판정 화면으로', 'Go to the lots'],
   'f.scroll':   ['← 옆으로 밀어서 전체를 볼 수 있습니다 →', '← swipe sideways to see the whole diagram →'],
   'th.step':    ['단계', 'Step'],
-  'th.what':    ['무슨 일이 일어나나', 'What happens'],
-  'th.drift':   ['무엇이 흔들릴 수 있나', 'What can drift'],
-  'th.finger':  ['흔들리면 어떤 모양으로 나타나나', 'The fingerprint it leaves'],
+  'th.what':    ['공정 내용', 'Process step'],
+  'th.drift':   ['변동 인자', 'Drift factor'],
+  'th.finger':  ['CD 지문', 'CD fingerprint'],
   'nav.trends': ['추이와 감시', 'Trends'],
   'nav.valid':  ['검증 결과', 'Validation'],
   'nav.terms':  ['용어 사전', 'Glossary'],
   'nav.ref':    ['기준값', 'Reference'],
-  'list.title': ['처리할 로트를 고르세요', 'Select a lot to disposition'],
+  'list.title': ['Lot Disposition', 'Lot disposition'],
   'list.reset': ['초기화', 'Reset'],
   'list.abn':   ['조치 검토 필요', 'Needs review'],
   'list.all':   ['전체 판정', 'All verdicts'],
@@ -217,7 +230,12 @@ const T = {
   'tr.monsub':  ['모니터 웨이퍼 반복 측정 · 기준선 대비 이동량', 'Monitor-wafer re-measurement · drift from baseline'],
   'tr.tmu':     ['TMU / 공정 예산', 'TMU / process budget'],
   'tr.cham':    ['Etch 챔버별 bias', 'Etch bias by chamber'],
-  'va.kpi':     ['핵심 지표', 'Headline metrics'],
+  'va.perf':    ['판정 성능', 'Disposition performance'],
+  'va.perfsub': ['기권을 허용하는 판정기 · Coverage와 Selective Accuracy를 함께 본다',
+                 'A classifier with a reject option · read coverage together with selective accuracy'],
+  'va.recall':  ['원인 유형별 검출률', 'Detection rate by cause'],
+  'va.recallsub':['분모는 판정 가능 구간 · AEI 미측정 로트는 ΔCD 산출 불가',
+                 'Denominator is the decidable subset; without AEI there is no Delta-CD'],
   'va.matrix':  ['블라인드 평가', 'Blind evaluation'],
   'va.matrixsub':['세로 = 주입한 이상 · 가로 = 에이전트 판정', 'Row = injected scenario · column = predicted disposition'],
   'gl.title':   ['용어 사전', 'Glossary'],
@@ -401,8 +419,7 @@ function filtered() {
     (S.dmin == null || l.day >= S.dmin) && (S.dmax == null || l.day <= S.dmax) &&
     (!q || [l.lot, l.scanner, l.reticle, l.chamber, l.adiTool, l.aciTool]
       .some(v => String(v || '').toLowerCase().includes(q)))
-  ).sort((a, b) => (a.verdict === 'NORMAL') - (b.verdict === 'NORMAL') || b.day - a.day
-                   || a.lot.localeCompare(b.lot));
+  ).sort((a, b) => a.lot.localeCompare(b.lot));   /* 로트 번호 오름차순 */
 }
 
 /* ── 필터 UI ──────────────────────────────────────────────── */
@@ -783,42 +800,42 @@ function drawChambers() {
    인사팀·비전공자가 첫 화면에서 "이게 뭘 하는 물건인지"를 알 수 있어야 한다.
    글로 설명하지 않고 그림으로 먼저 보여준 뒤, 표로 단계별 고려사항을 편다. */
 const FLOW_STEPS = () => [
-  {id:'coat', ko:['① 도포 · 베이크','레지스트(감광막)를 웨이퍼에 고르게 바르고 굽는다',
-        '도포 두께의 반경 분포, 베이크 판 온도',
-        '웨이퍼 중심과 가장자리의 CD가 서로 다르게 벌어진다'],
-   en:['1 Coat & bake','Spin a photoresist film on the wafer and bake it',
-        'Radial thickness profile, hotplate temperature',
-        'Center and edge CD drift apart']},
-  {id:'expo', ko:['② 노광','레티클(원판)의 회로 패턴을 빛으로 레지스트에 새긴다',
-        '노광량(dose), 초점, 레티클 자체의 CD 오차',
-        'dose면 웨이퍼 전체가 통째로 / 레티클이면 같은 자리에서만 반복'],
-   en:['2 Expose','Print the reticle pattern into the resist with light',
-        'Dose, focus, reticle CD error',
-        'Dose shifts the whole wafer; a reticle error repeats at the same site']},
-  {id:'peb', ko:['③ 노광 후 베이크 · 현상','구워서 반응을 끝내고, 녹여내 패턴을 드러낸다',
-        'PEB 판의 온도 분포, 현상 조건',
-        '반경 방향으로 CD가 기울어진다'],
-   en:['3 PEB & develop','Finish the reaction with a bake, then develop the pattern',
-        'PEB plate temperature map, develop conditions',
-        'CD tilts along the wafer radius']},
-  {id:'adi', meas:true, ko:['④ ADI 측정','아직 레지스트 상태. CD-SEM으로 선폭을 잰다',
-        '여기까지는 되돌릴 수 있다 (rework 가능)',
-        '전 로트 측정 · 결과는 스캐너 보정으로 되먹임된다'],
-   en:['4 ADI measurement','Still resist. CD-SEM measures the linewidth',
-        'Up to here the lot can still be reworked',
-        'Every lot measured; feeds back as scanner correction']},
-  {id:'etch', ko:['⑤ 식각','레지스트를 마스크 삼아 아래층을 플라즈마로 깎는다',
-        '챔버 상태, PM 이후 경과 시간, 챔버 간 편차',
-        '특정 챔버로 간 로트에만 ΔCD가 몰린다'],
-   en:['5 Etch','Transfer the pattern into the film with plasma',
-        'Chamber condition, hours since PM, chamber-to-chamber spread',
-        'Delta-CD concentrates on one chamber']},
-  {id:'aei', meas:true, ko:['⑥ AEI 측정','레지스트를 벗긴 실제 구조를 다시 잰다',
-        '되돌릴 수 없다. 절반 로트만 측정(skip-lot)',
-        'ADI와의 차이가 곧 etch bias — 이 값이 핵심 단서'],
-   en:['6 AEI measurement','Measure the stripped, real structure again',
-        'Irreversible. Only half the lots are measured (skip-lot)',
-        'The gap from ADI is the etch bias — the key clue']},
+  {id:'coat', ko:['① Coat · Bake','Resist 도포 후 Soft bake',
+        'Resist 두께 반경 분포 · Hotplate 온도 균일도',
+        '반경 방향 CD 편차 (Center–Edge)'],
+   en:['1 Coat & bake','Resist coat, soft bake',
+        'Radial thickness profile · hotplate uniformity',
+        'Center-to-edge CD spread']},
+  {id:'expo', ko:['② Exposure','Reticle 패턴을 Resist에 전사',
+        'Dose · Focus · Reticle CD 오차',
+        'Dose → Wafer mean shift / Reticle → 동일 site 반복'],
+   en:['2 Exposure','Reticle pattern transferred into resist',
+        'Dose · focus · reticle CD error',
+        'Dose → wafer mean shift / reticle → same-site repeat']},
+  {id:'peb', ko:['③ PEB · Develop','PEB로 산 확산 반응 종결 후 현상',
+        'PEB plate 온도 프로파일 · Develop 조건',
+        '반경 방향 CD 기울기'],
+   en:['3 PEB & develop','Acid reaction completed, pattern developed',
+        'PEB plate temperature profile · develop conditions',
+        'Radial CD tilt']},
+  {id:'adi', meas:true, ko:['④ ADI','Resist 패턴 CD-SEM 측정',
+        'Rework 가능 구간 · APC 피드백 대상',
+        '전 로트 측정 (Actionable)'],
+   en:['4 ADI','CD-SEM on the resist pattern',
+        'Rework window · APC feedback target',
+        'Every lot measured (actionable)']},
+  {id:'etch', ko:['⑤ Etch','Resist를 Mask로 하부막 Plasma 식각',
+        'Chamber seasoning · PM 후 RF hours · Chamber 간 편차',
+        '특정 Chamber 로트에 ΔCD 편중'],
+   en:['5 Etch','Plasma transfer into the underlying film',
+        'Chamber seasoning · RF hours since PM · chamber spread',
+        'Delta-CD concentrated on one chamber']},
+  {id:'aei', meas:true, ko:['⑥ AEI','Resist strip 후 실구조 CD 측정',
+        'Rework 불가 · Skip-lot (50%) 측정',
+        'ΔCD = AEI − ADI · 원인 귀속 기준값'],
+   en:['6 AEI','CD on the stripped structure',
+        'No rework · skip-lot (50%)',
+        'Delta-CD = AEI − ADI · attribution anchor']},
 ];
 
 function flowDiagram() {
@@ -849,16 +866,16 @@ function flowDiagram() {
      aria-label="${L('웨이퍼가 도포부터 AEI 측정까지 지나는 경로','Wafer path from coat to AEI measurement')}">
     <rect x="10" y="126" width="588" height="26" rx="6" fill="#EDF3EE"/>
     <text x="304" y="143" text-anchor="middle" font-size="11.5" fill="#4A7052" font-weight="600">
-      ${L('이 구간까지는 되돌릴 수 있다 — 레지스트를 벗기고 다시 노광 (rework)',
-           'Reversible up to here — strip the resist and re-expose (rework)')}</text>
+      ${L('Rework 가능 구간 — Resist strip 후 재노광',
+           'Rework window — strip resist and re-expose')}</text>
     <rect x="618" y="126" width="284" height="26" rx="6" fill="#FBEFEE"/>
     <text x="760" y="143" text-anchor="middle" font-size="11" fill="#A8342B" font-weight="600">
-      ${L('여기서부터 되돌릴 수 없다','Irreversible from here')}</text>
+      ${L('Rework 불가 — Hold / Scrap 대상','No rework — hold or scrap')}</text>
     ${g}
     <path d="M532 112 V176 H836 V112" fill="none" stroke="#2F6E74" stroke-width="1.4" stroke-dasharray="5 4"/>
     <text x="684" y="196" text-anchor="middle" font-size="12" fill="#2F6E74" font-weight="600">
-      ${L('두 측정값의 차이 = etch bias — 이 콘솔이 보는 값',
-           'Difference between the two = etch bias — what this console watches')}</text>
+      ${L('AEI CD − ADI CD = Etch bias · 원인 귀속의 기준값',
+           'AEI CD − ADI CD = etch bias · the anchor for attribution')}</text>
   </svg>`;
 }
 
@@ -871,31 +888,31 @@ function thirdSuspect() {
   return `<svg class="chart" viewBox="0 0 860 200" role="img"
       aria-label="${L('세 가지 원인 후보','Three candidate causes')}">
     ${card(10, L('① 노광이 흔들렸나','1 Did lithography drift'), '#875D33',
-      [L('ADI부터 이미 이상하다', 'ADI is already off'),
-       L('웨이퍼 전체 / 반경 / 같은 자리', 'Whole wafer / radial / same site'),
-       L('되돌릴 수 있는 구간', 'Still reversible'),
-       L('→ dose·PEB·레티클', '→ dose, PEB, reticle')])}
+      [L('ADI 단계에서 이미 이탈', 'Already off at ADI'),
+       L('지문: Wafer mean / 반경 / 동일 site', 'Fingerprint: mean / radial / same site'),
+       L('Rework 가능', 'Rework possible'),
+       L('조치: Dose · PEB · Reticle', 'Action: dose, PEB, reticle')])}
     ${card(295, L('② 식각이 흔들렸나','2 Did etch drift'), '#8C3D6B',
-      [L('ADI는 정상, ΔCD만 이동', 'ADI clean, only Delta-CD moved'),
-       L('특정 챔버에만 몰린다', 'Concentrated on one chamber'),
-       L('되돌릴 수 없다', 'Not reversible'),
-       L('→ 챔버 상태·PM 주기', '→ chamber condition, PM cycle')])}
+      [L('ADI 정상 · ΔCD만 이탈', 'ADI clean, Delta-CD off'),
+       L('지문: 특정 Chamber 편중', 'Fingerprint: one-chamber commonality'),
+       L('Rework 불가', 'No rework'),
+       L('조치: Chamber 격리 · PM 점검', 'Action: isolate chamber, review PM')])}
     ${card(580, L('③ 계측이 흔들렸나','3 Did metrology drift'), '#2F6E74',
-      [L('ΔCD는 이동했지만', 'Delta-CD moved, but'),
-       L('챔버와 무관 · 특정 측정기에서만', 'chamber-independent, tool-specific'),
-       L('모니터 웨이퍼도 같이 이동', 'the monitor wafer moved too'),
-       L('→ 공정은 정상이다', '→ the process itself is fine')])}
+      [L('ΔCD 이탈 · Chamber 무관', 'Delta-CD off, chamber-independent'),
+       L('특정 CD-SEM 측정 로트에만 발생', 'Confined to one CD-SEM'),
+       L('Monitor wafer 동반 이동 · TMU 초과', 'Monitor wafer drifts too · TMU over budget'),
+       L('조치: 공정 보류 · Tool 재캘리브레이션', 'Action: hold process, recalibrate tool')])}
   </svg>`;
 }
 
 function judgeFlow() {
   const ko = LANG === 'ko', L = (a, b) => ko ? a : b;
   const steps = [
-    [L('이상 감지','Excursion'), L('관리 한계를 벗어났다','Outside control limit'), '#A8342B'],
-    [L('성분 분해','Decompose'), L('어떤 모양으로 어긋났나','What shape did it take'), '#634670'],
-    [L('계측부터 배제','Rule out metrology'), L('자가 흔들렸는지 먼저','Is the ruler steady first'), '#2F6E74'],
-    [L('챔버 비교','Compare chambers'), L('한 챔버에만 몰리나','Confined to one chamber'), '#8C3D6B'],
-    [L('검증 게이트','Verification gate'), L('요구 조건을 코드가 재확인','Code re-checks every condition'), '#1F0D1E'],
+    [L('Excursion 감지','Excursion'), L('관리 한계 이탈 (±3σ)','Outside ±3σ control limit'), '#A8342B'],
+    [L('성분 분해','Decompose'), L('좌표계별 지문 분리','Separate by coordinate system'), '#634670'],
+    [L('Metrology 배제','Rule out metrology'), L('Monitor wafer · TMU 확인','Check monitor wafer and TMU'), '#2F6E74'],
+    [L('Chamber 비교','Compare chambers'), L('Commonality 확인','Chamber commonality'), '#8C3D6B'],
+    [L('Verification Gate','Verification gate'), L('요구 조건 코드 재검증','Required conditions re-checked in code'), '#1F0D1E'],
   ];
   let g = '', x = 10;
   steps.forEach((st, i) => {
@@ -910,7 +927,7 @@ function judgeFlow() {
       aria-label="${L('판정 순서','Disposition order')}">${g}
     <rect x="352" y="104" width="300" height="30" rx="8" fill="#EDF3EE" stroke="#4A7052" stroke-width="1.2"/>
     <text x="502" y="124" text-anchor="middle" font-size="11.5" fill="#4A7052" font-weight="600">
-      ${L('조건을 못 채우면 원인을 지목하지 않고 보류','If a condition fails, no cause is named — it is withheld')}</text>
+      ${L('조건 미충족 시 원인 미지목 · 판정 보류','Condition unmet → no cause named · withheld')}</text>
   </svg>`;
 }
 
@@ -929,27 +946,140 @@ function renderFlow() {
     }).join('') + '</tbody>';
 }
 
+
+/* ── 개요(홈) 화면 ─────────────────────────────────────────────────
+   "이게 무슨 Agent인가"를 개조식으로 먼저 답한다. */
+function perfStats() {
+  /* 기권을 허용하는 판정기의 표준 지표 — Coverage와 Selective Accuracy.
+     El-Yaniv & Wiener(2010)의 risk–coverage 틀을 그대로 쓴다. */
+  const c = VAL?.confusion;
+  if (!c) return null;
+  const rows = Object.keys(c);
+  let total = 0, abstain = 0, exact = 0, falseAlarm = 0, normalTotal = 0, critical = 0;
+  rows.forEach(r => Object.entries(c[r]).forEach(([pred, n]) => {
+    total += n;
+    if (pred === '??') abstain += n;
+    else if (pred === r) exact += n;
+    if (r === 'S0') { normalTotal += n; if (pred !== 'S0') falseAlarm += n; }
+    if (r === 'S5' && pred === 'S4') critical += n;     /* 계측 drift → Etch 오귀속 */
+  }));
+  const decided = total - abstain;
+  return {total, abstain, decided, exact, falseAlarm, normalTotal, critical,
+          coverage: decided / total * 100,
+          selAcc: decided ? exact / decided * 100 : 0};
+}
+
+function renderHome() {
+  const ko = LANG === 'ko', L = (a, b) => ko ? a : b;
+  const P = perfStats();
+
+  $('#heroBullets').innerHTML = [
+    L('<b>대상</b> · ADI–AEI CD 계측 데이터 (합성 320 Lot · 8주 · 4 Chamber · CD-SEM 2대)',
+      '<b>Input</b> · ADI–AEI CD metrology (320 synthetic lots · 8 weeks · 4 chambers · 2 CD-SEMs)'),
+    L('<b>출력</b> · 원인 모듈 귀속 — Litho / Etch / <b>Metrology</b> · 조치 권고',
+      '<b>Output</b> · module attribution — Litho / Etch / <b>Metrology</b> · recommended action'),
+    L('<b>차별점</b> · 계측 장비 자체를 원인 후보에 포함 · TMU 예산 초과 시 공정 귀속 차단',
+      '<b>Differentiator</b> · the measuring tool is a suspect too · process attribution blocked when TMU exceeds budget'),
+    L('<b>원칙</b> · 수치는 도구만 산출 · 최종 판정은 결정론적 Verification Gate',
+      '<b>Principle</b> · tools produce every number · a deterministic gate makes the call'),
+  ].map(x => `<li>${x}</li>`).join('');
+
+  $('#homeKpi').innerHTML = [
+    [P ? P.total : DATA.lots.length, L('평가 Lot', 'Lots evaluated')],
+    [P ? P.coverage.toFixed(1) + '%' : '—', L('Coverage (판정 수행률)', 'Coverage')],
+    [P ? P.selAcc.toFixed(1) + '%' : '—', L('Selective Accuracy', 'Selective accuracy')],
+    [P ? P.critical : 0, L('계측→Etch 오귀속', 'Metrology→Etch misattribution')],
+  ].map(([v, k]) => `<div><b>${v}</b><small>${esc(k)}</small></div>`).join('');
+
+  $('#probList').innerHTML = [
+    L('CD Excursion 발생 시 Litho·Etch 모듈이 각자 데이터로 원인 주장 → 합의까지 시간 소요',
+      'On a CD excursion, litho and etch each argue from their own data — agreement takes time'),
+    L('ADI 시점 경과 시 Rework window 종료 → Hold / Scrap 손실 확정',
+      'Past ADI the rework window closes — the loss is locked in'),
+    L('계측값을 참으로 전제 → 측정기 Drift를 공정 이상으로 오판 시 정상 Chamber Recipe 변경 위험',
+      'Metrology is assumed true — tool drift read as a process fault means touching a healthy chamber'),
+  ].map(x => `<li>${x}</li>`).join('');
+
+  $('#apprList').innerHTML = [
+    L('CD 잔차를 좌표계별 성분으로 분해 — Wafer mean / Radial / Slit / Reticle',
+      'Decompose the CD residual by coordinate system — wafer mean / radial / slit / reticle'),
+    L('ΔCD 이탈 시 Metrology 우선 배제 — Monitor wafer · TMU 20% 예산',
+      'On a Delta-CD excursion, rule out metrology first — monitor wafer and the 20% TMU budget'),
+    L('Verification Gate로 요구 조건 재검증 — 미충족 시 원인 미지목',
+      'A verification gate re-checks required conditions — unmet means no cause is named'),
+    L('판정 보류를 실패가 아닌 정상 출력으로 설계', 'Withholding is a designed output, not a failure'),
+  ].map(x => `<li>${x}</li>`).join('');
+
+  $('#guideGrid').innerHTML = [
+    ['flow', L('공정 흐름', 'Process flow'), L('Coat부터 AEI까지 · 단계별 변동 인자', 'Coat to AEI · drift factors by step')],
+    ['lots', L('Lot Disposition', 'Lot disposition'), L('320 Lot 판정 결과 · 근거 · 조사 경로', '320 dispositions · evidence · trace')],
+    ['trends', L('추이와 감시', 'Trends'), L('CD 추이 · CD-SEM 안정성 · TMU 예산', 'CD trend · CD-SEM stability · TMU budget')],
+    ['valid', L('검증 결과', 'Validation'), L('블라인드 평가 · Coverage · 오귀속', 'Blind evaluation · coverage · misattribution')],
+  ].map(([v, tt, d]) => `<button class="gocard" data-go="${v}"><b>${esc(tt)}</b><span>${esc(d)}</span></button>`).join('');
+
+  $$('#v-home [data-go]').forEach(b => b.onclick = () => showView(b.dataset.go));
+}
+
 /* ── 검증 ─────────────────────────────────────────────────── */
 function renderValidation() {
+  const ko = LANG === 'ko', L = (a, b) => ko ? a : b;
   const c = VAL?.confusion || {};
   const name = {S0: shortLabel('NORMAL'), S1: shortLabel('PHOTO_DOSE'), S2: shortLabel('PHOTO_TRACK_RADIAL'),
     S3: shortLabel('RETICLE_CD_ERROR'), S4: shortLabel('ETCH_CHAMBER'), S5: shortLabel('METROLOGY_TOOL_DRIFT'),
     '??': shortLabel('INDETERMINATE')};
   const preds = [...new Set(Object.values(c).flatMap(Object.keys))].sort();
   $('#confTable').innerHTML = Object.keys(c).length
-    ? `<thead><tr><th>${LANG === 'ko' ? '주입한 이상' : 'Injected'}</th>${preds.map(p => `<th class="num">${esc(name[p] || p)}</th>`).join('')}</tr></thead>
+    ? `<thead><tr><th>${L('주입한 이상', 'Injected')}</th>${preds.map(p => `<th class="num">${esc(name[p] || p)}</th>`).join('')}</tr></thead>
        <tbody>${Object.keys(c).sort().map(r => `<tr><td>${esc(name[r] || r)}</td>${preds.map(p => {
          const v = c[r][p] || 0;
          return `<td class="num" style="${r === p ? 'font-weight:700' : v ? 'color:#A8342B' : 'color:#C3BDC6'}">${v}</td>`;
        }).join('')}</tr>`).join('')}</tbody>`
-    : `<tbody><tr><td class="sub">${LANG === 'ko' ? '검증 데이터를 불러오지 못했습니다.' : 'Validation data unavailable.'}</td></tr></tbody>`;
-  const sm = VAL?.summary || {};
+    : `<tbody><tr><td class="sub">${L('검증 데이터를 불러오지 못했습니다.', 'Validation data unavailable.')}</td></tr></tbody>`;
+
+  const P = perfStats();
   $('#valKpi').innerHTML = [
-    [sm.evaluated_lots ?? M.lots, t('k.lots')],
-    [sm.exact_matches ?? '—', t('k.exact')],
-    [sm.abstentions ?? DATA.lots.filter(l => l.verdict === 'INDETERMINATE').length, t('k.hold')],
-    ['0', t('k.mis')],
+    [P ? P.total : '—', L('평가 Lot', 'Lots evaluated')],
+    [P ? P.coverage.toFixed(1) + '%' : '—', L('Coverage', 'Coverage')],
+    [P ? P.selAcc.toFixed(1) + '%' : '—', L('Selective Accuracy', 'Selective accuracy')],
+    [P ? P.critical : '—', L('계측→Etch 오귀속', 'Metrology→Etch misattribution')],
   ].map(([v, k]) => `<div><b>${v}</b><small>${esc(k)}</small></div>`).join('');
+
+  /* 지표마다 정의와 분모를 함께 적는다. 분모를 모르면 숫자를 읽을 수 없다. */
+  const defs = P ? [
+    [L('Coverage (판정 수행률)', 'Coverage'), `${P.decided} / ${P.total} = ${P.coverage.toFixed(1)}%`,
+     L('판정을 내린 Lot ÷ 전체 Lot · 보류 제외', 'Lots given a verdict ÷ all lots; abstentions excluded')],
+    [L('Selective Accuracy', 'Selective accuracy'), `${P.exact} / ${P.decided} = ${P.selAcc.toFixed(1)}%`,
+     L('정답 일치 ÷ 판정을 내린 Lot · 보류는 분모에서 제외',
+       'Exact matches ÷ lots given a verdict; abstentions excluded from the denominator')],
+    [L('판정 보류 (Abstention)', 'Abstentions'), `${P.abstain} / ${P.total}`,
+     L('근거 부족으로 원인 미지목 · Gate 미충족', 'No cause named for want of evidence — gate unmet')],
+    [L('오경보 (False alarm)', 'False alarm'), `${P.falseAlarm} / ${P.normalTotal}`,
+     L('정상 Lot을 이상으로 판정한 건수', 'Normal lots called abnormal')],
+    [L('계측→Etch 오귀속', 'Metrology→Etch misattribution'), `${P.critical}`,
+     L('대표 KPI · 정상 Chamber Recipe 변경으로 이어지는 최악 오류',
+       'Headline KPI — the error that leads to touching a healthy chamber')],
+  ] : [];
+  $('#perfTable').innerHTML = defs.length
+    ? `<thead><tr><th>${L('지표', 'Metric')}</th><th class="num">${L('값', 'Value')}</th>
+        <th>${L('정의 · 분모', 'Definition and denominator')}</th></tr></thead>
+       <tbody>${defs.map(d => `<tr><td><b>${esc(d[0])}</b></td><td class="num mono">${esc(d[1])}</td>
+        <td class="sub">${esc(d[2])}</td></tr>`).join('')}</tbody>`
+    : `<tbody><tr><td class="sub">${L('검증 데이터를 불러오지 못했습니다.', 'Validation data unavailable.')}</td></tr></tbody>`;
+
+  /* 유형별 검출률 — 분모를 '판정 가능 구간'으로 명시한다. */
+  const decidable = {S4: L('AEI 측정 Lot', 'AEI-measured lots'), S5: L('AEI 측정 Lot', 'AEI-measured lots')};
+  $('#recallTable').innerHTML = Object.keys(c).length
+    ? `<thead><tr><th>${L('주입한 이상', 'Injected')}</th><th class="num">${L('검출', 'Detected')}</th>
+        <th class="num">${L('전체', 'Total')}</th><th class="num">${L('보류', 'Withheld')}</th>
+        <th>${L('분모 기준', 'Denominator')}</th></tr></thead><tbody>` +
+      Object.keys(c).filter(r => r !== 'S0').sort().map(r => {
+        const row = c[r], tot = Object.values(row).reduce((a, b) => a + b, 0);
+        const hit = row[r] || 0, ab = row['??'] || 0;
+        return `<tr><td>${esc(name[r] || r)}</td><td class="num"><b>${hit}</b></td>
+          <td class="num">${tot}</td><td class="num">${ab || '—'}</td>
+          <td class="sub">${esc(decidable[r] || L('전체 Lot', 'All lots'))}</td></tr>`;
+      }).join('') + '</tbody>'
+    : `<tbody><tr><td class="sub">${L('검증 데이터를 불러오지 못했습니다.', 'Validation data unavailable.')}</td></tr></tbody>`;
 }
 
 /* ── 용어 사전 ────────────────────────────────────────────── */
@@ -1002,13 +1132,14 @@ function renderRef() {
 }
 
 /* ── 화면 전환 · 언어 ─────────────────────────────────────── */
-const VIEWS = ['flow', 'lots', 'trends', 'valid', 'terms', 'ref'];
+const VIEWS = ['home', 'flow', 'lots', 'trends', 'valid', 'terms', 'ref'];
 let drawn = {};
 function showView(v) {
   S.view = v;
   VIEWS.forEach(k => $('#v-' + k).hidden = k !== v);
   $$('#nav button').forEach(b => b.dataset.v === v
     ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
+  if (v === 'home' && !drawn.hm) { renderHome(); drawn.hm = 1; }
   if (v === 'flow' && !drawn.fl) { renderFlow(); drawn.fl = 1; }
   if (v === 'trends' && !drawn.tr) { drawTrend(); drawMonitor(); drawTmu(); drawChambers(); drawn.tr = 1; }
   if (v === 'valid' && !drawn.va) { renderValidation(); drawn.va = 1; }
@@ -1018,7 +1149,11 @@ function showView(v) {
 }
 function applyLang() {
   document.documentElement.lang = LANG;
-  $$('[data-t]').forEach(el => el.textContent = t(el.dataset.t));
+  const HTML_OK = new Set(['h.title']);   /* 줄바꿈 마크업이 필요한 항목만 허용 */
+  $$('[data-t]').forEach(el => {
+    const v = t(el.dataset.t);
+    if (HTML_OK.has(el.dataset.t)) el.innerHTML = v; else el.textContent = v;
+  });
   $$('[data-ph]').forEach(el => el.placeholder = t(el.dataset.ph));
   $$('.lang button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === LANG)));
   fillSelects(); renderList(); drawn = {};
@@ -1029,6 +1164,7 @@ function applyLang() {
 /* ── 이벤트 ───────────────────────────────────────────────── */
 $('#nav').onclick = e => { const b = e.target.closest('button'); if (b) showView(b.dataset.v); };
 $('#goLots').onclick = () => showView('lots');
+$('#homeBtn').onclick = () => { if (S.lot) closeLot(); showView('home'); };
 $$('.lang button').forEach(b => b.onclick = () => {
   LANG = b.dataset.lang; try { localStorage.setItem('cdlang', LANG); } catch (e) {} applyLang();
 });
@@ -1062,5 +1198,5 @@ addEventListener('popstate', syncHash);
 
 /* ── 시작 ─────────────────────────────────────────────────── */
 applyLang();
-showView(location.hash.includes('lot=') ? 'lots' : 'flow');
+showView(location.hash.includes('lot=') ? 'lots' : 'home');
 syncHash();
