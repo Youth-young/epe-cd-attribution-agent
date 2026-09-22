@@ -47,6 +47,35 @@ ul.bullets li b{color:var(--ink)}
   background:var(--panel);cursor:pointer}
 .gocard:hover{border-color:var(--brand);background:var(--sunk)}
 .gocard b{display:block;font-size:14.5px;margin-bottom:5px}
+.ref{display:grid;grid-template-columns:44px 1fr;gap:12px;padding:18px 0;
+  border-bottom:1px solid var(--line2)}
+.ref:last-child{border-bottom:0}
+.refn{font-size:13px;color:var(--brand);font-weight:600;padding-top:2px}
+.reftag{display:inline-block;font-size:11px;color:var(--muted);border:1px solid var(--line);
+  border-radius:5px;padding:2px 8px;margin-bottom:8px}
+.refuse{font-size:14px;color:var(--ink);margin-bottom:6px}
+.refcite{font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:6px}
+.reflink{font-size:11.5px;color:var(--brand);word-break:break-all}
+.dhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  border-bottom:1px solid var(--line2);padding-bottom:16px;margin-bottom:4px}
+.dhead h1{font-size:clamp(24px,3.4vw,32px);font-family:"IBM Plex Mono",monospace;letter-spacing:-.02em}
+.pill{display:inline-block;padding:5px 15px;border-radius:999px;font-size:13px;font-weight:600}
+.p-ok{background:var(--okbg);color:var(--ok)}
+.p-review{background:#F1ECF3;color:var(--hold)}
+.p-action{background:var(--badbg);color:var(--bad)}
+.p-verify{background:var(--sunk);color:var(--muted);border:1px solid var(--line);font-weight:500;
+  border-bottom:1.5px dotted var(--brand);cursor:help}
+.asof{font-size:12px;color:var(--muted)}
+.decision .dsec{padding:16px 0;border-top:1px solid var(--line2)}
+.decision .dsec:first-of-type{border-top:0}
+.decision .dsec h3{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;margin-bottom:8px}
+.decision .dsec p{font-size:15.5px;color:var(--ink)}
+td .pl{font-weight:500}
+td .tech{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+td.src{font-size:12px;color:var(--muted);white-space:nowrap}
+.s-near{background:#F6F1E9;color:var(--photo)}
+.bad{color:var(--bad)}
 .gocard span{font-size:12.5px;color:var(--muted);line-height:1.55}
 .jump{display:flex;gap:8px;flex-wrap:wrap}
 .gbtn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
@@ -292,6 +321,7 @@ footer{border-top:1px solid var(--line);padding:22px 0 50px;color:var(--muted);f
       <button data-v="valid" data-t="nav.valid">검증 결과</button>
       <button data-v="terms" data-t="nav.terms">용어 사전</button>
       <button data-v="ref" data-t="nav.ref">기준값</button>
+      <button data-v="refs" data-t="nav.refs">출처</button>
     </nav>
   </div>
 </header>
@@ -449,6 +479,15 @@ footer{border-top:1px solid var(--line);padding:22px 0 50px;color:var(--muted);f
   <div class="panel">
     <header><h2 data-t="rf.rules">판정 규칙</h2><span class="sub" data-t="rf.rulessub">결정론적 규칙 KB</span></header>
     <div id="ruleList"></div>
+  </div>
+</section>
+
+<!-- 출처 -->
+<section class="view" id="v-refs" hidden>
+  <div class="panel">
+    <header><h2 data-t="rs.title">참고문헌</h2>
+      <span class="sub" data-t="rs.sub">학회 논문 · 특허 원문 · 장비사 공식 자료 · 산업 표준만 인용</span></header>
+    <div id="refList"></div>
   </div>
 </section>
 
