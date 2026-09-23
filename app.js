@@ -67,6 +67,8 @@ const TERMS = {
   dosemapper:{k:'Dose Mapper Calibration',e:'dose sensor calibration',d:'에너지 센서가 읽는 값과 웨이퍼 면에 실제 도달하는 광량 사이의 변환 관계를 다시 맞추는 작업입니다. 광원(Laser Source)을 교체하면 파장 대역폭(E95)과 pulse energy 특성이 달라지므로 같은 Setting에서도 실효 dose가 달라질 수 있습니다. 그래서 Source 교체는 Calibration 재수행을 필수 절차로 Change Control Checklist에 넣습니다.'},
   changepoint:{k:'변경점 · PM/Inform 이력',e:'change point / maintenance log',d:'설비에 가해진 모든 변경의 기록입니다. 부품 교체, PM, Recipe 변경, Calibration 수행 이력이 시점과 함께 남습니다. 이상 분석의 출발점은 항상 이상이 시작된 시점과 일치하는 변경점이 있는가이며, 시점이 어긋나면 그 항목은 원인 후보에서 배제합니다.'},
   ocap:{k:'SPC 관리도 · OCAP',e:'Statistical Process Control / Out of Control Action Plan',d:'지표를 관리 한계와 함께 시계열로 관리하고(SPC 관리도), 한계를 벗어났을 때 누가 무엇을 하는지 사전에 정해두는 절차(OCAP)입니다. Setting값만 감시하면 Setting과 실측의 괴리를 놓치므로, Sensor 실측값 자체에 관리도를 거는 것이 재발 방지의 핵심입니다.'},
+  gate_ok:{k:'검증 완료',e:'Verified',d:'이 판정이 요구하는 규칙 기반 검증 항목을 코드가 다시 확인했고 모두 통과했습니다. 게이트는 LLM이 아니라 결정론적 코드가 실행합니다.'},
+  gate_hold:{k:'근거 부족',e:'Needs evidence',d:'요구 조건 중 하나 이상을 충족하지 못해 원인을 지목하지 않고 보류했습니다. 판정 실패가 아니라 근거 부족을 그대로 보고한 것입니다.'},
   tmu:{k:'TMU (계측 불확도)',e:'Total Measurement Uncertainty',d:'계측 장비가 만들어내는 오차의 총량을 나타내는 업계 표준 지표입니다. 오버레이에서는 TIS-mean, TIS-3σ, dynamic precision, tool-to-tool match 네 항의 제곱합 제곱근으로 정의합니다. 이 값이 공정 허용 예산의 20%를 넘으면 측정값으로 공정을 판단하기 어려워집니다. 공정이 정상인지 아닌지가 측정 오차에 묻혀버리기 때문입니다.',
     s:'<svg viewBox="0 0 200 110"><rect x="18" y="30" width="150" height="30" fill="#f2f5f6" stroke="#c8d2d8"/><rect x="18" y="30" width="30" height="30" fill="#cfe3e4" stroke="#0b6a72"/><text x="20" y="24" font-size="9" fill="#0b6a72">계측 몫 (TMU)</text><text x="80" y="50" font-size="9" fill="#57676f">공정에 남는 몫</text><path d="M18 70h150" stroke="#33424c" stroke-width="1.4"/><path d="M18 66v8M168 66v8" stroke="#33424c" stroke-width="1.2"/><text x="52" y="86" font-size="9" fill="#33424c">공정 허용 예산 T</text><text x="18" y="104" font-size="9" fill="#0b6a72">계측 몫은 20% 이내여야 한다</text></svg>'},
   precision:{k:'Dynamic precision',e:'dynamic precision',d:'같은 위치를 여러 번 반복 측정했을 때 값이 얼마나 흩어지는지입니다. 보통 3σ로 표기합니다. 웨이퍼를 내렸다 다시 올리지 않고 연속 측정하므로 순수하게 장비의 반복성만 봅니다. 이 프로젝트는 모니터 웨이퍼의 각 site를 3회씩 반복 측정해 산출합니다.',
@@ -179,6 +181,9 @@ const T = {
   'nav.valid':  ['검증 결과', 'Validation'],
   'nav.terms':  ['용어 사전', 'Glossary'],
   'nav.ref':    ['기준값', 'Reference'],
+  'nav.refs':   ['출처', 'Sources'],
+  'rs.title':   ['참고문헌', 'References'],
+  'rs.sub':     ['학회 논문 · 특허 원문 · 장비사 공식 자료 · 산업 표준만 인용', 'Peer-reviewed papers, patents, vendor documents and industry standards only'],
   'list.title': ['Lot Disposition', 'Lot disposition'],
   'list.reset': ['초기화', 'Reset'],
   'list.abn':   ['조치 검토 필요', 'Needs review'],
@@ -192,8 +197,21 @@ const T = {
   prev:         ['이전 로트', 'Previous'],
   next:         ['다음 로트', 'Next'],
   'd.act':      ['조치', 'Recommended action'],
+  'd.changed':  ['무엇이 이탈했나', 'What moved'],
+  'd.cause':    ['원인 귀속', 'Attributed cause'],
+  'd.nochange': ['관리 한계 이탈 지표 없음', 'No indicator outside its control limit'],
+  'd.evbtn':    ['근거 보기', 'View evidence'],
+  'd.tracebtn': ['조사 경로 보기', 'View trace'],
+  'd.asof':     ['데이터 기준', 'Data as of'],
+  st_ok:        ['정상', 'Normal'],
+  st_review:    ['검토 필요', 'Review'],
+  st_action:    ['조치 필요', 'Action required'],
+  verified:     ['검증 완료', 'Verified'],
+  needev:       ['근거 부족', 'Needs evidence'],
   'd.out':      ['한계를 벗어난 지표', 'Out-of-limit components'],
   'd.clear':    ['감시 중인 지표 {n}개 모두 관리 한계 이내', 'All {n} monitored components within control limits'],
+  'd.whynormal':['감시 지표 {n}개 확인 · 전 항목 관리 한계 이내 · 귀속 트리거 없음',
+                 '{n} indicators checked · all within limit · no attribution trigger'],
   'd.all':      ['전체 측정 지표', 'All measured evidence'],
   'd.allsub':   ['관리 한계는 기준선 10일 데이터의 평균 ± 3σ로 엔진이 스스로 산출합니다', 'Control limits are derived by the engine from the 10-day baseline (mean ± 3σ)'],
   'd.gate':     ['검증 게이트', 'Verification gate'],
@@ -212,6 +230,10 @@ const T = {
   'd.wide':     ['목표보다 넓음', 'wider than target'],
   'd.ctx':      ['공정 경로', 'Process path'],
   'th.metric':  ['지표', 'Metric'],
+  'th.plain':   ['지표', 'Indicator'],
+  'th.margin':  ['한계까지', 'Margin'],
+  'th.source':  ['출처', 'Source'],
+  near:         ['한계 근접', 'Near limit'],
   'th.value':   ['측정값', 'Measured'],
   'th.limit':   ['관리 한계', 'Limit'],
   'th.state':   ['상태', 'State'],
@@ -276,6 +298,12 @@ const COLOR = {NORMAL:'#8B8593', PHOTO_DOSE:'#875D33', PHOTO_TRACK_RADIAL:'#875D
   RETICLE_CD_ERROR:'#875D33', ETCH_CHAMBER:'#8C3D6B', METROLOGY_TOOL_DRIFT:'#2F6E74',
   INDETERMINATE:'#634670'};
 const BCLASS = {Normal:'b-ok', Watch:'b-watch', High:'b-bad'};
+/* 상단 상태는 3단계로만 말한다. 세부 verdict는 아래에서 본다. */
+function status3(l) {
+  if (l.verdict === 'NORMAL') return {k: 'st_ok', cls: 'p-ok'};
+  if (l.verdict === 'INDETERMINATE' || l.risk === 'Watch') return {k: 'st_review', cls: 'p-review'};
+  return {k: 'st_action', cls: 'p-action'};
+}
 
 /* 지표명 — 장비 접두사는 분리해서 보존 */
 const EV_KO = [
@@ -289,6 +317,7 @@ const EV_KO = [
   [/monitor wafer drift$/, 'monitor wafer 이동량', 'MONITOR'],
   [/chamber deviation$/, '챔버 편중', 'CHAMBER'],
   [/^Cross-section taper shift \(supporting\)$/, '단면 taper 변화 (보조)', 'TAPER'],
+  [/^Delta-CD$/, 'ΔCD (etch bias)', 'DELTA_NA'],
 ];
 function evLabel(k) {
   if (LANG === 'en') return k;
@@ -303,6 +332,58 @@ function evTerm(k) {
   return null;
 }
 /* 지표 → 용어 사전 키 */
+/* 전문 용어는 2순위로 내리고, 사람이 읽는 이름을 1순위로 쓴다 */
+const PLAIN = {
+  ADI:            ['웨이퍼 평균 CD 이동', 'Wafer mean CD shift'],
+  RADIAL:         ['중심–가장자리 CD 편차', 'Center-to-edge CD spread'],
+  RETICLE_REPEAT: ['동일 site 반복 오차', 'Same-site repeating error'],
+  SENSOR:         ['Dose 설정 vs 실조사량', 'Dose setting vs delivered'],
+  FOCUS:          ['Focus 설정 vs 실측', 'Focus setting vs sensor'],
+  DELTA_CD:       ['Etch bias (AEI − ADI)', 'Etch bias (AEI − ADI)'],
+  DELTA_NA:       ['Etch bias (AEI − ADI)', 'Etch bias (AEI − ADI)'],
+  TMU:            ['계측 불확도 예산 소비', 'Metrology uncertainty budget used'],
+  MONITOR:        ['Monitor wafer drift', 'Monitor wafer drift'],
+  CHAMBER:        ['Chamber 편중', 'Chamber commonality'],
+  TAPER:          ['단면 Taper 변화 (참고)', 'Cross-section taper (reference)'],
+};
+/* 각 근거의 출처 데이터. 현직자가 가장 먼저 확인하는 항목이다. */
+const SOURCE = {
+  ADI:            ['CD-SEM · ADI', 'CD-SEM · ADI'],
+  RADIAL:         ['CD-SEM · ADI', 'CD-SEM · ADI'],
+  RETICLE_REPEAT: ['CD-SEM · ADI', 'CD-SEM · ADI'],
+  SENSOR:         ['Scanner 센서 로그', 'Scanner sensor log'],
+  FOCUS:          ['Scanner 센서 로그', 'Scanner sensor log'],
+  DELTA_CD:       ['CD-SEM · ADI+AEI', 'CD-SEM · ADI+AEI'],
+  DELTA_NA:       ['CD-SEM · ADI+AEI', 'CD-SEM · ADI+AEI'],
+  TMU:            ['Monitor wafer', 'Monitor wafer'],
+  MONITOR:        ['Monitor wafer', 'Monitor wafer'],
+  CHAMBER:        ['설비 이력 · MES', 'Equipment log · MES'],
+  TAPER:          ['X-SEM 단면', 'X-SEM cross-section'],
+};
+const plainLabel = k => { const x = PLAIN[evTerm(k)]; return x ? x[LANG === 'ko' ? 0 : 1] : evLabel(k); };
+const sourceLabel = k => { const x = SOURCE[evTerm(k)]; return x ? x[LANG === 'ko' ? 0 : 1] : '—'; };
+
+/* PASS 여부가 아니라 '한계까지 얼마 남았는가'가 양산에서 더 중요하다.
+   지표마다 표기 형태가 달라, 한계와 실제로 비교되는 수치만 골라 뽑는다. */
+function margin(e) {
+  const term = evTerm(e.k), v = String(e.v), lim = String(e.lim);
+  if (!term || /reference|^-$/.test(lim) || /N\/A|not measured/i.test(v)) return null;
+  const nums = str => (str.match(/-?\d+(?:\.\d+)?/g) || []).map(Number);
+  let val, cap;
+  if (term === 'SENSOR')      { const m = v.match(/\(([+-]?\d+(?:\.\d+)?)%\)/); val = m && +m[1]; cap = nums(lim)[0]; }
+  else if (term === 'TMU')    { const m = v.match(/=\s*(\d+(?:\.\d+)?)%/);        val = m && +m[1]; cap = nums(lim)[0]; }
+  else if (term === 'FOCUS')  { const m = v.match(/→\s*([+-]?\d+(?:\.\d+)?)/);    val = m && +m[1]; cap = nums(lim)[0]; }
+  else                        { val = nums(v)[0]; cap = Math.abs(nums(lim)[0]); }
+  if (val == null || cap == null || isNaN(val) || isNaN(cap) || !cap) return null;
+  const left = cap - Math.abs(val);
+  return {left, cap, near: left >= 0 && left <= cap * 0.2};
+}
+function rowState(e) {
+  if (e.hit) return {cls: 's-bad', text: t('out')};
+  const m = margin(e);
+  return m && m.near ? {cls: 's-near', text: t('near')} : {cls: 's-ok', text: t('within')};
+}
+
 const EV_GLOSS = {ADI:'adi', RADIAL:'peb', RETICLE_REPEAT:'reticle', SENSOR:'sensor', FOCUS:'dose',
   DELTA_CD:'delta', TMU:'tmu', MONITOR:'golden', CHAMBER:'chamber', TAPER:'xsem'};
 
@@ -488,10 +569,15 @@ function openLot(id, push = true) {
              `RF ${l.rf}h`);
 
   const evRows = (l.ev || []).map(e => {
-    const tm = EV_GLOSS[evTerm(e.k)];
-    return `<tr class="${e.hit ? 'alert' : ''}"><td>${esc(evLabel(e.k))}${infoBtn(tm)}</td>
+    const tm = EV_GLOSS[evTerm(e.k)], m = margin(e), st = rowState(e);
+    return `<tr class="${e.hit ? 'alert' : ''}">
+      <td><span class="pl">${esc(plainLabel(e.k))}</span>${infoBtn(tm)}
+        <span class="tech mono">${esc(evLabel(e.k))}</span></td>
       <td class="num">${esc(aei(e.v))}</td><td class="num">${esc(e.lim)}</td>
-      <td><span class="state ${e.hit ? 's-bad' : 's-ok'}">${esc(e.hit ? t('out') : t('within'))}</span></td></tr>`;
+      <td class="num">${m ? (m.left >= 0 ? esc(m.left.toFixed(2))
+            : `<span class="bad">+${esc(Math.abs(m.left).toFixed(2))}</span>`) : '—'}</td>
+      <td class="src">${esc(sourceLabel(e.k))}</td>
+      <td><span class="state ${st.cls}">${esc(st.text)}</span></td></tr>`;
   }).join('');
 
   const gateRows = (l.gate || []).length
@@ -499,49 +585,58 @@ function openLot(id, push = true) {
         <td><span class="state ${x.ok ? 's-ok' : 's-bad'}">${esc(x.ok ? t('pass') : t('fail'))}</span></td></tr>`).join('')
     : `<tr><td colspan="2" class="sub">${esc(t('d.gatenone'))}</td></tr>`;
 
+  const st = status3(l);
+  const changed = outs.length ? outs.map(e => plainLabel(e.k)).join(' · ') : t('d.nochange');
+
   $('#detail').innerHTML = `
 <div class="crumb">
-  <button class="gbtn" id="bBack">${esc(t('back'))}</button><span class="spacer"></span>
+  <button class="gbtn" id="bBack">${esc(t('back'))}</button>
+  <span class="sub" aria-hidden="true">/</span><span class="sub mono">${l.lot}</span>
+  <span class="spacer"></span>
   <button class="gbtn" id="bPrev">${esc(t('prev'))}</button>
   <button class="gbtn" id="bNext">${esc(t('next'))}</button>
 </div>
 
-<div class="panel">
-  <div class="lothead">
-    <div style="flex:1;min-width:240px">
-      <h1>${l.lot}</h1>
-      <div class="headbadges">
-        <span class="badge ${BCLASS[l.risk] || 'b-ok'}">${esc(verdictLabel(l))}</span>
-        <span class="badge ${g ? 'b-gate' : 'b-hold'}">${esc(g ? t('gatepass') : t('gatehold'))}</span>
-        <span class="badge b-gate">${esc(l.date)}</span>
-      </div>
-      <div class="ctxchips">${chips.map(c => `<span class="ctxchip">${esc(c)}</span>`).join('')}</div>
-    </div>
+<div class="panel decision">
+  <div class="dhead">
+    <h1>${l.lot}</h1>
+    <span class="pill ${st.cls}">${esc(t(st.k))}</span>
+    <span class="pill p-verify term" data-t="${g ? 'gate_ok' : 'gate_hold'}" tabindex="0"
+          role="button">${esc(g ? t('verified') : t('needev'))}</span>
+    <span class="spacer"></span>
+    <span class="asof">${esc(t('d.asof'))} <span class="mono">${esc(l.date)}</span></span>
   </div>
-
-  <div class="verdictbig" style="border-left-color:${COLOR[l.verdict]}">${esc(verdictLabel(l))}</div>
-  <p class="cause">${esc(causeText(l))}</p>
-  <div class="actionhead">${esc(t('d.act'))}</div>
-  ${A.steps.length
-    ? `${A.lead ? `<p class="cause" style="margin-bottom:12px">${esc(A.lead)}</p>` : ''}
-       <ol class="steps">${A.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>`
-    : `<p class="cause" style="margin:0">${esc(A.lead)}</p>`}
-  ${l.extra ? `<div class="actnote mono">${esc(l.extra)}</div>` : ''}
+  <div class="dsec"><h3>${esc(t('d.changed'))}</h3><p>${esc(changed)}</p></div>
+  <div class="dsec"><h3>${esc(t('d.cause'))}</h3>
+    <p><b style="color:${COLOR[l.verdict]}">${esc(verdictLabel(l))}</b>${
+      l.module && l.module !== '-' ? ' · ' + esc(LANG === 'ko' ? (MODULE_KO[l.module] || l.module) : l.module) : ''}</p></div>
+  <div class="dsec"><h3>${esc(t('d.act'))}</h3>
+    ${A.steps.length
+      ? `${A.lead ? `<p style="margin-bottom:10px">${esc(A.lead)}</p>` : ''}
+         <ol class="steps">${A.steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol>`
+      : `<p>${esc(A.lead)}</p>`}
+    ${l.extra ? `<div class="actnote mono">${esc(aei(l.extra))}</div>` : ''}</div>
+  <div class="jump">
+    <button class="gbtn" data-jump="evPanel">${esc(t('d.evbtn'))}</button>
+    <button class="gbtn" data-jump="tracePanel">${esc(t('d.tracebtn'))}</button>
+  </div>
+  <div class="ctxchips">${chips.map(c => `<span class="ctxchip">${esc(c)}</span>`).join('')}</div>
 </div>
 
-<div class="panel">
+<div class="panel" id="evPanel">
   <header><h2>${esc(t('d.out'))}</h2></header>
   ${outs.length
-    ? `<div class="outgrid">${outs.map(e => { const h = headline(e.v); return `<div class="outcard">
-        <div class="k">${esc(evLabel(e.k))}</div><div class="v">${esc(h.head)}</div>
-        <div class="l">${h.rest ? esc(h.rest) + ' · ' : ''}${esc(t('th.limit'))} ${esc(e.lim)}</div></div>`; }).join('')}</div>`
-    : `<div class="allclear">✓ ${esc(t('d.clear', {n: (l.ev || []).length}))}</div>`}
-</div>
+    ? `<div class="outgrid">${outs.map(e => { const h = headline(aei(e.v)); return `<div class="outcard">
+        <div class="k">${esc(plainLabel(e.k))}</div><div class="v">${esc(h.head)}</div>
+        <div class="l">${h.rest ? esc(h.rest) + ' · ' : ''}${esc(t('th.limit'))} ${esc(e.lim)}
+          · <span class="mono">${esc(evLabel(e.k))}</span></div></div>`; }).join('')}</div>`
+    : `<div class="allclear">✓ ${esc(t('d.whynormal', {n: (l.ev || []).length}))}</div>`}
 
-<div class="panel">
-  <header><h2>${esc(t('d.all'))}</h2><span class="sub">${esc(t('d.allsub'))}</span></header>
-  <div class="tw"><table><thead><tr><th>${esc(t('th.metric'))}</th><th class="num">${esc(t('th.value'))}</th>
-    <th class="num">${esc(t('th.limit'))}</th><th>${esc(t('th.state'))}</th></tr></thead>
+  <h3 style="margin-top:26px">${esc(t('d.all'))}</h3>
+  <p class="sub" style="margin:6px 0 14px">${esc(t('d.allsub'))}</p>
+  <div class="tw"><table><thead><tr><th>${esc(t('th.plain'))}</th><th class="num">${esc(t('th.value'))}</th>
+    <th class="num">${esc(t('th.limit'))}</th><th class="num">${esc(t('th.margin'))}</th>
+    <th>${esc(t('th.source'))}</th><th>${esc(t('th.state'))}</th></tr></thead>
     <tbody>${evRows}</tbody></table></div>
 </div>
 
@@ -551,7 +646,7 @@ function openLot(id, push = true) {
     <tbody>${gateRows}</tbody></table></div>
 </div>
 
-<div class="panel">
+<div class="panel" id="tracePanel">
   <header><h2>${esc(t('d.trace'))}</h2><span class="sub">${esc(t('d.tracesub'))}</span></header>
   <div class="tracehead"><span>${t('d.tracesum', {n: `<b>${inv?.tool_calls ?? '—'}</b>`,
     o: `<b>${outs.length}</b>`, g: `<b>${g ? t('pass') : t('fail')}</b>`})}</span></div>
@@ -571,6 +666,10 @@ function openLot(id, push = true) {
   </div>
 </div>`;
 
+  $$('#detail [data-jump]').forEach(b => b.onclick = () => {
+    const el = $('#' + b.dataset.jump);
+    if (el) el.scrollIntoView({behavior: 'smooth', block: 'start'});
+  });
   $('#bBack').onclick = closeLot;
   $('#bPrev').onclick = () => step(-1);
   $('#bNext').onclick = () => step(1);
@@ -1082,6 +1181,83 @@ function renderValidation() {
     : `<tbody><tr><td class="sub">${L('검증 데이터를 불러오지 못했습니다.', 'Validation data unavailable.')}</td></tr></tbody>`;
 }
 
+
+/* ── 참고문헌 ──────────────────────────────────────────────────────
+   학술지·학회 논문, 특허 원문(USPTO/Google Patents), 장비사 공식 자료,
+   산업 표준 문서만 싣는다. 블로그·위키·2차 요약 사이트는 제외한다. */
+const REFS = [
+  {id:1, tag:'TMU',
+   ko:'TMU 정의 — TIS-mean, TIS-3σ, dynamic precision, tool-to-tool match의 제곱합 제곱근',
+   en:'TMU definition — RSS of TIS-mean, TIS-3σ, dynamic precision and tool-to-tool match',
+   cite:'J. Shin, J. Yeo, Y.-S. Kang, W. Han, “The impact of total measurement uncertainty (TMU) on overlay error correction,” Proc. SPIE 7638, Metrology, Inspection, and Process Control for Microlithography XXIV, 76382F (2010).',
+   url:'https://doi.org/10.1117/12.845823', kind:'SPIE'},
+  {id:2, tag:'TMU',
+   ko:'TMU는 계측 장비 유발 오차의 표준 KPI — 정의 변형과 TIS 보정 후 평가 방법',
+   en:'TMU as the standard KPI for tool-induced error; post-TIS-management evaluation',
+   cite:'“Effective tool induced shift (eTIS) for determining the total measurement uncertainty (TMU) in overlay metrology,” Proc. SPIE 12496, 124963O (2023).',
+   url:'https://doi.org/10.1117/12.2670420', kind:'SPIE'},
+  {id:3, tag:'예산 기준',
+   ko:'계측 불확도 허용 기준 — P/T < 10% 허용, 10~30% 조건부 허용, > 30% 불가',
+   en:'Measurement-system acceptance — P/T < 10% acceptable, 10–30% conditional, > 30% unacceptable',
+   cite:'Automotive Industry Action Group (AIAG), Measurement Systems Analysis (MSA) Reference Manual, 4th ed.',
+   url:'', kind:'표준 문서'},
+  {id:4, tag:'예산 기준',
+   ko:'오버레이 계측 한정 기준 — 총 측정 불확도는 오버레이 예산의 10% 미만',
+   en:'Overlay-specific guidance — total measurement uncertainty below 10% of the overlay budget',
+   cite:'US 7,847,939 B2, “Overlay measurement target,” USPTO.',
+   url:'https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/7847939', kind:'특허'},
+  {id:5, tag:'ADI / AEI',
+   ko:'CD 측정 시점의 정의 — ADI(현상 후)와 AEI(식각 후)',
+   en:'Definition of the two CD measurement points — ADI and AEI',
+   cite:'Hitachi High-Tech, Semiconductor Glossary (공식 기술 용어집).',
+   url:'https://www.hitachi-hightech.com/global/en/knowledge/semiconductor/room/words.html', kind:'장비사 공식'},
+  {id:6, tag:'Etch bias',
+   ko:'ADI–AEI CD 차이의 정의와 제어 — 본 프로젝트의 etch bias와 동일한 양',
+   en:'ADI–AEI CD difference: definition and control — the same quantity as etch bias here',
+   cite:'US 8,101,092 B2, “Method for controlling ADI-AEI CD difference ratio of openings having different sizes.”',
+   url:'https://patents.google.com/patent/US8101092B2/en', kind:'특허'},
+  {id:7, tag:'ADI / AEI',
+   ko:'ACI 표기의 유래 — 식각 후 세정이 뒤따르기 때문에 생긴 용어, AEI와 동일 대상',
+   en:'Origin of the term ACI — cleaning follows etch; the same measurement as AEI',
+   cite:'US 10,908,498 B2, “Optical proximity correction method and method of manufacturing mask by using the same,” USPTO.',
+   url:'https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/10908498', kind:'특허'},
+  {id:8, tag:'APC',
+   ko:'ADI와 AEI 사이의 etch bias 때문에 CD 제어가 단순 피드백으로 끝나지 않는다는 근거',
+   en:'Why CD control is not simple feedback: the etch bias between ADI and AEI',
+   cite:'US 7,306,746 B2, “Critical dimension control in a semiconductor fabrication process,” USPTO.',
+   url:'https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/7306746', kind:'특허'},
+  {id:9, tag:'Excursion',
+   ko:'Excursion 로트의 격리와 disposition(release / scrap) 절차',
+   en:'Quarantine and disposition of excursion lots (release / scrap)',
+   cite:'KLA, “Process Watch: Monitoring for excursions in automotive fabs” (2018).',
+   url:'https://www.kla.com/documents/04_ProcessWatchAutomotive_2018_11.pdf', kind:'장비사 공식'},
+  {id:10, tag:'판정 성능',
+   ko:'기권을 허용하는 판정기의 평가 틀 — coverage와 selective risk의 trade-off',
+   en:'Evaluation framework for classifiers with a reject option — the risk–coverage trade-off',
+   cite:'V. Franc, D. Průša, V. Voráček, “Optimal Strategies for Reject Option Classifiers,” Journal of Machine Learning Research 24 (2023).',
+   url:'https://jmlr.org/papers/volume24/21-0048/21-0048.pdf', kind:'학술지'},
+  {id:11, tag:'SPC',
+   ko:'관리 한계 산출과 OOC 판정 규칙의 근거',
+   en:'Basis for control-limit estimation and out-of-control rules',
+   cite:'D. C. Montgomery, Introduction to Statistical Quality Control, Wiley.',
+   url:'', kind:'교과서'},
+];
+
+function renderRefs() {
+  const ko = LANG === 'ko', L = (a, b) => ko ? a : b;
+  $('#refList').innerHTML = REFS.map(r => `
+    <div class="ref">
+      <div class="refn mono">[${r.id}]</div>
+      <div>
+        <div class="reftag">${esc(r.kind)} · ${esc(r.tag)}</div>
+        <p class="refuse">${esc(ko ? r.ko : r.en)}</p>
+        <p class="refcite">${esc(r.cite)}</p>
+        ${r.url ? `<a class="reflink mono" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.url)}</a>`
+                : `<span class="sub">${L('공개 링크 없음 · 유료 표준 문서 또는 단행본', 'No open link — paid standard or printed book')}</span>`}
+      </div>
+    </div>`).join('');
+}
+
 /* ── 용어 사전 ────────────────────────────────────────────── */
 const GCAT = {
   basic: {ko: '기초', en: 'Basics', keys: ['wafer','lot','photo','etch','cd','pitch','field','reticle','chamber']},
@@ -1132,7 +1308,7 @@ function renderRef() {
 }
 
 /* ── 화면 전환 · 언어 ─────────────────────────────────────── */
-const VIEWS = ['home', 'flow', 'lots', 'trends', 'valid', 'terms', 'ref'];
+const VIEWS = ['home', 'flow', 'lots', 'trends', 'valid', 'terms', 'ref', 'refs'];
 let drawn = {};
 function showView(v) {
   S.view = v;
@@ -1145,6 +1321,7 @@ function showView(v) {
   if (v === 'valid' && !drawn.va) { renderValidation(); drawn.va = 1; }
   if (v === 'terms' && !drawn.gl) { renderGlossary(); drawn.gl = 1; }
   if (v === 'ref' && !drawn.rf) { renderRef(); drawn.rf = 1; }
+  if (v === 'refs' && !drawn.rs) { renderRefs(); drawn.rs = 1; }
   hidePop(); scrollTo({top: 0, behavior: 'instant'});
 }
 function applyLang() {
