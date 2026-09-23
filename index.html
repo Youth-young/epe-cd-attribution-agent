@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ink:#1F0D1E; --ink2:#3D3140; --muted:#6B6270; --line:#DCD7DE; --line2:#EDEAEF;
+  --ink:#14060F; --ink2:#241A28; --muted:#57505C; --line:#DCD7DE; --line2:#EDEAEF;
   --page:#F6F4F7; --panel:#fff; --sunk:#FAF9FB;
   --brand:#634670; --photo:#875D33; --etch:#8C3D6B; --metro:#2F6E74;
   --ok:#4A7052; --okbg:#EDF3EE; --bad:#A8342B; --badbg:#FBEFEE; --hold:#634670;
@@ -21,25 +21,38 @@
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--page);color:var(--ink);
   font-family:"IBM Plex Sans KR",-apple-system,"Segoe UI",sans-serif;font-weight:350;
-  font-size:15px;line-height:1.7;overflow-wrap:break-word}
+  font-size:16.5px;line-height:1.75;overflow-wrap:break-word}
 .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
 .lede{font-size:16px;color:var(--ink2);max-width:80ch;margin-bottom:22px}
+.mark{display:grid;width:36px;height:36px;border-radius:10px;background:var(--ink);color:#fff;
+  place-items:center;flex:0 0 auto}
 .brand{display:flex;align-items:center;gap:11px;flex:0 0 auto;background:none;border:0;
   padding:5px 7px;cursor:pointer;text-align:left;border-radius:9px}
 .brand:hover{background:var(--sunk)}
-.brand .btxt b{display:block;font-size:15px}
-.brand .btxt span{display:block;font-size:11.5px;color:var(--muted);line-height:1.4}
+.brand .btxt b{display:block;font-size:16px;color:var(--ink)}
+.brand .btxt span{display:block;font-size:12.5px;color:var(--muted);line-height:1.45}
 .hero{padding:34px 30px}
 .kicker{font-size:12.5px;color:var(--brand);font-weight:600;letter-spacing:.06em;
   text-transform:uppercase;margin-bottom:12px}
 .herotitle{font-size:clamp(23px,3.4vw,34px);line-height:1.38;letter-spacing:-.02em;margin-bottom:22px}
 ul.bullets{margin:0 0 22px;padding:0;list-style:none}
-ul.bullets li{position:relative;padding-left:17px;margin-bottom:9px;font-size:14.5px;
-  color:var(--ink2);line-height:1.65;max-width:88ch}
+ul.bullets li{position:relative;padding-left:19px;margin-bottom:13px;font-size:16px;
+  color:var(--ink);line-height:1.72;max-width:86ch}
 ul.bullets li::before{content:"";position:absolute;left:0;top:10px;width:5px;height:5px;
   border-radius:50%;background:var(--brand)}
 ul.bullets li b{color:var(--ink)}
 .twocol{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:26px}
+@media(max-width:760px){
+  .twocol,.guidegrid,.glist,.kpi{grid-template-columns:1fr}
+  .panel{padding:22px 18px}
+  .hero{padding:26px 18px}
+  .filters{gap:7px}
+  .filters select,.filters .chip,.numin{font-size:14px}
+  .lotrow{grid-template-columns:10px minmax(0,1fr);row-gap:8px}
+  .lotright{grid-column:2;justify-content:flex-start}
+  .crumb{flex-wrap:wrap}
+  .dhead{gap:8px}
+}
 .twocol h3{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.04em;
   text-transform:uppercase;margin-bottom:12px}
 .guidegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
@@ -68,9 +81,9 @@ ul.bullets li b{color:var(--ink)}
 .asof{font-size:12px;color:var(--muted)}
 .decision .dsec{padding:16px 0;border-top:1px solid var(--line2)}
 .decision .dsec:first-of-type{border-top:0}
-.decision .dsec h3{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.05em;
+.decision .dsec h3{font-size:13px;color:var(--ink2);font-weight:600;letter-spacing:.05em;
   text-transform:uppercase;margin-bottom:8px}
-.decision .dsec p{font-size:15.5px;color:var(--ink)}
+.decision .dsec p{font-size:16.5px;color:var(--ink);line-height:1.7}
 td .pl{font-weight:500}
 td .tech{display:block;font-size:11px;color:var(--muted);margin-top:2px}
 td.src{font-size:12px;color:var(--muted);white-space:nowrap}
@@ -96,14 +109,12 @@ p{margin:0 0 .7em}p:last-child{margin:0}
 button,input,select{font:inherit;color:inherit}
 :focus-visible{outline:2.5px solid var(--brand);outline-offset:2px}
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
-@media(max-width:700px){.wrap{padding:0 14px}body{font-size:14.5px}}
+@media(max-width:700px){.wrap{padding:0 14px}body{font-size:16px}}
 
 /* ── 헤더 ── */
 header{background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50}
 .hbar{display:flex;align-items:center;gap:18px;padding:14px 0 0}
 .brand{display:flex;align-items:center;gap:11px;flex:0 0 auto}
-.mark{width:34px;height:34px;border-radius:9px;background:var(--ink);color:#fff;
-  display:grid;place-items:center;font-size:12px;font-weight:600;letter-spacing:.04em}
 .brand b{display:block;font-size:15.5px;font-weight:600}
 .brand span{display:block;font-size:11.5px;color:var(--muted);line-height:1.4}
 .search{flex:1;position:relative;min-width:120px}
@@ -125,12 +136,12 @@ nav button[aria-current=page]{color:var(--ink);border-bottom-color:var(--brand);
 main{padding:24px 0 80px}
 .view[hidden]{display:none}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;
-  padding:24px 26px;margin-bottom:18px}
+  padding:30px 32px;margin-bottom:22px}
 .panel>header{background:none;border:0;position:static;display:flex;align-items:baseline;
-  gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:0}
-.panel h2{font-size:17px}
-.panel h3{font-size:15px}
-.sub{color:var(--muted);font-size:12.5px}
+  gap:12px;flex-wrap:wrap;margin:0 0 26px;padding:0 0 16px;border-bottom:1px solid var(--line2)}
+.panel h2{font-size:19px}
+.panel h3{font-size:16px}
+.sub{color:var(--muted);font-size:13.5px}
 @media(max-width:700px){.panel{padding:18px 16px;border-radius:10px}}
 
 /* ── 필터 바 ── */
@@ -151,8 +162,8 @@ select,.numin{border:1px solid var(--line);background:var(--panel);border-radius
   padding:15px 6px;cursor:pointer}
 .lotrow:hover{background:var(--sunk)}
 .dot{width:10px;height:10px;border-radius:50%}
-.lotid{font-size:16px;font-weight:600;font-family:"IBM Plex Mono",monospace}
-.lotmeta{color:var(--muted);font-size:12.5px;margin-top:3px}
+.lotid{font-size:17px;font-weight:600;font-family:"IBM Plex Mono",monospace}
+.lotmeta{color:var(--ink2);font-size:13.5px;margin-top:4px}
 .lotright{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 .badge{display:inline-block;padding:3px 11px;border-radius:999px;font-size:12px;font-weight:500;
   white-space:nowrap}
@@ -184,8 +195,8 @@ select,.numin{border:1px solid var(--line);background:var(--panel);border-radius
 .actionhead{font-size:12.5px;color:var(--muted);font-weight:500;letter-spacing:.04em;
   text-transform:uppercase;margin-bottom:10px}
 ol.steps{margin:0;padding:0;list-style:none;counter-reset:st}
-ol.steps li{position:relative;padding-left:34px;margin-bottom:11px;max-width:88ch;
-  font-size:14.5px;color:var(--ink2)}
+ol.steps li{position:relative;padding-left:36px;margin-bottom:13px;max-width:86ch;
+  font-size:15.5px;color:var(--ink)}
 ol.steps li:last-child{margin-bottom:0}
 ol.steps li::before{counter-increment:st;content:counter(st);position:absolute;left:0;top:2px;
   width:22px;height:22px;border-radius:50%;background:var(--sunk);border:1px solid var(--line);
@@ -195,20 +206,35 @@ ol.steps li::before{counter-increment:st;content:counter(st);position:absolute;l
   border-radius:9px;font-size:13.5px;color:var(--ink2)}
 
 /* 이탈 카드 */
-.outgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
-.outcard{border:1.5px solid var(--bad);background:var(--badbg);border-radius:10px;padding:16px 18px}
-.outcard .k{font-size:12.5px;color:var(--bad);font-weight:500;margin-bottom:6px}
+.outlist{display:flex;flex-direction:column;gap:14px}
+.outcard{display:grid;grid-template-columns:minmax(200px,260px) 124px 1fr;gap:22px;align-items:center}
+.ocmain{min-width:0}
+.ocsig{width:124px;flex:0 0 auto}
+.ocsig svg{width:124px;height:auto;display:block}
+.octext{min-width:0}
+.octext b{display:block;font-size:15.5px;color:var(--ink);margin-bottom:6px;line-height:1.5}
+.octext p{font-size:14px;color:var(--ink2);line-height:1.65;margin:0 0 7px}
+.octext .occ{font-size:14px;font-weight:700}
+@media(max-width:900px){.outcard{grid-template-columns:1fr 124px}.octext{grid-column:1/-1}}
+@media(max-width:560px){.outcard{grid-template-columns:1fr}.ocsig{width:100%}.ocsig svg{margin:0 auto}}
+.outcard{border:1.5px solid var(--bad);background:var(--badbg);border-radius:10px;padding:18px 20px}
+.outcard .k{font-size:13.5px;color:var(--bad);font-weight:600;margin-bottom:7px}
 .outcard .v{font-size:clamp(19px,2.3vw,25px);font-weight:600;font-family:"IBM Plex Mono",monospace;
   letter-spacing:-.02em;line-height:1.25;word-break:break-word}
-.outcard .l{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.55}
+.outcard .l{font-size:12.5px;color:var(--ink2);margin-top:7px;line-height:1.6}
 .allclear{display:flex;align-items:center;gap:12px;padding:18px 20px;border-radius:10px;
   background:var(--okbg);border:1px solid #CFE0D4;color:var(--ok);font-size:15px;font-weight:500}
 
 /* 표 */
 .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px}
-table{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}
-th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line2)}
-th{color:var(--muted);font-weight:500;font-size:12px;letter-spacing:.03em;text-transform:uppercase;
+.tw::-webkit-scrollbar{height:8px}
+.tw::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+table{border-collapse:collapse;width:100%;font-size:15px;min-width:720px}
+th,td{text-align:left;padding:13px 14px;border-bottom:1px solid var(--line2);
+  vertical-align:top;word-break:keep-all}
+td:first-child{min-width:190px}
+table.flowtbl td:first-child{min-width:140px}
+th{color:var(--ink2);font-weight:600;font-size:12.5px;letter-spacing:.03em;text-transform:uppercase;
   background:var(--sunk);white-space:nowrap}
 td.num{text-align:right;font-family:"IBM Plex Mono",monospace;white-space:nowrap}
 tr.alert td{background:var(--badbg)}
@@ -224,8 +250,13 @@ tr.alert td{background:var(--badbg)}
 .step:last-child{padding-bottom:0;border-left-color:transparent}
 .step::before{content:"";position:absolute;left:-6px;top:5px;width:10px;height:10px;
   border-radius:50%;background:var(--brand)}
-.step .tool{font-size:14.5px;font-weight:600}
-.step .why{color:var(--muted);font-size:13px;margin-top:2px}
+.step.only{border-left-color:var(--bad)}
+.step.only::before{background:var(--bad)}
+.step.only .why{color:var(--bad);font-weight:500}
+.onlytag{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;
+  background:var(--badbg);color:var(--bad);font-size:11.5px;font-weight:600;vertical-align:1.5px}
+.step .tool{font-size:15.5px;font-weight:600}
+.step .why{color:var(--ink2);font-size:14.5px;margin-top:4px;line-height:1.65}
 .step .res{margin-top:8px;font-size:13.5px;color:var(--ink2);font-family:"IBM Plex Mono",monospace}
 .step .evs{margin-top:8px;font-size:12.5px;color:var(--ink2)}
 .step .evs div{padding:4px 0;border-top:1px dashed var(--line2)}
@@ -266,10 +297,11 @@ pre.rawjson{background:var(--sunk);border:1px solid var(--line2);border-radius:8
 /* 용어 */
 .gcats{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:20px}
 .glist{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+.gcard svg{overflow:visible}
 .gcard{border:1px solid var(--line2);border-radius:11px;padding:18px 20px;background:var(--sunk)}
 .gcard h3{font-size:15px}
 .gcard .en{color:var(--muted);font-weight:400;font-size:12px;margin-left:7px}
-.gcard p{font-size:13.5px;color:var(--ink2);line-height:1.75;margin-top:8px}
+.gcard p{font-size:14.5px;color:var(--ink);line-height:1.8;margin-top:10px}
 .gcard svg{margin-top:12px;width:100%;height:auto;max-width:250px}
 
 /* 용어 링크 & 팝업 */
@@ -300,9 +332,15 @@ footer{border-top:1px solid var(--line);padding:22px 0 50px;color:var(--muted);f
 <header>
   <div class="wrap">
     <div class="hbar">
-      <button class="brand" id="homeBtn" aria-label="홈">
-        <span class="mark">CD</span>
-        <span class="btxt"><b data-t="brand">CD Excursion 원인 귀속 Agent</b><span data-t="brandsub">ADI–AEI CD 기반 · 원인 모듈 귀속 · 근거 부족 시 보류</span></span>
+      <button class="brand" id="homeBtn" data-t-title="home">
+        <span class="mark" aria-hidden="true">
+          <svg viewBox="0 0 28 28" width="20" height="20" fill="none">
+            <circle cx="14" cy="14" r="11" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M9 14h10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+            <path d="M14 9v10" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2 2"/>
+          </svg>
+        </span>
+        <span class="btxt"><b data-t="brand">CD Excursion 원인 귀속 Agent</b><span data-t="brandsub">ADI–AEI CD 기반 · 원인 모듈 귀속</span></span>
       </button>
       <div class="search">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>

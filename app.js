@@ -4,7 +4,7 @@ const TERMS = {
   attribution:{k:'원인 귀속',e:'attribution / disposition',d:'이상이 어느 모듈에서 비롯됐는지 판정하고 조치 대상을 정하는 일입니다. fab에서는 로트를 어떻게 처리할지 정하는 행위를 disposition이라고 부릅니다. 이 에이전트의 출력이 곧 원인 귀속과 조치 권고입니다.',
     s:'<svg viewBox="0 0 200 110"><rect x="10" y="14" width="52" height="24" fill="none" stroke="#a05c00" stroke-width="1.4"/><text x="36" y="30" text-anchor="middle" font-size="10" fill="#a05c00">Litho</text><rect x="10" y="44" width="52" height="24" fill="none" stroke="#8a2e68" stroke-width="1.4"/><text x="36" y="60" text-anchor="middle" font-size="10" fill="#8a2e68">Etch</text><rect x="10" y="74" width="52" height="24" fill="#e3f0f1" stroke="#0b6a72" stroke-width="2"/><text x="36" y="90" text-anchor="middle" font-size="10" fill="#0b6a72">Metrology</text><path d="M68 86h34" stroke="#0b6a72" stroke-width="1.6"/><path d="M97 81l7 5-7 5" fill="#0b6a72"/><text x="108" y="82" font-size="10" fill="#33424c">조치 대상</text><text x="108" y="96" font-size="10" fill="#33424c">확정</text></svg>'},
   wafer:{k:'웨이퍼',e:'wafer',d:'회로를 만드는 실리콘 원판입니다. 현재 양산 표준은 지름 300 mm이며, 한 장에 수백 개의 칩(die)이 격자로 배열됩니다. 아래쪽 노치(notch)는 결정 방위와 장비 내 정렬 기준으로 쓰입니다.',
-    s:'<svg viewBox="0 0 200 110"><circle cx="52" cy="55" r="42" fill="#f2f5f6" stroke="#57676f" stroke-width="1.3"/><g stroke="#c8d2d8" stroke-width=".7"><line x1="20" y1="13" x2="20" y2="97"/><line x1="31" y1="13" x2="31" y2="97"/><line x1="42" y1="13" x2="42" y2="97"/><line x1="53" y1="13" x2="53" y2="97"/><line x1="64" y1="13" x2="64" y2="97"/><line x1="75" y1="13" x2="75" y2="97"/><line x1="86" y1="13" x2="86" y2="97"/><line x1="11" y1="24" x2="93" y2="24"/><line x1="11" y1="35" x2="93" y2="35"/><line x1="11" y1="46" x2="93" y2="46"/><line x1="11" y1="57" x2="93" y2="57"/><line x1="11" y1="68" x2="93" y2="68"/><line x1="11" y1="79" x2="93" y2="79"/><line x1="11" y1="90" x2="93" y2="90"/></g><path d="M47 97h10l-5-8z" fill="#57676f"/><text x="104" y="38" font-size="10" fill="#33424c">지름 300 mm</text><text x="104" y="56" font-size="10" fill="#33424c">한 장에 die 수백 개</text><text x="104" y="74" font-size="10" fill="#57676f">아래 노치 = 정렬 기준</text></svg>'},
+    s:'<svg viewBox="0 0 224 110"><circle cx="52" cy="55" r="42" fill="#f2f5f6" stroke="#57676f" stroke-width="1.3"/><g stroke="#c8d2d8" stroke-width=".7"><line x1="20" y1="13" x2="20" y2="97"/><line x1="31" y1="13" x2="31" y2="97"/><line x1="42" y1="13" x2="42" y2="97"/><line x1="53" y1="13" x2="53" y2="97"/><line x1="64" y1="13" x2="64" y2="97"/><line x1="75" y1="13" x2="75" y2="97"/><line x1="86" y1="13" x2="86" y2="97"/><line x1="11" y1="24" x2="93" y2="24"/><line x1="11" y1="35" x2="93" y2="35"/><line x1="11" y1="46" x2="93" y2="46"/><line x1="11" y1="57" x2="93" y2="57"/><line x1="11" y1="68" x2="93" y2="68"/><line x1="11" y1="79" x2="93" y2="79"/><line x1="11" y1="90" x2="93" y2="90"/></g><path d="M47 97h10l-5-8z" fill="#57676f"/><text x="104" y="38" font-size="10" fill="#33424c">지름 300 mm</text><text x="104" y="56" font-size="10" fill="#33424c">한 장에 die 수백 개</text><text x="104" y="74" font-size="10" fill="#57676f">아래 노치 = 정렬 기준</text></svg>'},
   lot:{k:'로트',e:'lot',d:'웨이퍼 25장을 담아 함께 이동하는 생산 단위입니다. FOUP이라는 밀폐 용기에 담겨 공정을 거칩니다. 계측은 전수로 하지 않고 대표 슬롯만 뽑아 재며, 이 프로젝트는 앞·중간·뒤를 대표하도록 slot 3 / 13 / 23을 측정합니다.',
     s:'<svg viewBox="0 0 200 110"><rect x="12" y="18" width="76" height="74" fill="none" stroke="#57676f" stroke-width="1.3"/><rect x="18" y="22" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="24" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="27" width="64" height="4" fill="#0b6a72" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="30" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="33" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="36" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="38" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="41" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="44" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="47" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="50" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="52" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="55" width="64" height="4" fill="#0b6a72" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="58" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="61" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="64" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="66" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="69" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="72" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="75" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="78" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="80" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="83" width="64" height="4" fill="#0b6a72" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="86" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><rect x="18" y="89" width="64" height="4" fill="#e6ecee" stroke="#8b98a3" stroke-width=".5"/><text x="12" y="104" font-size="9" fill="#57676f">FOUP · 25 slot</text><text x="100" y="40" font-size="10" fill="#0b6a72">진한 칸 = 측정 슬롯</text><text x="100" y="58" font-size="10" fill="#33424c">slot 3 / 13 / 23</text><text x="100" y="76" font-size="10" fill="#57676f">front / center / rear</text></svg>'},
   photo:{k:'Litho (노광)',e:'photolithography',d:'레티클에 새겨진 회로 패턴을 빛으로 웨이퍼 위 감광막(photoresist)에 전사하는 공정입니다. 투영 렌즈가 패턴을 보통 1/4로 축소해 옮기며, 노광량(dose)과 초점(focus)이 선폭을 직접 좌우합니다. 노광 후 현상(develop)을 거치면 레지스트 패턴이 남습니다.',
@@ -14,7 +14,7 @@ const TERMS = {
   cd:{k:'CD (선폭)',e:'Critical Dimension',d:'패턴의 가로 방향 폭입니다. 두께(depth)가 아니라 폭이라는 점이 핵심입니다. 선(line)과 공간(space)이 반복되는 구조에서 pitch = CD + space 로 정의되며, pitch는 설계와 노광 조건이 정하는 고정값이고 CD는 공정 변동에 따라 움직이는 값입니다. 그래서 CD가 커지면 같은 pitch 안에서 space가 그만큼 줄어듭니다. 게이트 폭이 설계보다 수 nm만 좁아져도 문턱전압과 누설전류가 달라집니다.',
     s:'<svg viewBox="0 0 200 110"><rect x="20" y="30" width="24" height="42" fill="#c9d4d9" stroke="#10161b" stroke-width="1.1"/><rect x="76" y="30" width="24" height="42" fill="#c9d4d9" stroke="#10161b" stroke-width="1.1"/><rect x="132" y="30" width="24" height="42" fill="#c9d4d9" stroke="#10161b" stroke-width="1.1"/><path d="M20 24h24" stroke="#bf4630" stroke-width="1.8"/><path d="M20 20v8M44 20v8" stroke="#bf4630" stroke-width="1.4"/><text x="24" y="16" font-size="9" fill="#bf4630">CD</text><path d="M44 82h32" stroke="#2c6da6" stroke-width="1.8"/><path d="M44 78v8M76 78v8" stroke="#2c6da6" stroke-width="1.4"/><text x="48" y="96" font-size="9" fill="#2c6da6">space</text><path d="M20 104h56" stroke="#0b6a72" stroke-width="1.8"/><path d="M20 100v8M76 100v8" stroke="#0b6a72" stroke-width="1.4"/><text x="86" y="107" font-size="9" fill="#0b6a72">pitch = CD + space (고정)</text><text x="108" y="24" font-size="9" fill="#57676f">CD가 커지면</text><text x="108" y="38" font-size="9" fill="#57676f">space가 줄어든다</text></svg>'},
   pitch:{k:'Pitch',e:'pitch',d:'반복 패턴에서 이웃한 선의 중심 간 거리, 즉 CD + space 입니다. 설계 규칙과 노광 해상도가 정하는 값이라 공정 중에는 변하지 않습니다. 그래서 CD 변동은 곧 space 변동이며, CD가 목표를 벗어나면 이웃 패턴과의 간격이 함께 틀어집니다.',
-    s:'<svg viewBox="0 0 200 90"><rect x="18" y="26" width="22" height="34" fill="#c9d4d9" stroke="#10161b" stroke-width="1.1"/><rect x="70" y="26" width="22" height="34" fill="#c9d4d9" stroke="#10161b" stroke-width="1.1"/><rect x="122" y="26" width="22" height="34" fill="#c9d4d9" stroke="#10161b" stroke-width="1.1"/><line x1="29" y1="18" x2="29" y2="68" stroke="#0b6a72" stroke-dasharray="3 2"/><line x1="81" y1="18" x2="81" y2="68" stroke="#0b6a72" stroke-dasharray="3 2"/><path d="M29 74h52" stroke="#0b6a72" stroke-width="1.8"/><path d="M29 70v8M81 70v8" stroke="#0b6a72" stroke-width="1.4"/><text x="36" y="88" font-size="9" fill="#0b6a72">pitch (중심 간 거리)</text><text x="150" y="46" font-size="9" fill="#57676f">설계가 정하는</text><text x="150" y="60" font-size="9" fill="#57676f">고정값</text></svg>'},
+    s:'<svg viewBox="0 0 224 96"><rect x="18" y="26" width="22" height="34" fill="#c9d4d9" stroke="#10161b" stroke-width="1.1"/><rect x="70" y="26" width="22" height="34" fill="#c9d4d9" stroke="#10161b" stroke-width="1.1"/><rect x="122" y="26" width="22" height="34" fill="#c9d4d9" stroke="#10161b" stroke-width="1.1"/><line x1="29" y1="18" x2="29" y2="68" stroke="#0b6a72" stroke-dasharray="3 2"/><line x1="81" y1="18" x2="81" y2="68" stroke="#0b6a72" stroke-dasharray="3 2"/><path d="M29 74h52" stroke="#0b6a72" stroke-width="1.8"/><path d="M29 70v8M81 70v8" stroke="#0b6a72" stroke-width="1.4"/><text x="36" y="88" font-size="9" fill="#0b6a72">pitch (중심 간 거리)</text><text x="150" y="46" font-size="9" fill="#57676f">설계가 정하는</text><text x="150" y="60" font-size="9" fill="#57676f">고정값</text></svg>'},
   adi:{k:'ADI (현상 후 측정)',e:'After Develop Inspection',d:'노광·현상을 마치고 식각 전 레지스트 패턴을 재는 측정입니다. 이 시점에는 레지스트를 벗기고 재노광하는 rework가 가능하고, 측정값이 스캐너 보정(APC)으로 되먹임되므로 actionable 측정으로 분류됩니다. 그래서 현업에서도 매 로트 또는 거의 매 로트 측정합니다.',
     s:'<svg viewBox="0 0 200 100"><rect x="16" y="30" width="20" height="26" fill="#f4dfd8" stroke="#8a2e68" stroke-width="1.1"/><rect x="52" y="30" width="20" height="26" fill="#f4dfd8" stroke="#8a2e68" stroke-width="1.1"/><rect x="10" y="56" width="72" height="16" fill="#e6ecee" stroke="#57676f" stroke-width="1.1"/><text x="10" y="24" font-size="9" fill="#8a2e68">레지스트 패턴 (미식각)</text><text x="10" y="86" font-size="9" fill="#1c6b3a">rework 가능 · APC 피드백</text><path d="M92 50h22" stroke="#57676f" stroke-width="1.3"/><path d="M109 45l7 5-7 5" fill="#57676f"/><text x="122" y="46" font-size="9" fill="#33424c">Etch 단계로</text><text x="122" y="60" font-size="9" fill="#33424c">진행</text></svg>'},
   aci:{k:'AEI (식각 후 측정)',e:'After Etch Inspection',d:'식각을 마친 뒤 재는 측정입니다. 레지스트를 벗겨낸 실제 소자 구조를 재므로 최종 결과에 가깝고, 식각이 유발한 오차까지 잡아냅니다. 다만 그 로트는 되돌릴 수 없습니다. 목적이 rework가 아니라 etch bias 특성화와 검증이어서 skip-lot으로 저빈도 측정합니다. 식각 뒤에 세정이 따라오기 때문에 한국계 팹에서는 ACI(After Clean Inspection)로도 표기하지만, 문헌과 장비사 표준 용어는 AEI입니다. 이 콘솔은 AEI로 통일합니다.',
@@ -26,9 +26,9 @@ const TERMS = {
   reticle:{k:'레티클',e:'reticle / photomask',d:'회로 패턴이 크롬 등으로 새겨진 석영 원판입니다. 투영 렌즈가 보통 1/4로 축소해 웨이퍼에 전사하므로 레티클 위 패턴은 웨이퍼보다 4배 큽니다. 레티클 자체에 CD 오차가 있으면 모든 웨이퍼의 같은 field 내 위치에서 동일한 오차가 반복되며, 이 반복성이 레티클 원인의 지문입니다.',
     s:'<svg viewBox="0 0 200 100"><rect x="14" y="20" width="62" height="46" fill="#f2f5f6" stroke="#57676f" stroke-width="1.2"/><path d="M24 32h12M42 32h12M24 44h12M42 44h8M24 56h20" stroke="#10161b" stroke-width="2.4"/><text x="14" y="80" font-size="9" fill="#57676f">레티클 (4배 크기)</text><path d="M84 44h20" stroke="#0b6a72" stroke-width="1.3"/><path d="M99 39l7 5-7 5" fill="#0b6a72"/><text x="86" y="34" font-size="9" fill="#0b6a72">1/4 축소</text><rect x="112" y="32" width="30" height="22" fill="#f2f5f6" stroke="#57676f" stroke-width="1.2"/><path d="M117 38h6M126 38h6M117 46h6M126 46h4" stroke="#10161b" stroke-width="1.4"/><text x="112" y="70" font-size="9" fill="#57676f">웨이퍼 field</text></svg>'},
   field:{k:'Field (노광 영역)',e:'exposure field',d:'한 번의 노광으로 패턴이 전사되는 사각 영역입니다. 웨이퍼 전면을 한 번에 찍을 수 없어 스텝-앤-스캔 방식으로 이 영역을 격자처럼 옮겨가며 반복 노광합니다. 이 프로젝트의 field 크기는 26 × 33 mm이고, 웨이퍼 한 장에서 반경 방향으로 펼친 9개 field를 골라 측정합니다.',
-    s:'<svg viewBox="0 0 200 110"><circle cx="50" cy="55" r="42" fill="#f7f9f9" stroke="#c8d2d8"/><rect x="13" y="30" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="13" y="47" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="13" y="64" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="28" y="13" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="28" y="30" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="28" y="47" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="28" y="64" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="28" y="81" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="43" y="13" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="43" y="30" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="43" y="47" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="43" y="64" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="43" y="81" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="58" y="13" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="58" y="30" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="58" y="47" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="58" y="64" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="58" y="81" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="73" y="30" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="73" y="47" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="73" y="64" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><path d="M46 97h8l-4-7z" fill="#c8d2d8"/><text x="100" y="26" font-size="9" fill="#33424c">한 칸 = 1회 노광 (26×33 mm)</text><text x="100" y="42" font-size="9" fill="#0b6a72">진한 칸 = 측정 field 9개</text><text x="100" y="58" font-size="9" fill="#57676f">center–mid–edge가</text><text x="100" y="72" font-size="9" fill="#57676f">모두 표본에 들어오도록 배치</text></svg>'},
+    s:'<svg viewBox="0 0 230 110"><circle cx="50" cy="55" r="42" fill="#f7f9f9" stroke="#c8d2d8"/><rect x="13" y="30" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="13" y="47" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="13" y="64" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="28" y="13" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="28" y="30" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="28" y="47" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="28" y="64" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="28" y="81" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="43" y="13" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="43" y="30" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="43" y="47" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="43" y="64" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="43" y="81" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="58" y="13" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="58" y="30" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="58" y="47" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="58" y="64" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="58" y="81" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="73" y="30" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><rect x="73" y="47" width="14" height="16" fill="#cfe3e4" stroke="#8b98a3" stroke-width=".6"/><rect x="73" y="64" width="14" height="16" fill="none" stroke="#8b98a3" stroke-width=".6"/><path d="M46 97h8l-4-7z" fill="#c8d2d8"/><text x="100" y="26" font-size="9" fill="#33424c">한 칸 = 1회 노광 (26×33 mm)</text><text x="100" y="42" font-size="9" fill="#0b6a72">진한 칸 = 측정 field 9개</text><text x="100" y="58" font-size="9" fill="#57676f">center–mid–edge가</text><text x="100" y="72" font-size="9" fill="#57676f">모두 표본에 들어오도록 배치</text></svg>'},
   chamber:{k:'Etch 챔버',e:'etch chamber',d:'플라즈마 식각이 일어나는 진공 반응기입니다. RF 파워로 가스를 이온화해 라디칼을 만들고, 웨이퍼는 정전척(ESC) 위에 고정되어 온도가 제어됩니다. 챔버 벽에 반응 부산물이 쌓이면 라디칼 밀도가 달라져 식각 속도와 선폭이 함께 흔들립니다. 이 프로젝트에는 4개(CH-A~D)가 있고 로트마다 번갈아 배정됩니다.',
-    s:'<svg viewBox="0 0 200 110"><rect x="16" y="18" width="78" height="72" rx="3" fill="#fbfcfc" stroke="#57676f" stroke-width="1.3"/><path d="M24 26h62" stroke="#8a2e68" stroke-width="2"/><g fill="#8a2e68" opacity=".55"><circle cx="34" cy="42" r="2.2"/><circle cx="52" cy="38" r="2.2"/><circle cx="70" cy="44" r="2.2"/><circle cx="44" cy="52" r="2.2"/><circle cx="64" cy="54" r="2.2"/></g><rect x="30" y="64" width="50" height="5" fill="#c9d4d9" stroke="#57676f" stroke-width=".9"/><rect x="34" y="69" width="42" height="8" fill="#e6ecee" stroke="#57676f" stroke-width=".9"/><text x="102" y="30" font-size="9" fill="#8a2e68">RF · 가스 주입</text><text x="102" y="48" font-size="9" fill="#8a2e68">플라즈마 (라디칼)</text><text x="102" y="70" font-size="9" fill="#33424c">웨이퍼 / ESC (온도 제어)</text><text x="102" y="86" font-size="9" fill="#57676f">벽면 상태가 CD에 영향</text></svg>'},
+    s:'<svg viewBox="0 0 216 110"><rect x="16" y="18" width="78" height="72" rx="3" fill="#fbfcfc" stroke="#57676f" stroke-width="1.3"/><path d="M24 26h62" stroke="#8a2e68" stroke-width="2"/><g fill="#8a2e68" opacity=".55"><circle cx="34" cy="42" r="2.2"/><circle cx="52" cy="38" r="2.2"/><circle cx="70" cy="44" r="2.2"/><circle cx="44" cy="52" r="2.2"/><circle cx="64" cy="54" r="2.2"/></g><rect x="30" y="64" width="50" height="5" fill="#c9d4d9" stroke="#57676f" stroke-width=".9"/><rect x="34" y="69" width="42" height="8" fill="#e6ecee" stroke="#57676f" stroke-width=".9"/><text x="102" y="30" font-size="9" fill="#8a2e68">RF · 가스 주입</text><text x="102" y="48" font-size="9" fill="#8a2e68">플라즈마 (라디칼)</text><text x="102" y="70" font-size="9" fill="#33424c">웨이퍼 / ESC (온도 제어)</text><text x="102" y="86" font-size="9" fill="#57676f">벽면 상태가 CD에 영향</text></svg>'},
   golden:{k:'모니터 웨이퍼',e:'monitor wafer',d:'계측 장비의 안정성(stability)과 장비 간 정합(tool-to-tool matching)을 점검하려고 두는 전용 웨이퍼입니다. 이미 패턴이 형성되어 있고 공정 라인에는 다시 투입하지 않으며, 고정된 recipe로 같은 위치를 반복 측정합니다. 공정 변화가 개입하지 않으므로 값이 이동하면 그 이동분은 장비 기여로 귀속됩니다. 실제 fab에서도 CD-SEM 여러 대의 절대 선폭과 상호 정합을 이 방식으로 감시하며, 점검 주기는 일 단위인 경우도 흔합니다.',
     s:'<svg viewBox="0 0 200 110"><circle cx="36" cy="42" r="26" fill="#f2f5f6" stroke="#0b6a72" stroke-width="1.3"/><path d="M24 34h24M24 42h24M24 50h24" stroke="#0b6a72" stroke-width="2"/><text x="10" y="80" font-size="9" fill="#57676f">패턴 고정 · 라인 미투입</text><line x1="106" y1="60" x2="188" y2="60" stroke="#c8d2d8"/><g fill="#0b6a72"><circle cx="110" cy="60" r="2.6"/><circle cx="121" cy="60" r="2.6"/><circle cx="132" cy="60" r="2.6"/><circle cx="143" cy="60" r="2.6"/><circle cx="154" cy="60" r="2.6"/><circle cx="165" cy="62" r="2.6"/><circle cx="176" cy="64" r="2.6"/><circle cx="187" cy="66" r="2.6"/></g><text x="106" y="30" font-size="9" fill="#33424c">동일 recipe 반복 측정</text><text x="106" y="88" font-size="9" fill="#0b6a72">값이 이동하면 장비 drift</text></svg>'},
   cdsem:{k:'CD-SEM',e:'Critical Dimension SEM',d:'전자빔으로 패턴을 위에서 내려다보며 선폭을 재는 장비입니다. 서브나노미터급 정밀도를 내기 때문에 업계에서 the ruler of the fab이라고 불립니다. 2차 전자 신호의 세기 파형에서 패턴 가장자리를 찾아 두 edge 사이 거리를 CD로 산출합니다. 비파괴이지만 point 측정이라 웨이퍼당 측정 점수가 제한되며, 모던 장비 기준 대략 13~36점 수준입니다.',
@@ -44,7 +44,7 @@ const TERMS = {
   pm:{k:'PM · 챔버 시즈닝',e:'Preventive Maintenance / seasoning',d:'설비를 정기적으로 열어 세정하고 부품을 교체하는 작업입니다. 세정 직후에는 챔버 벽면 상태가 리셋되어 식각 특성이 크게 달라지고(first wafer effect), 이후 반응 부산물이 벽에 쌓이면서 라디칼 밀도가 서서히 변해 etch bias가 완만하게 흐릅니다. 이 현상을 chamber seasoning이라 부르며, 실제 fab에서 CD 드리프트의 대표적 원인 중 하나입니다.',
     s:'<svg viewBox="0 0 200 110"><line x1="24" y1="86" x2="182" y2="86" stroke="#c8d2d8"/><line x1="24" y1="18" x2="24" y2="86" stroke="#c8d2d8"/><polyline points="30,32 36,58 48,64 66,68 88,72 110,76" fill="none" stroke="#8a2e68" stroke-width="1.8"/><polyline points="120,30 126,56 138,62 156,66 176,72" fill="none" stroke="#8a2e68" stroke-width="1.8"/><line x1="115" y1="18" x2="115" y2="86" stroke="#0b6a72" stroke-dasharray="3 2"/><text x="98" y="14" font-size="9" fill="#0b6a72">PM</text><text x="30" y="24" font-size="9" fill="#8a2e68">세정 직후 급변</text><text x="52" y="102" font-size="9" fill="#57676f">PM 후 경과 시간 (RF hours)</text><text x="2" y="52" font-size="9" fill="#57676f">bias</text></svg>'},
   limit:{k:'관리 한계',e:'control limit',d:'정상 변동으로 인정하는 범위입니다. 이 프로젝트에서는 이상 주입 이전 기준선 10일 데이터의 평균 ± 3σ로 엔진이 스스로 계산하며, 사람이 임의로 정하지 않습니다. SPC 관례상 관리 한계를 안정적으로 추정하려면 20~25개 이상의 표본군이 필요해 기준선 구간을 그만큼 확보했습니다.',
-    s:'<svg viewBox="0 0 200 100"><line x1="18" y1="50" x2="186" y2="50" stroke="#8ea0aa" stroke-dasharray="4 3"/><rect x="18" y="30" width="168" height="40" fill="#eef1f3"/><line x1="18" y1="30" x2="186" y2="30" stroke="#9aa9b2" stroke-dasharray="2 3"/><line x1="18" y1="70" x2="186" y2="70" stroke="#9aa9b2" stroke-dasharray="2 3"/><g fill="#4e5f6a"><circle cx="26" cy="52" r="2.4"/><circle cx="37" cy="48" r="2.4"/><circle cx="48" cy="53" r="2.4"/><circle cx="59" cy="47" r="2.4"/><circle cx="70" cy="51" r="2.4"/><circle cx="81" cy="49" r="2.4"/><circle cx="92" cy="54" r="2.4"/><circle cx="103" cy="46" r="2.4"/><circle cx="114" cy="50" r="2.4"/><circle cx="125" cy="52" r="2.4"/><circle cx="136" cy="48" r="2.4"/><circle cx="147" cy="51" r="2.4"/><circle cx="158" cy="47" r="2.4"/><circle cx="169" cy="53" r="2.4"/><circle cx="180" cy="49" r="2.4"/></g><circle cx="170" cy="22" r="4" fill="#bf4630"/><text x="22" y="26" font-size="9" fill="#57676f">평균 + 3σ</text><text x="22" y="84" font-size="9" fill="#57676f">평균 − 3σ</text><text x="126" y="16" font-size="9" fill="#bf4630">한계 이탈</text></svg>'},
+    s:'<svg viewBox="0 0 200 112"><line x1="18" y1="50" x2="186" y2="50" stroke="#8ea0aa" stroke-dasharray="4 3"/><rect x="18" y="30" width="168" height="40" fill="#eef1f3"/><line x1="18" y1="30" x2="186" y2="30" stroke="#9aa9b2" stroke-dasharray="2 3"/><line x1="18" y1="70" x2="186" y2="70" stroke="#9aa9b2" stroke-dasharray="2 3"/><g fill="#4e5f6a"><circle cx="26" cy="52" r="2.4"/><circle cx="37" cy="48" r="2.4"/><circle cx="48" cy="53" r="2.4"/><circle cx="59" cy="47" r="2.4"/><circle cx="70" cy="51" r="2.4"/><circle cx="81" cy="49" r="2.4"/><circle cx="92" cy="54" r="2.4"/><circle cx="103" cy="46" r="2.4"/><circle cx="114" cy="50" r="2.4"/><circle cx="125" cy="52" r="2.4"/><circle cx="136" cy="48" r="2.4"/><circle cx="147" cy="51" r="2.4"/><circle cx="158" cy="47" r="2.4"/><circle cx="169" cy="53" r="2.4"/><circle cx="180" cy="49" r="2.4"/></g><circle cx="170" cy="22" r="4" fill="#bf4630"/><text x="22" y="26" font-size="9" fill="#57676f">평균 + 3σ</text><text x="22" y="84" font-size="9" fill="#57676f">평균 − 3σ</text><text x="126" y="16" font-size="9" fill="#bf4630">한계 이탈</text></svg>'},
   rework:{k:'Rework (재작업)',e:'rework',d:'레지스트를 벗겨내고 노광부터 다시 하는 것입니다. 식각 전 ADI 시점에만 가능하며, 식각이 끝나면 구조가 확정되어 되돌릴 수 없습니다. 그래서 원인 판정이 빠를수록 살릴 수 있는 웨이퍼가 늘어납니다. 이 프로젝트가 ADI 계열 판정을 먼저 수행하는 이유입니다.',
     s:'<svg viewBox="0 0 200 100"><rect x="14" y="34" width="42" height="24" fill="none" stroke="#a05c00" stroke-width="1.2"/><text x="35" y="50" text-anchor="middle" font-size="9" fill="#a05c00">노광</text><path d="M60 46h20" stroke="#57676f"/><path d="M75 41l7 5-7 5" fill="#57676f"/><rect x="84" y="34" width="42" height="24" fill="none" stroke="#0b6a72" stroke-width="1.2"/><text x="105" y="50" text-anchor="middle" font-size="9" fill="#0b6a72">ADI</text><path d="M130 46h20" stroke="#57676f"/><path d="M145 41l7 5-7 5" fill="#57676f"/><rect x="154" y="34" width="36" height="24" fill="none" stroke="#8a2e68" stroke-width="1.2"/><text x="172" y="50" text-anchor="middle" font-size="9" fill="#8a2e68">Etch</text><path d="M105 62 L105 78 L35 78 L35 62" fill="none" stroke="#1c6b3a" stroke-width="1.4"/><path d="M30 67l5-7 5 7" fill="#1c6b3a"/><text x="60" y="92" font-size="9" fill="#1c6b3a">rework (ADI에서만 가능)</text></svg>'},
   metro:{k:'Metrology (계측)',e:'metrology',d:'형성된 구조의 치수를 재는 일과 그 장비를 통칭합니다. 이 프로젝트에는 CD-SEM 2대(CDSEM-A, CDSEM-B)가 있고 로트마다 둘 중 하나가 측정을 맡습니다. 어느 장비가 쟀는지를 데이터에 기록해 두는 것이 계측 원인 판정의 열쇠입니다. 이 컬럼이 없으면 어떤 알고리즘을 써도 장비 drift를 공정 이상과 구분할 수 없습니다.',
@@ -63,7 +63,7 @@ const TERMS = {
   setting:{k:'Setting값',e:'Recipe Input / setpoint',d:'Recipe에 적혀 있어 장비에 지시되는 값입니다. 노광량 Setting 32.0 mJ/cm2는 이만큼 조사하라는 지시일 뿐, 실제로 그만큼 조사되었는지를 보장하지 않습니다. Setting은 변경 이력이 남으므로, 이슈 시점과 Setting 변경 시점이 어긋나면 그 항목은 원인 후보에서 배제할 수 있습니다.',
     s:'<svg viewBox="0 0 200 100"><rect x="14" y="26" width="80" height="44" fill="#fbfcfc" stroke="#57676f" stroke-width="1.2"/><text x="22" y="44" font-size="10" fill="#33424c">Recipe</text><text x="22" y="61" font-size="11" fill="#10161b" font-family="IBM Plex Mono">dose = 32.0</text><text x="14" y="86" font-size="9" fill="#57676f">장비에 내리는 지시값</text><text x="106" y="42" font-size="9" fill="#a2321f">지시했다는 뜻일 뿐</text><text x="106" y="58" font-size="9" fill="#a2321f">그대로 조사됐다는</text><text x="106" y="74" font-size="9" fill="#a2321f">보장은 아니다</text></svg>'},
   sensor:{k:'Energy Sensor 실측값',e:'energy sensor readback',d:'스캐너 내부 에너지 센서가 실제로 조사된 광량을 적산해 읽은 값입니다. CD가 반응하는 것은 Setting이 아니라 이 실효 dose입니다. Setting은 그대로인데 이 값만 이동했다면 광원 교체 후 Dose Mapper Calibration 누락, 센서 열화·오염, 조명계 투과율 변화를 의심합니다. 이 경우 Recipe를 고쳐도 실효 dose는 그대로여서 재발합니다.',
-    s:'<svg viewBox="0 0 200 110"><line x1="26" y1="86" x2="182" y2="86" stroke="#c8d2d8"/><line x1="26" y1="20" x2="26" y2="86" stroke="#c8d2d8"/><line x1="26" y1="58" x2="182" y2="58" stroke="#8b98a3" stroke-dasharray="5 3"/><text x="32" y="54" font-size="9" fill="#57676f">Setting 32.0 (고정)</text><polyline points="34,60 62,58 90,59 112,50 134,40 160,34" fill="none" stroke="#a05c00" stroke-width="2"/><text x="106" y="28" font-size="9" fill="#a05c00">Sensor 실측</text><path d="M160 34 L160 58" stroke="#bf4630" stroke-width="1.6"/><text x="104" y="76" font-size="9" fill="#bf4630">이 괴리가 실효 dose 오차</text><text x="46" y="104" font-size="9" fill="#57676f">시간</text></svg>'},
+    s:'<svg viewBox="0 0 220 110"><line x1="26" y1="86" x2="182" y2="86" stroke="#c8d2d8"/><line x1="26" y1="20" x2="26" y2="86" stroke="#c8d2d8"/><line x1="26" y1="58" x2="182" y2="58" stroke="#8b98a3" stroke-dasharray="5 3"/><text x="32" y="54" font-size="9" fill="#57676f">Setting 32.0 (고정)</text><polyline points="34,60 62,58 90,59 112,50 134,40 160,34" fill="none" stroke="#a05c00" stroke-width="2"/><text x="106" y="28" font-size="9" fill="#a05c00">Sensor 실측</text><path d="M160 34 L160 58" stroke="#bf4630" stroke-width="1.6"/><text x="104" y="76" font-size="9" fill="#bf4630">이 괴리가 실효 dose 오차</text><text x="46" y="104" font-size="9" fill="#57676f">시간</text></svg>'},
   dosemapper:{k:'Dose Mapper Calibration',e:'dose sensor calibration',d:'에너지 센서가 읽는 값과 웨이퍼 면에 실제 도달하는 광량 사이의 변환 관계를 다시 맞추는 작업입니다. 광원(Laser Source)을 교체하면 파장 대역폭(E95)과 pulse energy 특성이 달라지므로 같은 Setting에서도 실효 dose가 달라질 수 있습니다. 그래서 Source 교체는 Calibration 재수행을 필수 절차로 Change Control Checklist에 넣습니다.'},
   changepoint:{k:'변경점 · PM/Inform 이력',e:'change point / maintenance log',d:'설비에 가해진 모든 변경의 기록입니다. 부품 교체, PM, Recipe 변경, Calibration 수행 이력이 시점과 함께 남습니다. 이상 분석의 출발점은 항상 이상이 시작된 시점과 일치하는 변경점이 있는가이며, 시점이 어긋나면 그 항목은 원인 후보에서 배제합니다.'},
   ocap:{k:'SPC 관리도 · OCAP',e:'Statistical Process Control / Out of Control Action Plan',d:'지표를 관리 한계와 함께 시계열로 관리하고(SPC 관리도), 한계를 벗어났을 때 누가 무엇을 하는지 사전에 정해두는 절차(OCAP)입니다. Setting값만 감시하면 Setting과 실측의 괴리를 놓치므로, Sensor 실측값 자체에 관리도를 거는 것이 재발 방지의 핵심입니다.'},
@@ -77,7 +77,7 @@ const TERMS = {
     s:'<svg viewBox="0 0 200 100"><line x1="26" y1="70" x2="176" y2="70" stroke="#c8d2d8"/><circle cx="78" cy="44" r="4" fill="#8b98a3"/><circle cx="112" cy="44" r="4" fill="#0b6a72"/><path d="M78 54h34" stroke="#bf4630" stroke-width="1.6"/><path d="M78 50v8M112 50v8" stroke="#bf4630" stroke-width="1.2"/><text x="52" y="36" font-size="9" fill="#8b98a3">CDSEM-A</text><text x="118" y="36" font-size="9" fill="#0b6a72">CDSEM-B</text><text x="66" y="88" font-size="9" fill="#bf4630">같은 자리, 다른 값 = match 오차</text></svg>'},
   tis:{k:'TIS',e:'Tool Induced Shift',d:'측정 대상을 0°와 180°로 회전시켜 두 번 잰 값의 차이로 정의되는 장비 고유의 비대칭 오차입니다. 오버레이 계측에서 정확도를 평가하는 표준 항목이며, 광학계의 비대칭에서 비롯됩니다. 회전 측정으로 정의되는 항이라 top-down CD 측정에는 그대로 적용되지 않아, 이 프로젝트의 TMU 계산에서는 제외했습니다.'},
   cdu:{k:'CDU',e:'CD Uniformity',d:'웨이퍼 안에서 선폭이 얼마나 고른지를 나타내는 지표로 보통 3σ로 표기합니다. 평균이 목표에 맞아도 CDU가 나쁘면 웨이퍼 일부는 스펙을 벗어납니다. 이 데이터의 웨이퍼 내 CDU는 3σ 기준 약 4.2 nm입니다.',
-    s:'<svg viewBox="0 0 200 100"><g fill="#c9d4d9" stroke="#57676f" stroke-width=".8"><rect x="62" y="74" width="9" height="8"/><rect x="72" y="62" width="9" height="20"/><rect x="82" y="44" width="9" height="38"/><rect x="92" y="27" width="9" height="55"/><rect x="102" y="20" width="9" height="62"/><rect x="112" y="27" width="9" height="55"/><rect x="122" y="44" width="9" height="38"/><rect x="132" y="62" width="9" height="20"/><rect x="142" y="74" width="9" height="8"/></g><line x1="100" y1="18" x2="100" y2="82" stroke="#0b6a72" stroke-dasharray="3 2"/><path d="M62 88h76" stroke="#bf4630" stroke-width="1.6"/><path d="M62 84v8M138 84v8" stroke="#bf4630" stroke-width="1.2"/><text x="82" y="100" font-size="9" fill="#bf4630">3σ</text><text x="146" y="34" font-size="9" fill="#0b6a72">평균</text></svg>'}
+    s:'<svg viewBox="0 0 200 112"><g fill="#c9d4d9" stroke="#57676f" stroke-width=".8"><rect x="62" y="74" width="9" height="8"/><rect x="72" y="62" width="9" height="20"/><rect x="82" y="44" width="9" height="38"/><rect x="92" y="27" width="9" height="55"/><rect x="102" y="20" width="9" height="62"/><rect x="112" y="27" width="9" height="55"/><rect x="122" y="44" width="9" height="38"/><rect x="132" y="62" width="9" height="20"/><rect x="142" y="74" width="9" height="8"/></g><line x1="100" y1="18" x2="100" y2="82" stroke="#0b6a72" stroke-dasharray="3 2"/><path d="M62 88h76" stroke="#bf4630" stroke-width="1.6"/><path d="M62 84v8M138 84v8" stroke="#bf4630" stroke-width="1.2"/><text x="82" y="100" font-size="9" fill="#bf4630">3σ</text><text x="146" y="34" font-size="9" fill="#0b6a72">평균</text></svg>'}
 }
 /* 영어 정의 — 한국어 정의와 같은 내용을 현업 표기로 축약 */
 const TERM_EN = {
@@ -208,7 +208,7 @@ const T = {
   st_action:    ['조치 필요', 'Action required'],
   verified:     ['검증 완료', 'Verified'],
   needev:       ['근거 부족', 'Needs evidence'],
-  'd.out':      ['한계를 벗어난 지표', 'Out-of-limit components'],
+  'd.out':      ['관리 한계 이탈 항목 (OOC)', 'Out-of-control indicators'],
   'd.clear':    ['감시 중인 지표 {n}개 모두 관리 한계 이내', 'All {n} monitored components within control limits'],
   'd.whynormal':['감시 지표 {n}개 확인 · 전 항목 관리 한계 이내 · 귀속 트리거 없음',
                  '{n} indicators checked · all within limit · no attribution trigger'],
@@ -219,7 +219,9 @@ const T = {
   'd.gatenone': ['정상 판정은 추가 요구 조건이 없습니다. 감시 지표 전부가 관리 한계 이내인 것이 근거입니다.',
                  'A normal disposition requires no rule-specific gate. The basis is that every monitored component stayed within limits.'],
   'd.trace':    ['조사 경로', 'Investigation trace'],
-  'd.tracesub': ['에이전트가 실제로 호출한 도구 순서', 'Tool calls the agent actually made'],
+  'd.tracesub': ['에이전트가 실제로 호출한 도구 순서 · 붉은 단계는 이 로트에서만 수행한 확인',
+                 'Tools the agent actually called; red steps were taken only for this lot'],
+  'd.only':     ['이 로트 특이', 'lot-specific'],
   'd.tracesum': ['도구 {n}회 호출 · 이탈 지표 {o}개 · 게이트 {g}', '{n} tool calls · {o} out of limit · gate {g}'],
   'd.wafer':    ['웨이퍼 맵', 'Wafer map'],
   'd.wafersub': ['점 하나가 CD-SEM 측정 site입니다. 올리면 실측값이 나옵니다', 'Each dot is a CD-SEM site. Hover for the measured value'],
@@ -234,6 +236,7 @@ const T = {
   'th.margin':  ['한계까지', 'Margin'],
   'th.source':  ['출처', 'Source'],
   near:         ['한계 근접', 'Near limit'],
+  over:         ['{v} 초과', '{v} over'],
   'th.value':   ['측정값', 'Measured'],
   'th.limit':   ['관리 한계', 'Limit'],
   'th.state':   ['상태', 'State'],
@@ -468,6 +471,35 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') hidePop(); });
 addEventListener('scroll', hidePop, {passive: true});
+/* 본문에 나온 전문 용어를 용어 사전 항목과 자동으로 연결한다.
+   긴 표기부터 매칭해야 ADI/AEI가 'ADI–AEI' 안에서 쪼개지지 않는다. */
+const AUTOTERM = [
+  ['Verification Gate','attribution'], ['Monitor wafer','golden'], ['monitor wafer','golden'],
+  ['Etch bias','delta'], ['etch bias','delta'], ['ΔCD','delta'],
+  ['CD-SEM','cdsem'], ['X-SEM','xsem'], ['Excursion','excursion'], ['excursion','excursion'],
+  ['Rework','rework'], ['rework','rework'], ['Skip-lot','skiplot'], ['skip-lot','skiplot'],
+  ['TMU','tmu'], ['APC','apc'], ['CDU','cdu'], ['Pitch','pitch'],
+  ['Reticle','reticle'], ['레티클','reticle'], ['Chamber','chamber'], ['챔버','chamber'],
+  ['PEB','peb'], ['Dose','dose'], ['dose','dose'], ['Focus','dose'],
+  ['ADI','adi'], ['AEI','aci'], ['CD','cd'],
+];
+function autoTerm(html) {
+  /* 이미 태그 안에 들어간 텍스트는 건드리지 않도록 태그 단위로 쪼개 처리한다 */
+  return html.split(/(<[^>]*>)/).map(part => {
+    if (part.startsWith('<')) return part;
+    let out = part, done = [];
+    AUTOTERM.forEach(([word, key]) => {
+      if (!TERMS[key] || done.includes(key)) return;
+      const i = out.indexOf(word);
+      if (i < 0) return;
+      if (/[A-Za-z가-힣]/.test(out[i - 1] || '') || /[A-Za-z]/.test(out[i + word.length] || '')) return;
+      out = out.slice(0, i) + `<b class="term" data-t="${key}" tabindex="0" role="button">` +
+            word + '</b>' + out.slice(i + word.length);
+      done.push(key);
+    });
+    return out;
+  }).join('');
+}
 const infoBtn = k => k && TERMS[k] ? `<button class="info" data-t="${k}" aria-label="설명">i</button>` : '';
 
 /* ── 상태 ─────────────────────────────────────────────────── */
@@ -575,7 +607,7 @@ function openLot(id, push = true) {
         <span class="tech mono">${esc(evLabel(e.k))}</span></td>
       <td class="num">${esc(aei(e.v))}</td><td class="num">${esc(e.lim)}</td>
       <td class="num">${m ? (m.left >= 0 ? esc(m.left.toFixed(2))
-            : `<span class="bad">+${esc(Math.abs(m.left).toFixed(2))}</span>`) : '—'}</td>
+            : `<span class="bad">${esc(t('over', {v: Math.abs(m.left).toFixed(2)}))}</span>`) : '—'}</td>
       <td class="src">${esc(sourceLabel(e.k))}</td>
       <td><span class="state ${st.cls}">${esc(st.text)}</span></td></tr>`;
   }).join('');
@@ -626,10 +658,16 @@ function openLot(id, push = true) {
 <div class="panel" id="evPanel">
   <header><h2>${esc(t('d.out'))}</h2></header>
   ${outs.length
-    ? `<div class="outgrid">${outs.map(e => { const h = headline(aei(e.v)); return `<div class="outcard">
-        <div class="k">${esc(plainLabel(e.k))}</div><div class="v">${esc(h.head)}</div>
-        <div class="l">${h.rest ? esc(h.rest) + ' · ' : ''}${esc(t('th.limit'))} ${esc(e.lim)}
-          · <span class="mono">${esc(evLabel(e.k))}</span></div></div>`; }).join('')}</div>`
+    ? `<div class="outlist">${outs.map(e => { const h = headline(aei(e.v)), sg = sigSVG(evTerm(e.k), e);
+        return `<div class="outcard">
+        <div class="ocmain">
+          <div class="k">${esc(plainLabel(e.k))}</div><div class="v">${esc(h.head)}</div>
+          <div class="l">${h.rest ? esc(h.rest) + ' · ' : ''}${esc(t('th.limit'))} ${esc(e.lim)}
+            · <span class="mono">${esc(evLabel(e.k))}</span></div>
+        </div>
+        ${sg ? `<div class="ocsig">${sg.svg}</div>
+        <div class="octext"><b>${esc(sg.title)}</b><p>${esc(sg.desc)}</p>
+          <span class="occ" style="color:${sg.tint}">→ ${esc(sg.concl)}</span></div>` : ''}</div>`; }).join('')}</div>`
     : `<div class="allclear">✓ ${esc(t('d.whynormal', {n: (l.ev || []).length}))}</div>`}
 
   <h3 style="margin-top:26px">${esc(t('d.all'))}</h3>
@@ -691,12 +729,31 @@ function step(d) {
   if (i > -1 && rows[i + d]) openLot(rows[i + d].lot);
 }
 
+/* 어떤 단계가 '이 로트에서만 달랐는지'를 찾는다.
+   도구별로 가장 흔한 사유를 기준선으로 두고, 그와 다른 단계를 특이 단계로 본다. */
+let _modeReason = null;
+function modeReason() {
+  if (_modeReason) return _modeReason;
+  const cnt = {};
+  Object.values(INV).forEach(v => (v.trace || []).forEach(st => {
+    (cnt[st.tool] = cnt[st.tool] || {})[st.reason] = (cnt[st.tool]?.[st.reason] || 0) + 1;
+  }));
+  _modeReason = {};
+  Object.entries(cnt).forEach(([tool, rs]) => {
+    _modeReason[tool] = Object.entries(rs).sort((a, b) => b[1] - a[1])[0][0];
+  });
+  return _modeReason;
+}
+
 function renderTrace(inv) {
   if (!inv?.trace?.length) return `<p class="empty">${esc(LANG === 'ko' ? '이 로트의 조사 기록이 없습니다.' : 'No trace available.')}</p>`;
+  const MODE = modeReason();
   return inv.trace.map((s, i) => {
     const evs = s.tool === 'get_equipment_events' ? (s.result?.events || []) : [];
-    return `<div class="step">
-      <div class="tool"><span class="mono sub">${String(i + 1).padStart(2, '0')}</span> ${esc(toolLabel(s.tool))}</div>
+    const only = MODE[s.tool] && s.reason !== MODE[s.tool];
+    return `<div class="step${only ? ' only' : ''}">
+      <div class="tool"><span class="mono sub">${String(i + 1).padStart(2, '0')}</span> ${esc(toolLabel(s.tool))}
+        ${only ? `<span class="onlytag">${esc(t('d.only'))}</span>` : ''}</div>
       <div class="why">${esc(reasonText(s.reason))}</div>
       ${evs.length ? `<div class="evs">${evs.slice(0, 3).map(e =>
         `<div><span class="mono">D${e.day_index}</span> · ${esc(e.event_type)}${e.component ? ' · ' + esc(e.component) : ''} — ${esc(e.description || '')}</div>`).join('')}
@@ -704,6 +761,112 @@ function renderTrace(inv) {
       <details class="raw"><summary>${esc(t('raw'))}</summary><pre class="rawjson">${esc(JSON.stringify(s.result, null, 2))}</pre></details>
     </div>`;
   }).join('');
+}
+
+
+/* ── 이상 지문 시각화 ──────────────────────────────────────────────
+   "어느 좌표계에서 어긋났는가"를 그림으로 보여준다.
+   글자는 SVG 안에 넣지 않는다. 브라우저·화면 폭에 따라 잘리기 때문에
+   그림은 도형만 그리고 설명은 HTML로 옆에 붙인다. */
+function sigSVG(term, e) {
+  const ko = LANG === 'ko', L = (a, b) => ko ? a : b;
+  const HOT = '#BF4630', COLD = '#2C6DA6', LINE = '#C8D2D8';
+  const sign = /^[-−]/.test(String(e.v).trim()) ? -1 : 1;
+  const tint = sign > 0 ? HOT : COLD;
+  const wafer = inner => `<circle cx="62" cy="58" r="44" fill="#FCFBFD" stroke="${LINE}" stroke-width="1.3"/>
+      ${inner}<path d="M57 102h10l-5-8z" fill="${LINE}"/>`;
+  const box = g => `<svg viewBox="0 0 124 116" role="img" aria-hidden="true">${g}</svg>`;
+  const R = (svg, a, b, c) => ({svg, title: a, desc: b, concl: c, tint});
+
+  switch (term) {
+    case 'ADI':
+      return R(box(wafer(`<circle cx="62" cy="58" r="44" fill="${tint}" fill-opacity=".32"/>`)),
+        L('웨이퍼 전면이 같은 방향으로 이동', 'The whole wafer shifts together'),
+        L('중심과 가장자리 구분 없이 균일하게 이동합니다.', 'Center and edge move by the same amount.'),
+        L('Dose 계열 지문', 'Dose-family fingerprint'));
+
+    case 'RADIAL':
+      return R(box(wafer(`<circle cx="62" cy="58" r="44" fill="${tint}" fill-opacity=".32"/>
+          <circle cx="62" cy="58" r="29" fill="#FCFBFD"/>
+          <circle cx="62" cy="58" r="14" fill="${sign > 0 ? COLD : HOT}" fill-opacity=".32"/>`)),
+        L('중심과 가장자리가 반대 방향', 'Center and edge move apart'),
+        L('평균은 그대로여도 산포가 벌어집니다.', 'The mean can stay flat while the spread grows.'),
+        L('PEB · Coat 계열 지문', 'PEB / coat fingerprint'));
+
+    case 'RETICLE_REPEAT': {
+      let g = '';
+      for (let fx = 0; fx < 3; fx++) for (let fy = 0; fy < 2; fy++) {
+        const x = 8 + fx * 38, y = 20 + fy * 46;
+        g += `<rect x="${x}" y="${y}" width="34" height="42" fill="none" stroke="${LINE}"/>
+              <circle cx="${x + 24}" cy="${y + 11}" r="4.6" fill="${HOT}"/>`;
+      }
+      return R(box(g),
+        L('모든 field의 같은 자리에서 반복', 'Repeats at the same site in every field'),
+        L('웨이퍼 위치와 무관하게 동일한 패턴이 나타납니다.', 'The same pattern appears regardless of field position.'),
+        L('Reticle 지문', 'Reticle fingerprint'));
+    }
+
+    case 'DELTA_CD': case 'DELTA_NA': {
+      const adi = 56, aei = Math.max(20, 56 + sign * 18);
+      return R(box(`<rect x="16" y="${84 - adi}" width="34" height="${adi}" fill="#C9D4D9" stroke="#14060F" stroke-width="1.1"/>
+        <rect x="72" y="${84 - aei}" width="34" height="${aei}" fill="${tint}" fill-opacity=".32" stroke="${tint}" stroke-width="1.6"/>
+        <path d="M54 62h14" stroke="${LINE}" stroke-width="1.5"/><path d="M64 57l6 5-6 5" fill="${LINE}"/>
+        <line x1="10" y1="84" x2="114" y2="84" stroke="${LINE}"/>`),
+        L('ADI는 정상, 식각 후에만 이동', 'ADI is clean; it moves only after etch'),
+        L('노광 단계는 배제되고 후보가 둘로 좁혀집니다.', 'Litho is ruled out; two candidates remain.'),
+        L('Etch 또는 Metrology', 'Etch or metrology'));
+    }
+
+    case 'CHAMBER': {
+      const hot = (e.k.match(/CH-[A-D]/) || ['CH-?'])[0];
+      let g = '';
+      ['CH-A', 'CH-B', 'CH-C', 'CH-D'].forEach((c, i) => {
+        const on = c === hot, x = 8 + (i % 2) * 58, y = 18 + Math.floor(i / 2) * 52;
+        g += `<rect x="${x}" y="${y}" width="50" height="44" rx="6" fill="${on ? tint : '#fff'}"
+                fill-opacity="${on ? .28 : 1}" stroke="${on ? tint : LINE}" stroke-width="${on ? 2.2 : 1.2}"/>
+              <text x="${x + 25}" y="${y + 27}" text-anchor="middle" font-size="11"
+                fill="${on ? tint : '#57505C'}" font-weight="${on ? 700 : 400}">${c}</text>`;
+      });
+      return R(box(g),
+        L(`${hot} Chamber를 지난 Lot에만 집중`, `Concentrated on lots through ${hot}`),
+        L('다른 Chamber를 지난 Lot은 정상입니다.', 'Lots through the other chambers are clean.'),
+        L('Etch Chamber 지문', 'Etch chamber fingerprint'));
+    }
+
+    case 'MONITOR':
+      return R(box(`<line x1="10" y1="62" x2="114" y2="62" stroke="${LINE}"/>
+        <polyline points="14,62 40,61 62,62 86,${62 - sign * 16} 110,${62 - sign * 28}" fill="none"
+          stroke="${tint}" stroke-width="2.6"/>
+        <circle cx="110" cy="${62 - sign * 28}" r="4.4" fill="${tint}"/>`),
+        L('공정이 닿지 않은 웨이퍼가 이동', 'A wafer no process touched has moved'),
+        L('Monitor wafer는 라인에 재투입하지 않습니다. 이동분은 측정 장비 기여입니다.',
+          'The monitor wafer never re-enters the line, so the shift belongs to the tool.'),
+        L('Metrology 지문', 'Metrology fingerprint'));
+
+    case 'TMU': {
+      const m = String(e.v).match(/=\s*(\d+(?:\.\d+)?)%/), pct = m ? Math.min(+m[1], 100) : 0;
+      return R(box(`<rect x="10" y="46" width="104" height="26" rx="4" fill="#F2F5F6" stroke="${LINE}"/>
+        <rect x="10" y="46" width="${104 * pct / 100}" height="26" rx="4" fill="${HOT}" fill-opacity=".38"/>
+        <line x1="${10 + 104 * 0.2}" y1="38" x2="${10 + 104 * 0.2}" y2="80" stroke="${HOT}" stroke-width="2" stroke-dasharray="4 3"/>
+        <text x="${10 + 104 * 0.2}" y="34" text-anchor="middle" font-size="10" fill="${HOT}">20%</text>`),
+        L(`계측 오차가 공정 예산의 ${m ? m[1] : '—'}%를 소비`, `Measurement error uses ${m ? m[1] : '—'}% of the budget`),
+        L('허용 기준 20%를 넘어 공정 변동과 측정 오차가 구분되지 않습니다.',
+          'Past the 20% limit, process variation and measurement error can no longer be separated.'),
+        L('이 장비 측정값으로 공정 조치 불가', 'No process action on this tool\u2019s readings'));
+    }
+
+    case 'SENSOR':
+      return R(box(`<line x1="10" y1="60" x2="114" y2="60" stroke="#57505C" stroke-width="1.8" stroke-dasharray="5 3"/>
+        <polyline points="14,60 44,60 76,${60 - sign * 12} 110,${60 - sign * 24}" fill="none" stroke="${tint}" stroke-width="2.6"/>
+        <path d="M110 ${60 - sign * 24} V60" stroke="${HOT}" stroke-width="1.8"/>
+        <circle cx="110" cy="${60 - sign * 24}" r="4" fill="${tint}"/>`),
+        L('Recipe는 그대로, 실조사량만 이동', 'Recipe unchanged; only the delivered dose moved'),
+        L('Setting을 고쳐도 실효 dose는 그대로여서 재발합니다.',
+          'Editing the setting would not change the delivered dose.'),
+        L('Calibration 우선', 'Calibration first'));
+
+    default: return null;
+  }
 }
 
 /* ── 웨이퍼 맵 ────────────────────────────────────────────── */
@@ -1073,15 +1236,15 @@ function renderHome() {
   const P = perfStats();
 
   $('#heroBullets').innerHTML = [
-    L('<b>대상</b> · ADI–AEI CD 계측 데이터 (합성 320 Lot · 8주 · 4 Chamber · CD-SEM 2대)',
-      '<b>Input</b> · ADI–AEI CD metrology (320 synthetic lots · 8 weeks · 4 chambers · 2 CD-SEMs)'),
-    L('<b>출력</b> · 원인 모듈 귀속 — Litho / Etch / <b>Metrology</b> · 조치 권고',
-      '<b>Output</b> · module attribution — Litho / Etch / <b>Metrology</b> · recommended action'),
-    L('<b>차별점</b> · 계측 장비 자체를 원인 후보에 포함 · TMU 예산 초과 시 공정 귀속 차단',
-      '<b>Differentiator</b> · the measuring tool is a suspect too · process attribution blocked when TMU exceeds budget'),
-    L('<b>원칙</b> · 수치는 도구만 산출 · 최종 판정은 결정론적 Verification Gate',
-      '<b>Principle</b> · tools produce every number · a deterministic gate makes the call'),
-  ].map(x => `<li>${x}</li>`).join('');
+    L('<b>입력</b> · ADI·AEI CD 계측값, 설비 이력, Monitor wafer 재측정 이력',
+      '<b>Input</b> · ADI and AEI CD, equipment history, monitor-wafer re-measurements'),
+    L('<b>출력</b> · 원인 모듈 1개(Litho / Etch / Metrology) + 조치 순서. 근거 부족 시 보류',
+      '<b>Output</b> · one module (Litho / Etch / Metrology) plus an action sequence, or a withheld verdict'),
+    L('<b>전제</b> · 계측값도 틀릴 수 있다. 측정 장비를 원인 후보에서 빼지 않았다',
+      '<b>Premise</b> · metrology can be wrong too, so the measuring tool stays on the suspect list'),
+    L('<b>설계 원칙</b> · 수치는 도구만 만들고, 판정은 결정론적 Verification Gate가 내린다',
+      '<b>Design rule</b> · tools produce every number; a deterministic verification gate makes the call'),
+  ].map(x => `<li>${autoTerm(x)}</li>`).join('');
 
   $('#homeKpi').innerHTML = [
     [P ? P.total : DATA.lots.length, L('평가 Lot', 'Lots evaluated')],
@@ -1091,23 +1254,24 @@ function renderHome() {
   ].map(([v, k]) => `<div><b>${v}</b><small>${esc(k)}</small></div>`).join('');
 
   $('#probList').innerHTML = [
-    L('CD Excursion 발생 시 Litho·Etch 모듈이 각자 데이터로 원인 주장 → 합의까지 시간 소요',
-      'On a CD excursion, litho and etch each argue from their own data — agreement takes time'),
-    L('ADI 시점 경과 시 Rework window 종료 → Hold / Scrap 손실 확정',
-      'Past ADI the rework window closes — the loss is locked in'),
-    L('계측값을 참으로 전제 → 측정기 Drift를 공정 이상으로 오판 시 정상 Chamber Recipe 변경 위험',
-      'Metrology is assumed true — tool drift read as a process fault means touching a healthy chamber'),
-  ].map(x => `<li>${x}</li>`).join('');
+    L('CD Excursion이 뜨면 Litho와 Etch가 각자 자기 데이터로 결백을 주장한다. 합의가 늦어질수록 재공 손실이 커진다.',
+      'When a CD excursion hits, litho and etch each argue from their own data. Every hour of debate costs material.'),
+    L('ADI를 지나면 Rework window가 닫힌다. 그 뒤에 원인을 찾아봐야 Hold 아니면 Scrap이다.',
+      'Past ADI the rework window is closed. Finding the cause after that only decides hold or scrap.'),
+    L('그런데 이 논쟁은 계측값이 맞다는 전제 위에 있다. 측정기가 흔들린 것이라면 정상 Chamber의 Recipe를 건드리게 된다.',
+      'And the whole argument assumes the numbers are right. If the tool drifted, a healthy chamber gets retuned.'),
+  ].map(x => `<li>${autoTerm(x)}</li>`).join('');
 
   $('#apprList').innerHTML = [
-    L('CD 잔차를 좌표계별 성분으로 분해 — Wafer mean / Radial / Slit / Reticle',
-      'Decompose the CD residual by coordinate system — wafer mean / radial / slit / reticle'),
-    L('ΔCD 이탈 시 Metrology 우선 배제 — Monitor wafer · TMU 20% 예산',
-      'On a Delta-CD excursion, rule out metrology first — monitor wafer and the 20% TMU budget'),
-    L('Verification Gate로 요구 조건 재검증 — 미충족 시 원인 미지목',
-      'A verification gate re-checks required conditions — unmet means no cause is named'),
-    L('판정 보류를 실패가 아닌 정상 출력으로 설계', 'Withholding is a designed output, not a failure'),
-  ].map(x => `<li>${x}</li>`).join('');
+    L('CD 잔차를 좌표계별로 쪼갠다. Wafer mean은 Dose, 반경은 PEB, 동일 site 반복은 Reticle의 지문이다.',
+      'Split the CD residual by coordinate system: wafer mean points at dose, radial at PEB, same-site repetition at the reticle.'),
+    L('ΔCD가 흔들리면 Chamber보다 Metrology를 먼저 배제한다. Monitor wafer와 TMU 예산을 본다.',
+      'If Delta-CD moves, rule out metrology before the chamber: check the monitor wafer and the TMU budget.'),
+    L('Verification Gate가 요구 조건을 다시 검사한다. 하나라도 못 채우면 원인을 지목하지 않는다.',
+      'A verification gate re-checks the required conditions. One unmet condition means no cause is named.'),
+    L('보류는 실패가 아니라 설계된 출력이다. 근거 없이 지목하는 것이 더 비싼 실수다.',
+      'Withholding is a designed output, not a failure. Naming a cause without evidence costs more.'),
+  ].map(x => `<li>${autoTerm(x)}</li>`).join('');
 
   $('#guideGrid').innerHTML = [
     ['flow', L('공정 흐름', 'Process flow'), L('Coat부터 AEI까지 · 단계별 변동 인자', 'Coat to AEI · drift factors by step')],
