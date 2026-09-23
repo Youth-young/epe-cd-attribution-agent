@@ -65,7 +65,7 @@ const TERMS = {
   sensor:{k:'Energy Sensor 실측값',e:'energy sensor readback',d:'스캐너 내부 에너지 센서가 실제로 조사된 광량을 적산해 읽은 값입니다. CD가 반응하는 것은 Setting이 아니라 이 실효 dose입니다. Setting은 그대로인데 이 값만 이동했다면 광원 교체 후 Dose Mapper Calibration 누락, 센서 열화·오염, 조명계 투과율 변화를 의심합니다. 이 경우 Recipe를 고쳐도 실효 dose는 그대로여서 재발합니다.',
     s:'<svg viewBox="0 0 220 110"><line x1="26" y1="86" x2="182" y2="86" stroke="#c8d2d8"/><line x1="26" y1="20" x2="26" y2="86" stroke="#c8d2d8"/><line x1="26" y1="58" x2="182" y2="58" stroke="#8b98a3" stroke-dasharray="5 3"/><text x="32" y="54" font-size="9" fill="#57676f">Setting 32.0 (고정)</text><polyline points="34,60 62,58 90,59 112,50 134,40 160,34" fill="none" stroke="#a05c00" stroke-width="2"/><text x="106" y="28" font-size="9" fill="#a05c00">Sensor 실측</text><path d="M160 34 L160 58" stroke="#bf4630" stroke-width="1.6"/><text x="104" y="76" font-size="9" fill="#bf4630">이 괴리가 실효 dose 오차</text><text x="46" y="104" font-size="9" fill="#57676f">시간</text></svg>'},
   dosemapper:{k:'Dose Mapper Calibration',e:'dose sensor calibration',d:'에너지 센서가 읽는 값과 웨이퍼 면에 실제 도달하는 광량 사이의 변환 관계를 다시 맞추는 작업입니다. 광원(Laser Source)을 교체하면 파장 대역폭(E95)과 pulse energy 특성이 달라지므로 같은 Setting에서도 실효 dose가 달라질 수 있습니다. 그래서 Source 교체는 Calibration 재수행을 필수 절차로 Change Control Checklist에 넣습니다.'},
-  changepoint:{k:'변경점 · PM/Inform 이력',e:'change point / maintenance log',d:'설비에 가해진 모든 변경의 기록입니다. 부품 교체, PM, Recipe 변경, Calibration 수행 이력이 시점과 함께 남습니다. 이상 분석의 출발점은 항상 이상이 시작된 시점과 일치하는 변경점이 있는가이며, 시점이 어긋나면 그 항목은 원인 후보에서 배제합니다.'},
+  changepoint:{k:'변경점 · 정비 이력',e:'change point / maintenance log',d:'설비에 가해진 모든 변경의 기록입니다. 부품 교체, PM, Recipe 변경, Calibration 수행 이력이 시점과 함께 남습니다. 이상 분석의 출발점은 항상 이상이 시작된 시점과 일치하는 변경점이 있는가이며, 시점이 어긋나면 그 항목은 원인 후보에서 배제합니다.'},
   ocap:{k:'SPC 관리도 · OCAP',e:'Statistical Process Control / Out of Control Action Plan',d:'지표를 관리 한계와 함께 시계열로 관리하고(SPC 관리도), 한계를 벗어났을 때 누가 무엇을 하는지 사전에 정해두는 절차(OCAP)입니다. Setting값만 감시하면 Setting과 실측의 괴리를 놓치므로, Sensor 실측값 자체에 관리도를 거는 것이 재발 방지의 핵심입니다.'},
   gate_ok:{k:'검증 완료',e:'Verified',d:'이 판정이 요구하는 규칙 기반 검증 항목을 코드가 다시 확인했고 모두 통과했습니다. 게이트는 LLM이 아니라 결정론적 코드가 실행합니다.'},
   gate_hold:{k:'근거 부족',e:'Needs evidence',d:'요구 조건 중 하나 이상을 충족하지 못해 원인을 지목하지 않고 보류했습니다. 판정 실패가 아니라 근거 부족을 그대로 보고한 것입니다.'},
@@ -120,7 +120,7 @@ const TERM_EN = {
   ocap:'Charting an indicator against control limits and pre-defining who does what when it breaches. Watching only the setting hides a setting-to-sensor gap, so charting the sensor reading itself is the key to preventing recurrence.',
   cdu:'How uniform CD is across the wafer, usually quoted as 3σ. Even on-target on average, poor CDU puts part of the wafer out of spec. About 4.2 nm here.',
 };
-const KO_RULE = {"PHOTO_DOSE": {"label": "노광 dose drift", "risk": "정상", "module": "Photo", "cause": "웨이퍼 평균 ADI CD가 통째로 이동했고, 반경 성분·슬릿 지문·레티클 반복 성분은 모두 관리 한계 안이다. 즉 어긋남이 웨이퍼 특정 위치에 몰리지 않고 전면에 균일하게 걸린 형태(wafer mean shift)이며, 이는 웨이퍼 전체에 동일하게 작용하는 인자의 지문이다. 노광량(dose)이 여기에 해당한다. Setting값(Recipe Input)은 유지되어 있는데 Energy Sensor 실측값만 이탈했다면 실효 dose와 Setting 사이에 괴리가 생긴 것이고, 이는 Dose Mapper / Energy Sensor Calibration 이탈을 먼저 의심해야 하는 상황이다.", "action": "순서가 중요하다. (1) Setting값과 Energy Sensor 실측값의 괴리부터 확인한다. 괴리가 있으면 Recipe를 건드리기 전에 Dose Mapper / Energy Sensor Calibration을 재수행한다. Setting만 조정하면 실효 dose는 그대로여서 재발한다. (2) PM / Inform 이력에서 해당 시점의 변경점을 조회한다 — Laser Source 교체, 조명계 광학 부품 교체, 최근 Calibration 수행 일자. CD 변화 시점과 일치하는 변경점이 있으면 1차 유력 원인으로 지목한다. (3) Energy Sensor 시계열이 단발성 step 변화인지 지속 drift인지 구분한다. step이면 변경점 연계, drift면 센서 열화·오염을 본다. (4) 광원 특성 파라미터를 함께 조회한다 — Pulse Energy Stability(Energy Sigma), Bandwidth(E95), 조명계 Transmission Efficiency. Source 교체 후 파장 특성이 달라지면 같은 Setting에서도 실효 dose가 달라진다. (5) Track 측 Develop / PEB 조건에 변경점이 없음을 확인해 Photo 원인 귀속의 배제 근거를 확보한다. (6) 조치 후 rework lot으로 Before/After CD 회복 여부를 검증한다. ADI 시점이므로 스펙 이탈 웨이퍼는 아직 rework window 안에 있다. (7) 재발 방지 — Energy Sensor 실측값에 SPC 관리도를 걸고 Setting 대비 편차가 한계를 넘으면 알람이 뜨는 OCAP을 수립한다. Source 교체를 Change Control Checklist에 Calibration 필수 항목으로 반영한다."}, "PHOTO_TRACK_RADIAL": {"label": "트랙/PEB 반경 프로파일 변화", "risk": "주의", "module": "Photo(Track)", "cause": "ADI 잔차를 (r/R)²로 회귀했을 때 반경 계수가 관리 한계를 넘었다. 웨이퍼 중심과 엣지의 CD 차이가 벌어진 형태이고, 웨이퍼 평균 자체는 크게 움직이지 않았다. dose처럼 전면에 균일하게 걸리는 인자로는 이 모양이 나오지 않는다. PEB plate 온도 프로파일이나 코팅 두께의 반경 분포가 바뀐 형태이며, ΔCD(etch bias)는 정상이므로 Etch 이후 요인은 배제된다.", "action": "(1) 해당 Track의 PEB plate 온도 맵(zone별 설정값과 실측값)을 조회한다. zone 히터 이상이나 온도 보정 테이블 변경 이력이 있는지 본다. (2) 코터 회전 프로파일과 레지스트 도포 두께의 반경 분포를 확인한다. (3) Track PM / Inform 이력에서 해당 시점의 변경점을 조회한다. (4) 반경 성분은 스캐너 dose 보정으로 상쇄되지 않는다. wafer mean만 맞추는 R2R 피드백으로 덮으면 중심과 엣지가 반대 방향으로 벌어져 CDU가 더 나빠진다. dose 보정으로 대응하지 말 것."}, "RETICLE_CD_ERROR": {"label": "레티클 CD 오차", "risk": "주의", "module": "Photo(Reticle)", "cause": "특정 site에서만 편차가 나타나고 모든 field에서 동일하게 반복된다. 웨이퍼·반경 좌표계와 무관하므로 마스크 자체의 CD 오차로 귀속된다.", "action": "(1) 해당 레티클을 다른 스캐너에서 노광해 동일 site에서 같은 편차가 재현되는지 확인한다. 재현되면 레티클, 스캐너를 따라가면 스캐너 지문이다. (2) 마스크 CD 측정 성적서와 최근 세정·수리 이력을 조회한다. (3) Pellicle 오염이나 마스크 CD 열화 가능성을 함께 본다. (4) 스캐너 dose나 Etch recipe를 먼저 건드리지 말 것. 이 성분은 site에 고정되어 있어 전면 보정으로는 상쇄되지 않는다."}, "ETCH_CHAMBER": {"label": "식각 챔버 편차 / PM drift", "risk": "위험", "module": "Etch", "cause": "ADI는 정상인데 ΔCD가 이동했고, 특정 챔버에서만 나타나며 웨이퍼 반경 성분을 동반한다. 플라즈마 균일도·가스 흐름·ESC 온도 변화 또는 PM 이후 누적 drift로 귀속된다.", "action": "(1) 해당 챔버를 격리하고 chamber matching 웨이퍼로 etch bias를 재측정한다. (2) RF hours 대비 bias 추이를 확인해 seasoning drift인지 단발성 이상인지 가른다. PM 직후 급변(first wafer effect) 구간과 그 이후 완만한 drift 구간을 구분해서 본다. (3) OES / RF / 압력 트레이스에서 해당 기간의 변화점을 조회한다. (4) 챔버 PM 이력과 wet clean 일자를 CD 변화 시점과 대조한다. (5) AEI 시점은 되돌릴 수 없다. 이후 로트는 ADI Target을 임시 보정해 최종 CD를 스펙 안으로 넣고, 챔버 조치 완료 후 원복한다."}, "METROLOGY_TOOL_DRIFT": {"label": "계측 장비 offset drift", "risk": "위험", "module": "Metrology", "cause": "ΔCD가 이동했지만 특정 챔버에 몰리지 않고, 특정 계측 장비로 측정한 로트에서만 나타난다. 공정이 건드리지 않은 monitor wafer의 재측정값이 같은 방향으로 이동했으므로 공정 변화가 아니라 계측 장비의 offset drift다.", "action": "(1) 공정 조치를 보류한다. 이 상태에서 챔버 recipe를 건드리면 정상 설비를 틀어놓게 된다. (2) 해당 CD-SEM의 monitor wafer 재측정 이력과 최근 calibration 일자를 조회하고 재캘리브레이션을 수행한다. (3) 두 장비의 tool-to-tool matching offset을 재산출한다. (4) 영향 기간에 해당 장비로 측정된 로트를 모두 재판정한다. (5) monitor wafer 점검 주기를 단축할지 검토한다. 이번 사례에서 판정 보류가 발생한 원인이 감시 주기 부족이었다. (6) TMU 항을 분해해 precision과 tool-to-tool match 중 어느 쪽이 예산을 먹는지 본다. match가 주범이면 fleet matching 재조정, precision이 주범이면 recipe(프레임 수, 배율, landing energy)나 장비 컨디션을 본다."}, "INDETERMINATE": {"label": "판정 보류", "risk": "주의", "module": "-", "cause": "이상은 탐지되었으나 원인을 특정할 증거가 부족하다. 챔버 편중과 계측 drift가 모두 기준에 못 미치거나, 근거 데이터가 없는 경우다.", "action": "추가 측정 요청 — 해당 챔버 매칭 웨이퍼, monitor wafer 임시 재측정, 단면 taper 확인. 근거 없이 조치 대상을 지정하지 않는다."}, "NORMAL": {"label": "정상", "risk": "정상", "module": "-", "cause": "모든 성분이 관리 한계 내에 있다.", "action": "조치 없음."}};
+const KO_RULE = {"PHOTO_DOSE": {"label": "노광 dose drift", "risk": "정상", "module": "Photo", "cause": "웨이퍼 평균 ADI CD가 통째로 이동했고, 반경 성분·슬릿 지문·레티클 반복 성분은 모두 관리 한계 안이다. 즉 어긋남이 웨이퍼 특정 위치에 몰리지 않고 전면에 균일하게 걸린 형태(wafer mean shift)이며, 이는 웨이퍼 전체에 동일하게 작용하는 인자의 지문이다. 노광량(dose)이 여기에 해당한다. Setting값(Recipe Input)은 유지되어 있는데 Energy Sensor 실측값만 이탈했다면 실효 dose와 Setting 사이에 괴리가 생긴 것이고, 이때는 조사량 센서 교정(Energy Sensor Calibration) 이탈을 먼저 의심한다.", "action": "순서가 중요하다. (1) Setting값과 Energy Sensor 실측값의 괴리부터 확인한다. 괴리가 있으면 Recipe를 건드리기 전에 조사량 센서 교정(Energy Sensor Calibration)을 재수행한다. field 내 CDU 보정 기능인 Dose Mapper(DoMa)와는 다른 절차다. Setting만 조정하면 실효 dose는 그대로여서 재발한다. (2) PM · 부품 교체 · Calibration 이력에서 해당 시점의 변경점을 조회한다 — Laser Source 교체, 조명계 광학 부품 교체, 최근 Calibration 수행 일자. CD 변화 시점과 일치하는 변경점이 있으면 1차 유력 원인으로 지목한다. (3) Energy Sensor 시계열이 단발성 step 변화인지 지속 drift인지 구분한다. step이면 변경점 연계, drift면 센서 열화·오염을 본다. (4) 광원 특성 파라미터를 함께 조회한다 — Pulse Energy Stability(Energy Sigma), Bandwidth(E95), 조명계 Transmission Efficiency. Source 교체 후 파장 특성이 달라지면 같은 Setting에서도 실효 dose가 달라진다. (5) Track 측 Develop / PEB 조건에 변경점이 없음을 확인해 Photo 원인 귀속의 배제 근거를 확보한다. (6) 조치 후 rework lot으로 Before/After CD 회복 여부를 검증한다. ADI 시점이므로 스펙 이탈 웨이퍼는 아직 rework window 안에 있다. (7) 재발 방지 — Energy Sensor 실측값에 SPC 관리도를 걸고 Setting 대비 편차가 한계를 넘으면 알람이 뜨는 OCAP을 수립한다. Source 교체를 Change Control Checklist에 Calibration 필수 항목으로 반영한다."}, "PHOTO_TRACK_RADIAL": {"label": "트랙/PEB 반경 프로파일 변화", "risk": "주의", "module": "Photo(Track)", "cause": "ADI 잔차를 (r/R)²로 회귀했을 때 반경 계수가 관리 한계를 넘었다. 웨이퍼 중심과 엣지의 CD 차이가 벌어진 형태이고, 웨이퍼 평균 자체는 크게 움직이지 않았다. dose처럼 전면에 균일하게 걸리는 인자로는 이 모양이 나오지 않는다. PEB plate 온도 프로파일이나 코팅 두께의 반경 분포가 바뀐 형태이며, ΔCD(etch bias)는 정상이므로 Etch 이후 요인은 배제된다.", "action": "(1) 해당 Track의 PEB plate 온도 맵(zone별 설정값과 실측값)을 조회한다. zone 히터 이상이나 온도 보정 테이블 변경 이력이 있는지 본다. (2) 코터 회전 프로파일과 레지스트 도포 두께의 반경 분포를 확인한다. (3) Track PM · 부품 교체 · Calibration 이력에서 해당 시점의 변경점을 조회한다. (4) 반경 성분은 스캐너 dose 보정으로 상쇄되지 않는다. wafer mean만 맞추는 R2R 피드백으로 덮으면 중심과 엣지가 반대 방향으로 벌어져 CDU가 더 나빠진다. dose 보정으로 대응하지 말 것."}, "RETICLE_CD_ERROR": {"label": "레티클 CD 오차", "risk": "주의", "module": "Photo(Reticle)", "cause": "특정 site에서만 편차가 나타나고 모든 field에서 동일하게 반복된다. 웨이퍼·반경 좌표계와 무관하므로 마스크 자체의 CD 오차로 귀속된다.", "action": "(1) 해당 레티클을 다른 스캐너에서 노광해 동일 site에서 같은 편차가 재현되는지 확인한다. 재현되면 레티클, 스캐너를 따라가면 스캐너 지문이다. (2) 마스크 CD 측정 성적서와 최근 세정·수리 이력을 조회한다. (3) Pellicle 오염이나 마스크 CD 열화 가능성을 함께 본다. (4) 스캐너 dose나 Etch recipe를 먼저 건드리지 말 것. 이 성분은 site에 고정되어 있어 전면 보정으로는 상쇄되지 않는다."}, "ETCH_CHAMBER": {"label": "식각 챔버 편차 / PM drift", "risk": "위험", "module": "Etch", "cause": "ADI는 정상인데 ΔCD가 이동했고, 특정 챔버에서만 나타나며 웨이퍼 반경 성분을 동반한다. 플라즈마 균일도·가스 흐름·ESC 온도 변화 또는 PM 이후 누적 drift로 귀속된다.", "action": "(1) 해당 챔버를 격리하고 chamber matching 웨이퍼로 etch bias를 재측정한다. (2) RF hours 대비 bias 추이를 확인해 seasoning drift인지 단발성 이상인지 가른다. PM 직후 급변(first wafer effect) 구간과 그 이후 완만한 drift 구간을 구분해서 본다. (3) OES / RF / 압력 트레이스에서 해당 기간의 변화점을 조회한다. (4) 챔버 PM 이력과 wet clean 일자를 CD 변화 시점과 대조한다. (5) AEI 시점은 되돌릴 수 없다. 이후 로트는 ADI Target을 임시 보정해 최종 CD를 스펙 안으로 넣고, 챔버 조치 완료 후 원복한다."}, "METROLOGY_TOOL_DRIFT": {"label": "계측 장비 offset drift", "risk": "위험", "module": "Metrology", "cause": "ΔCD가 이동했지만 특정 챔버에 몰리지 않고, 특정 계측 장비로 측정한 로트에서만 나타난다. 공정이 건드리지 않은 monitor wafer의 재측정값이 같은 방향으로 이동했으므로 공정 변화가 아니라 계측 장비의 offset drift다.", "action": "(1) 공정 조치를 보류한다. 이 상태에서 챔버 recipe를 건드리면 정상 설비를 틀어놓게 된다. (2) 해당 CD-SEM의 monitor wafer 재측정 이력과 최근 calibration 일자를 조회하고 재캘리브레이션을 수행한다. (3) 두 장비의 tool-to-tool matching offset을 재산출한다. (4) 영향 기간에 해당 장비로 측정된 로트를 모두 재판정한다. (5) monitor wafer 점검 주기를 단축할지 검토한다. 이번 사례에서 판정 보류가 발생한 원인이 감시 주기 부족이었다. (6) TMU 항을 분해해 precision과 tool-to-tool match 중 어느 쪽이 예산을 먹는지 본다. match가 주범이면 fleet matching 재조정, precision이 주범이면 recipe(프레임 수, 배율, landing energy)나 장비 컨디션을 본다."}, "INDETERMINATE": {"label": "판정 보류", "risk": "주의", "module": "-", "cause": "이상은 탐지되었으나 원인을 특정할 증거가 부족하다. 챔버 편중과 계측 drift가 모두 기준에 못 미치거나, 근거 데이터가 없는 경우다.", "action": "추가 측정 요청 — 해당 챔버 매칭 웨이퍼, monitor wafer 임시 재측정, 단면 taper 확인. 근거 없이 조치 대상을 지정하지 않는다."}, "NORMAL": {"label": "정상", "risk": "정상", "module": "-", "cause": "모든 성분이 관리 한계 내에 있다.", "action": "조치 없음."}};
 /* ============================================================
    CD 이상 원인 판정 콘솔 — 화면 로직
    판정·게이트·에이전트 로직은 건드리지 않는다. 표시 계층만 담당.
@@ -133,6 +133,22 @@ const $$ = s => [...document.querySelectorAll(s)];
 /* data.js의 컬럼명은 그대로 두고, 화면에 보일 때만 표준 용어(AEI)로 바꾼다.
    엔진·판정 로직은 건드리지 않는다. */
 const aei = v => String(v ?? '').replace(/\bACI\b/g, 'AEI');
+/* data.js의 조치 문안은 영문이고 Dose Mapper 표현이 섞여 있다.
+   판정 로직은 그대로 두고 화면 표기만 정확한 용어로 바꾼다. */
+function fixExtra(v) {
+  let x = aei(v);
+  x = x.replace(/Dose Mapper \/ Energy Sensor Calibration/g, 'Energy Sensor Calibration');
+  if (LANG === 'ko') {
+    x = x.replace(/Setting ([\d.]+) mJ\/cm² held steady, but the Energy Sensor readback deviated to ([\d.]+) mJ\/cm² \(([+-][\d.]+)%\)\./,
+      'Setting $1 mJ/cm²는 유지됐으나 Energy Sensor 실측이 $2 mJ/cm² ($3%)로 이탈.');
+    x = x.replace(/Re-run Energy Sensor Calibration before touching the recipe\./,
+      'Recipe 수정 전 조사량 센서 교정(Energy Sensor Calibration) 재수행.');
+    x = x.replace(/If CD residual remains after calibration, target Setting ([\d.]+) → ([\d.]+) mJ\/cm² \(([-+][\d.]+) mJ\/cm², ([-+][\d.]+)%\)/,
+      '교정 후에도 CD 잔차가 남으면 Setting $1 → $2 mJ/cm² ($3 mJ/cm², $4%) 적용.');
+    x = x.replace(/Setting–Sensor gap is normal\. Recipe correction applies\./, 'Setting–Sensor 괴리는 정상. Recipe 보정 대상.');
+  }
+  return x;
+}
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const num = (v, d = 2) => (v == null || v === '' || isNaN(v)) ? '—' : (+v).toFixed(d);
 
@@ -199,6 +215,7 @@ const T = {
   'd.act':      ['조치', 'Recommended action'],
   'd.changed':  ['무엇이 이탈했나', 'What moved'],
   'd.cause':    ['원인 귀속', 'Attributed cause'],
+  'd.facts':    ['이 로트에서 확인된 값', 'What this lot actually showed'],
   'd.nochange': ['관리 한계 이탈 지표 없음', 'No indicator outside its control limit'],
   'd.evbtn':    ['근거 보기', 'View evidence'],
   'd.tracebtn': ['조사 경로 보기', 'View trace'],
@@ -451,6 +468,7 @@ function showPop(html, anchor) {
 }
 const hidePop = () => { pop.style.display = 'none'; };
 function termHTML(key) {
+  if (ABBR[key] && !TERMS[key]) return abbrHTML(key);
   const x = TERMS[key]; if (!x) return '';
   const d = LANG === 'en' && TERM_EN[key] ? TERM_EN[key] : x.d;
   return `<h4>${esc(x.k)}<span class="en">${esc(x.e)}</span></h4><p>${esc(d)}</p>${x.s || ''}`;
@@ -473,6 +491,36 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') hidePop(); }
 addEventListener('scroll', hidePop, {passive: true});
 /* 본문에 나온 전문 용어를 용어 사전 항목과 자동으로 연결한다.
    긴 표기부터 매칭해야 ADI/AEI가 'ADI–AEI' 안에서 쪼개지지 않는다. */
+/* 영문 약어의 풀네임. 용어 사전 항목이 없는 약어도 최소한 무엇의 줄임말인지는
+   마우스를 올리면 보이게 한다. */
+const ABBR = {
+  ADI:  ['After Develop Inspection', '현상 후 측정'],
+  AEI:  ['After Etch Inspection', '식각 후 측정'],
+  CD:   ['Critical Dimension', '선폭'],
+  CDU:  ['Critical Dimension Uniformity', '선폭 균일도'],
+  TMU:  ['Total Measurement Uncertainty', '총 측정 불확도'],
+  TIS:  ['Tool Induced Shift', '장비 유발 편차'],
+  APC:  ['Advanced Process Control', '선행 공정 제어'],
+  SPC:  ['Statistical Process Control', '통계적 공정 관리'],
+  OCAP: ['Out of Control Action Plan', '관리 이탈 시 조치 절차'],
+  OOC:  ['Out of Control', '관리 한계 이탈'],
+  PM:   ['Preventive Maintenance', '예방 정비'],
+  PEB:  ['Post Exposure Bake', '노광 후 열처리'],
+  MES:  ['Manufacturing Execution System', '생산 실행 시스템'],
+  ESC:  ['Electrostatic Chuck', '정전척'],
+  DOF:  ['Depth of Focus', '초점 심도'],
+  RF:   ['Radio Frequency', '고주파'],
+  E95:  ['Spectral bandwidth containing 95% of pulse energy', '펄스 에너지 95%를 담는 스펙트럼 대역폭'],
+  EPE:  ['Edge Placement Error', '가장자리 배치 오차'],
+  DoMa: ['Dose Mapper', 'field 내 CDU를 dose map으로 보정하는 스캐너 기능'],
+  'X-SEM': ['Cross-section SEM', '단면 전자현미경'],
+  'CD-SEM': ['Critical Dimension SEM', '선폭 측정 전자현미경'],
+};
+function abbrHTML(k) {
+  const a = ABBR[k]; if (!a) return '';
+  return `<h4>${esc(k)}</h4><p><b>${esc(a[0])}</b><br>${esc(a[1])}</p>`;
+}
+
 const AUTOTERM = [
   ['Verification Gate','attribution'], ['Monitor wafer','golden'], ['monitor wafer','golden'],
   ['Etch bias','delta'], ['etch bias','delta'], ['ΔCD','delta'],
@@ -483,11 +531,22 @@ const AUTOTERM = [
   ['PEB','peb'], ['Dose','dose'], ['dose','dose'], ['Focus','dose'],
   ['ADI','adi'], ['AEI','aci'], ['CD','cd'],
 ];
+const ABBR_ONLY = Object.keys(ABBR).filter(k => !AUTOTERM.some(a => a[0] === k));
 function autoTerm(html) {
   /* 이미 태그 안에 들어간 텍스트는 건드리지 않도록 태그 단위로 쪼개 처리한다 */
   return html.split(/(<[^>]*>)/).map(part => {
     if (part.startsWith('<')) return part;
     let out = part, done = [];
+    /* 용어 사전 항목이 없는 약어도 풀네임 툴팁을 붙인다 */
+    ABBR_ONLY.forEach(k => {
+      if (done.includes(k)) return;
+      const i = out.indexOf(k);
+      if (i < 0) return;
+      if (/[A-Za-z0-9]/.test(out[i - 1] || '') || /[A-Za-z0-9]/.test(out[i + k.length] || '')) return;
+      out = out.slice(0, i) + `<b class="term abbr" data-t="${k}" tabindex="0" role="button">` +
+            k + '</b>' + out.slice(i + k.length);
+      done.push(k);
+    });
     AUTOTERM.forEach(([word, key]) => {
       if (!TERMS[key] || done.includes(key)) return;
       const i = out.indexOf(word);
@@ -642,12 +701,15 @@ function openLot(id, push = true) {
   <div class="dsec"><h3>${esc(t('d.cause'))}</h3>
     <p><b style="color:${COLOR[l.verdict]}">${esc(verdictLabel(l))}</b>${
       l.module && l.module !== '-' ? ' · ' + esc(LANG === 'ko' ? (MODULE_KO[l.module] || l.module) : l.module) : ''}</p></div>
+  <div class="dsec"><h3>${esc(t('d.facts'))}</h3>
+    <ul class="facts">${lotFacts(l).map(f => `<li>${autoTerm(f)}</li>`).join('')}</ul></div>
   <div class="dsec"><h3>${esc(t('d.act'))}</h3>
+    ${actionTarget(l) ? `<p class="target">${actionTarget(l)}</p>` : ''}
     ${A.steps.length
       ? `${A.lead ? `<p style="margin-bottom:10px">${esc(A.lead)}</p>` : ''}
-         <ol class="steps">${A.steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol>`
-      : `<p>${esc(A.lead)}</p>`}
-    ${l.extra ? `<div class="actnote mono">${esc(aei(l.extra))}</div>` : ''}</div>
+         <ol class="steps">${A.steps.map(x => `<li>${autoTerm(markLot(x, l))}</li>`).join('')}</ol>`
+      : `<p>${markLot(A.lead, l)}</p>`}
+    ${l.extra ? `<div class="actnote mono">${esc(fixExtra(l.extra))}</div>` : ''}</div>
   <div class="jump">
     <button class="gbtn" data-jump="evPanel">${esc(t('d.evbtn'))}</button>
     <button class="gbtn" data-jump="tracePanel">${esc(t('d.tracebtn'))}</button>
@@ -764,6 +826,94 @@ function renderTrace(inv) {
 }
 
 
+
+/* ── 이 로트에서만 다른 것 ─────────────────────────────────────────
+   규칙 KB의 원인·조치 문안은 같은 verdict 안에서 동일하다. 실제로 로트마다
+   다른 것은 (1) 이탈한 항목의 조합 (2) 측정값의 크기 (3) 어느 설비를 지났는가
+   (4) 감시 데이터가 얼마나 최신인가 네 가지다. 그 네 가지를 로트 데이터에서
+   직접 뽑아 문장으로 만들고, 달라지는 값만 붉게 표시한다. */
+const R = v => `<b class="hl">${esc(v)}</b>`;
+
+function lotFacts(l) {
+  const ko = LANG === 'ko', L = (a, b) => ko ? a : b;
+  const outs = (l.ev || []).filter(e => e.hit);
+  const get = term => outs.find(e => evTerm(e.k) === term);
+  const numOf = e => { const m = String(e.v).match(/[+-]?\d+(?:\.\d+)?/); return m ? m[0] : '—'; };
+  const F = [];
+
+  /* 1. 지나온 설비 — 로트마다 조합이 다르다 */
+  F.push(L(`노광 ${R(l.scanner)} · 레티클 ${R(l.reticle)} · 식각 ${R(l.chamber)} · ADI 측정 ${R(l.adiTool)}` +
+           (l.aciTool ? ` · AEI 측정 ${R(l.aciTool)}` : ` · AEI ${R('미측정(skip-lot)')}`),
+           `Scanner ${R(l.scanner)} · reticle ${R(l.reticle)} · chamber ${R(l.chamber)} · ADI on ${R(l.adiTool)}` +
+           (l.aciTool ? ` · AEI on ${R(l.aciTool)}` : ` · AEI ${R('not measured')}`)));
+
+  /* 2. 이탈 항목별 실측값 */
+  const adi = get('ADI'), rad = get('RADIAL'), ret = get('RETICLE_REPEAT'),
+        dcd = get('DELTA_CD'), ch = get('CHAMBER'), mon = get('MONITOR'),
+        tmu = get('TMU'), sen = get('SENSOR');
+  if (adi) F.push(L(`웨이퍼 평균 CD가 목표에서 ${R(numOf(adi) + ' nm')} 벗어남 (한계 ${adi.lim})`,
+                    `Wafer mean CD off target by ${R(numOf(adi) + ' nm')} (limit ${adi.lim})`));
+  if (rad) F.push(L(`중심–가장자리 편차 ${R(numOf(rad) + ' nm')} (한계 ${rad.lim})`,
+                    `Center-to-edge spread ${R(numOf(rad) + ' nm')} (limit ${rad.lim})`));
+  if (ret) F.push(L(`동일 site 반복 오차 ${R(numOf(ret) + ' nm')} (한계 ${ret.lim}) — 레티클 ${R(l.reticle)}`,
+                    `Same-site repeat ${R(numOf(ret) + ' nm')} (limit ${ret.lim}) on reticle ${R(l.reticle)}`));
+  if (sen) { const g = (String(sen.v).match(/\(([+-][\d.]+)%\)/) || [])[1];
+    F.push(L(`Setting ${R(l.doseSet + ' mJ/cm²')} 유지, Energy Sensor 실측 ${R(l.doseSensor + ' mJ/cm²')} (${R(g + '%')})`,
+             `Setting held at ${R(l.doseSet + ' mJ/cm²')}, sensor read ${R(l.doseSensor + ' mJ/cm²')} (${R(g + '%')})`)); }
+  if (dcd) F.push(L(`Etch bias가 기준 ${M.etchBias} nm에서 ${R(numOf(dcd) + ' nm')} 벗어남 (한계 ${dcd.lim})`,
+                    `Etch bias off the ${M.etchBias} nm reference by ${R(numOf(dcd) + ' nm')} (limit ${dcd.lim})`));
+  if (ch) F.push(L(`${R(l.chamber)} 챔버 편중 ${R(numOf(ch) + ' nm')} · PM 후 RF ${R(l.rf + ' h')} 경과`,
+                   `${R(l.chamber)} commonality ${R(numOf(ch) + ' nm')} · ${R(l.rf + ' h')} of RF since PM`));
+  if (mon) { const age = (String(mon.v).match(/(\d+)d ago/) || [])[1];
+    F.push(L(`${R(l.aciTool || l.adiTool)}의 monitor wafer가 ${R(numOf(mon) + ' nm')} 이동 (${R(age + '일 전')} 측정)`,
+             `Monitor wafer on ${R(l.aciTool || l.adiTool)} drifted ${R(numOf(mon) + ' nm')} (measured ${R(age + 'd ago')})`)); }
+  if (tmu) { const pc = (String(tmu.v).match(/=\s*([\d.]+)%/) || [])[1];
+    F.push(L(`계측 불확도가 공정 예산의 ${R(pc + '%')} 소비 (허용 ${M.tmuBudget}%)`,
+             `Metrology uncertainty uses ${R(pc + '%')} of the budget (limit ${M.tmuBudget}%)`)); }
+
+  if (!outs.length) {
+    F.push(L(`감시 지표 ${R((l.ev || []).length + '개')} 전부 관리 한계 이내 · 귀속 트리거 없음`,
+             `All ${R((l.ev || []).length)} indicators within limit · no attribution trigger`));
+    /* 정상이라고 다 같은 정상이 아니다. 한계에 가장 근접한 항목을 함께 적어
+       이 로트가 얼마나 여유를 두고 통과했는지 보이게 한다. */
+    let tight = null, ratio = -1;
+    (l.ev || []).forEach(e => {
+      const m = margin(e);
+      if (!m || !m.cap) return;
+      const used = (m.cap - m.left) / m.cap;
+      if (used > ratio) { ratio = used; tight = {e, m}; }
+    });
+    if (tight) F.push(L(
+      `한계에 가장 근접한 항목은 ${R(plainLabel(tight.e.k))} — 예산의 ${R(Math.round(ratio * 100) + '%')} 소비 (여유 ${R(tight.m.left.toFixed(2))})`,
+      `Closest to its limit: ${R(plainLabel(tight.e.k))} — ${R(Math.round(ratio * 100) + '%')} of budget used (margin ${R(tight.m.left.toFixed(2))})`));
+  }
+  return F;
+}
+
+/* 규칙 KB의 조치 문안은 일반론이라 설비 ID가 없다.
+   이 로트에서 실제로 손대야 할 설비를 verdict에 따라 짚어준다. */
+function actionTarget(l) {
+  const ko = LANG === 'ko', L = (a, b) => ko ? a : b;
+  const pick = {
+    PHOTO_DOSE:           [l.scanner, L('스캐너', 'scanner')],
+    RETICLE_CD_ERROR:     [l.reticle, L('레티클', 'reticle')],
+    ETCH_CHAMBER:         [l.chamber, L('식각 챔버', 'etch chamber')],
+    METROLOGY_TOOL_DRIFT: [l.aciTool || l.adiTool, L('계측 장비', 'metrology tool')],
+  }[l.verdict];
+  if (!pick || !pick[0]) return '';
+  return L(`조치 대상 — ${pick[1]} ${R(pick[0])}`, `Target — ${pick[1]} ${R(pick[0])}`);
+}
+
+/* 조치 문안 안에서 이 로트에 해당하는 설비 ID와 수치를 붉게 표시한다 */
+function markLot(text, l) {
+  let out = esc(text);
+  const ids = [l.chamber, l.adiTool, l.aciTool, l.scanner, l.reticle].filter(Boolean);
+  [...new Set(ids)].forEach(id => {
+    out = out.split(id).join(`<b class="hl">${id}</b>`);
+  });
+  return out;
+}
+
 /* ── 이상 지문 시각화 ──────────────────────────────────────────────
    "어느 좌표계에서 어긋났는가"를 그림으로 보여준다.
    글자는 SVG 안에 넣지 않는다. 브라우저·화면 폭에 따라 잘리기 때문에
@@ -775,12 +925,20 @@ function sigSVG(term, e) {
   const tint = sign > 0 ? HOT : COLD;
   const wafer = inner => `<circle cx="62" cy="58" r="44" fill="#FCFBFD" stroke="${LINE}" stroke-width="1.3"/>
       ${inner}<path d="M57 102h10l-5-8z" fill="${LINE}"/>`;
-  const box = g => `<svg viewBox="0 0 124 116" role="img" aria-hidden="true">${g}</svg>`;
+  /* 축과 기준선을 넣어 "무엇 대비 얼마나" 가 읽히게 한다.
+     문장은 그림 밖 HTML에 있으므로 여기서는 단위·기준값만 최소로 적는다. */
+  const AX = '#8B8593', TXT = '#57505C';
+  const box = g => `<svg viewBox="0 0 150 132" role="img" aria-hidden="true">${g}</svg>`;
+  const vaxis = (label, mid) => `
+    <line x1="22" y1="14" x2="22" y2="104" stroke="${AX}" stroke-width="1.1"/>
+    <line x1="22" y1="${mid}" x2="140" y2="${mid}" stroke="${AX}" stroke-width="1.1" stroke-dasharray="4 3"/>
+    <text x="26" y="${mid - 4}" font-size="8" fill="${TXT}">${label}</text>`;
   const R = (svg, a, b, c) => ({svg, title: a, desc: b, concl: c, tint});
 
   switch (term) {
     case 'ADI':
-      return R(box(wafer(`<circle cx="62" cy="58" r="44" fill="${tint}" fill-opacity=".32"/>`)),
+      return R(box(wafer(`<circle cx="62" cy="58" r="44" fill="${tint}" fill-opacity=".32"/>`) +
+        `<text x="10" y="126" font-size="8.5" fill="${TXT}">${L('웨이퍼 전면 = 같은 편차','whole wafer, same offset')}</text>`),
         L('웨이퍼 전면이 같은 방향으로 이동', 'The whole wafer shifts together'),
         L('중심과 가장자리 구분 없이 균일하게 이동합니다.', 'Center and edge move by the same amount.'),
         L('Dose 계열 지문', 'Dose-family fingerprint'));
@@ -788,7 +946,9 @@ function sigSVG(term, e) {
     case 'RADIAL':
       return R(box(wafer(`<circle cx="62" cy="58" r="44" fill="${tint}" fill-opacity=".32"/>
           <circle cx="62" cy="58" r="29" fill="#FCFBFD"/>
-          <circle cx="62" cy="58" r="14" fill="${sign > 0 ? COLD : HOT}" fill-opacity=".32"/>`)),
+          <circle cx="62" cy="58" r="14" fill="${sign > 0 ? COLD : HOT}" fill-opacity=".32"/>`) +
+        `<line x1="18" y1="58" x2="106" y2="58" stroke="${AX}" stroke-width="1"/>
+         <text x="10" y="126" font-size="8.5" fill="${TXT}">${L('가로축 = 웨이퍼 반경 (중심→엣지)','x: wafer radius, center → edge')}</text>`),
         L('중심과 가장자리가 반대 방향', 'Center and edge move apart'),
         L('평균은 그대로여도 산포가 벌어집니다.', 'The mean can stay flat while the spread grows.'),
         L('PEB · Coat 계열 지문', 'PEB / coat fingerprint'));
@@ -800,7 +960,7 @@ function sigSVG(term, e) {
         g += `<rect x="${x}" y="${y}" width="34" height="42" fill="none" stroke="${LINE}"/>
               <circle cx="${x + 24}" cy="${y + 11}" r="4.6" fill="${HOT}"/>`;
       }
-      return R(box(g),
+      return R(box(g + `<text x="8" y="126" font-size="8.5" fill="${TXT}">${L('칸 = 노광 field · 점 = 이탈 site','box: exposure field, dot: offending site')}</text>`),
         L('모든 field의 같은 자리에서 반복', 'Repeats at the same site in every field'),
         L('웨이퍼 위치와 무관하게 동일한 패턴이 나타납니다.', 'The same pattern appears regardless of field position.'),
         L('Reticle 지문', 'Reticle fingerprint'));
@@ -808,10 +968,15 @@ function sigSVG(term, e) {
 
     case 'DELTA_CD': case 'DELTA_NA': {
       const adi = 56, aei = Math.max(20, 56 + sign * 18);
-      return R(box(`<rect x="16" y="${84 - adi}" width="34" height="${adi}" fill="#C9D4D9" stroke="#14060F" stroke-width="1.1"/>
-        <rect x="72" y="${84 - aei}" width="34" height="${aei}" fill="${tint}" fill-opacity=".32" stroke="${tint}" stroke-width="1.6"/>
-        <path d="M54 62h14" stroke="${LINE}" stroke-width="1.5"/><path d="M64 57l6 5-6 5" fill="${LINE}"/>
-        <line x1="10" y1="84" x2="114" y2="84" stroke="${LINE}"/>`),
+      return R(box(`<line x1="22" y1="14" x2="22" y2="88" stroke="${AX}" stroke-width="1.1"/>
+        <line x1="22" y1="88" x2="140" y2="88" stroke="${AX}" stroke-width="1.1"/>
+        <text x="4" y="20" font-size="8" fill="${TXT}">CD</text>
+        <rect x="40" y="${88 - adi}" width="30" height="${adi}" fill="#C9D4D9" stroke="#14060F" stroke-width="1.1"/>
+        <rect x="92" y="${88 - aei}" width="30" height="${aei}" fill="${tint}" fill-opacity=".32" stroke="${tint}" stroke-width="1.6"/>
+        <path d="M74 60h12" stroke="${LINE}" stroke-width="1.5"/><path d="M82 55l6 5-6 5" fill="${LINE}"/>
+        <text x="46" y="100" font-size="8.5" fill="${TXT}">ADI</text>
+        <text x="98" y="100" font-size="8.5" fill="${tint}">AEI</text>
+        <text x="4" y="126" font-size="8.5" fill="${TXT}">${L('두 막대 차이 = Etch bias','bar gap = etch bias')}</text>`),
         L('ADI는 정상, 식각 후에만 이동', 'ADI is clean; it moves only after etch'),
         L('노광 단계는 배제되고 후보가 둘로 좁혀집니다.', 'Litho is ruled out; two candidates remain.'),
         L('Etch 또는 Metrology', 'Etch or metrology'));
@@ -827,17 +992,19 @@ function sigSVG(term, e) {
               <text x="${x + 25}" y="${y + 27}" text-anchor="middle" font-size="11"
                 fill="${on ? tint : '#57505C'}" font-weight="${on ? 700 : 400}">${c}</text>`;
       });
-      return R(box(g),
+      return R(box(g + `<text x="8" y="126" font-size="8.5" fill="${TXT}">${L('색칠된 칸 = 편차가 몰린 Chamber','filled box: the chamber carrying the deviation')}</text>`),
         L(`${hot} Chamber를 지난 Lot에만 집중`, `Concentrated on lots through ${hot}`),
         L('다른 Chamber를 지난 Lot은 정상입니다.', 'Lots through the other chambers are clean.'),
         L('Etch Chamber 지문', 'Etch chamber fingerprint'));
     }
 
     case 'MONITOR':
-      return R(box(`<line x1="10" y1="62" x2="114" y2="62" stroke="${LINE}"/>
-        <polyline points="14,62 40,61 62,62 86,${62 - sign * 16} 110,${62 - sign * 28}" fill="none"
+      return R(box(vaxis(L('기준선 0','baseline 0'), 62) +
+        `<polyline points="26,62 52,61 74,62 100,${62 - sign * 16} 132,${62 - sign * 28}" fill="none"
           stroke="${tint}" stroke-width="2.6"/>
-        <circle cx="110" cy="${62 - sign * 28}" r="4.4" fill="${tint}"/>`),
+        <circle cx="132" cy="${62 - sign * 28}" r="4.4" fill="${tint}"/>
+        <text x="4" y="20" font-size="8" fill="${TXT}">nm</text>
+        <text x="4" y="126" font-size="8.5" fill="${TXT}">${L('가로축 = 시간 (반복 측정일)','x: time, repeat measurements')}</text>`),
         L('공정이 닿지 않은 웨이퍼가 이동', 'A wafer no process touched has moved'),
         L('Monitor wafer는 라인에 재투입하지 않습니다. 이동분은 측정 장비 기여입니다.',
           'The monitor wafer never re-enters the line, so the shift belongs to the tool.'),
@@ -845,10 +1012,13 @@ function sigSVG(term, e) {
 
     case 'TMU': {
       const m = String(e.v).match(/=\s*(\d+(?:\.\d+)?)%/), pct = m ? Math.min(+m[1], 100) : 0;
-      return R(box(`<rect x="10" y="46" width="104" height="26" rx="4" fill="#F2F5F6" stroke="${LINE}"/>
-        <rect x="10" y="46" width="${104 * pct / 100}" height="26" rx="4" fill="${HOT}" fill-opacity=".38"/>
-        <line x1="${10 + 104 * 0.2}" y1="38" x2="${10 + 104 * 0.2}" y2="80" stroke="${HOT}" stroke-width="2" stroke-dasharray="4 3"/>
-        <text x="${10 + 104 * 0.2}" y="34" text-anchor="middle" font-size="10" fill="${HOT}">20%</text>`),
+      return R(box(`<rect x="14" y="48" width="120" height="26" rx="4" fill="#F2F5F6" stroke="${LINE}"/>
+        <rect x="14" y="48" width="${120 * pct / 100}" height="26" rx="4" fill="${HOT}" fill-opacity=".38"/>
+        <line x1="${14 + 120 * 0.2}" y1="38" x2="${14 + 120 * 0.2}" y2="84" stroke="${HOT}" stroke-width="2" stroke-dasharray="4 3"/>
+        <text x="${14 + 120 * 0.2}" y="33" text-anchor="middle" font-size="9" fill="${HOT}">20%</text>
+        <text x="14" y="92" font-size="8" fill="${TXT}">0%</text>
+        <text x="134" y="92" text-anchor="end" font-size="8" fill="${TXT}">100%</text>
+        <text x="14" y="126" font-size="8.5" fill="${TXT}">${L('막대 = 공정 예산 중 계측 몫','bar: share of tolerance used by metrology')}</text>`),
         L(`계측 오차가 공정 예산의 ${m ? m[1] : '—'}%를 소비`, `Measurement error uses ${m ? m[1] : '—'}% of the budget`),
         L('허용 기준 20%를 넘어 공정 변동과 측정 오차가 구분되지 않습니다.',
           'Past the 20% limit, process variation and measurement error can no longer be separated.'),
@@ -856,10 +1026,15 @@ function sigSVG(term, e) {
     }
 
     case 'SENSOR':
-      return R(box(`<line x1="10" y1="60" x2="114" y2="60" stroke="#57505C" stroke-width="1.8" stroke-dasharray="5 3"/>
-        <polyline points="14,60 44,60 76,${60 - sign * 12} 110,${60 - sign * 24}" fill="none" stroke="${tint}" stroke-width="2.6"/>
-        <path d="M110 ${60 - sign * 24} V60" stroke="${HOT}" stroke-width="1.8"/>
-        <circle cx="110" cy="${60 - sign * 24}" r="4" fill="${tint}"/>`),
+      return R(box(`<line x1="22" y1="14" x2="22" y2="96" stroke="${AX}" stroke-width="1.1"/>
+        <line x1="22" y1="60" x2="140" y2="60" stroke="#57505C" stroke-width="1.8" stroke-dasharray="5 3"/>
+        <text x="26" y="56" font-size="8" fill="${TXT}">Setting</text>
+        <polyline points="26,60 56,60 88,${60 - sign * 12} 132,${60 - sign * 24}" fill="none" stroke="${tint}" stroke-width="2.6"/>
+        <text x="86" y="${60 - sign * 30}" font-size="8" fill="${tint}">Sensor</text>
+        <path d="M132 ${60 - sign * 24} V60" stroke="${HOT}" stroke-width="1.8"/>
+        <circle cx="132" cy="${60 - sign * 24}" r="4" fill="${tint}"/>
+        <text x="4" y="20" font-size="8" fill="${TXT}">mJ/cm²</text>
+        <text x="4" y="126" font-size="8.5" fill="${TXT}">${L('세로 간격 = 실효 dose 오차','gap: delivered-dose error')}</text>`),
         L('Recipe는 그대로, 실조사량만 이동', 'Recipe unchanged; only the delivered dose moved'),
         L('Setting을 고쳐도 실효 dose는 그대로여서 재발합니다.',
           'Editing the setting would not change the delivered dose.'),
