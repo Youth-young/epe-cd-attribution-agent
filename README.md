@@ -212,6 +212,21 @@ PROLITH는 노광 **전**에 조건에서 CD를 예측해 process window를 정�
 
 자세한 근거는 [`docs/REPORT.md`](docs/REPORT.md) §6.6.
 
+## 데이터 저장 — DB는 언제 필요해졌나
+
+데이터가 커져서가 아니라 **쓰기가 생겨서** 필요해졌다.
+
+| | 읽기 전용 | 쓰기 |
+|---|---|---|
+| 내용 | 판정 결과·측정값·도구 호출 | 사람의 결정 이력 |
+| 저장 | `db/attribution.sqlite` (data.js에서 재생성 가능) | `db/reviews.sqlite` (**재생성 불가**) |
+| 경로 | `run.py` 파이프라인 | `POST /lots/{id}/review` |
+
+`reviews`는 덮어쓰지 않고 쌓으며, 익명 승인을 거절하고(422), 결정 당시의 판정을 함께 남긴다.
+승인 경로는 `/agent/tools`에 없다 — Agent가 스스로 만들어낼 수 있는 값이 아니어야 하기 때문이다.
+
+자세한 근거는 [`docs/05_data_and_db.md`](docs/05_data_and_db.md).
+
 ## 사용한 스킬
 
 | 스킬 | 출처 | 어디에 |

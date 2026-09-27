@@ -84,6 +84,17 @@ ul.bullets li b{color:var(--ink)}
 .decision .dsec h3{font-size:13px;color:var(--ink2);font-weight:600;letter-spacing:.05em;
   text-transform:uppercase;margin-bottom:8px}
 .decision .dsec p{font-size:16.5px;color:var(--ink);line-height:1.7}
+.retrybox{border-left:4px solid var(--photo);background:#F6F1E9;padding:14px 18px;
+  border-radius:0 9px 9px 0;margin-bottom:18px}
+.retrybox b{font-size:14.5px}
+.retrybox p{font-size:14px;color:var(--ink);margin:7px 0 0}
+.gatebox{border-left:4px solid var(--brand);background:var(--sunk);padding:16px 20px;
+  border-radius:0 9px 9px 0;margin-bottom:18px}
+.gtag{display:inline-block;font-size:12.5px;font-weight:700;color:var(--brand);
+  letter-spacing:.04em;margin-bottom:8px}
+.gwhy{font-size:16px;color:var(--ink);margin-bottom:6px}
+.revstate{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.revbtns{display:flex;gap:9px;flex-wrap:wrap}
 p.target{font-size:15.5px;color:var(--ink);margin-bottom:12px;padding:9px 14px;
   background:var(--sunk);border:1px solid var(--line2);border-radius:8px;display:inline-block}
 ul.facts{margin:0;padding:0;list-style:none}
@@ -105,13 +116,15 @@ td.src{font-size:12px;color:var(--muted);white-space:nowrap}
 table.flowtbl td{vertical-align:top;font-size:13.5px;line-height:1.65}
 table.flowtbl td:first-child{white-space:nowrap;width:15%}
 tr.measrow td{background:#E9F1F2}
-#flowDiagram,#thirdSuspect,#judgeFlow{overflow-x:auto;-webkit-overflow-scrolling:touch}
-#flowDiagram svg,#thirdSuspect svg,#judgeFlow svg{width:100%;height:auto;overflow:visible}
+#flowDiagram,#thirdSuspect,#judgeFlow,#branchTree{overflow-x:auto;-webkit-overflow-scrolling:touch}
+#flowDiagram svg,#thirdSuspect svg,#judgeFlow svg,#branchTree svg{width:100%;height:auto;overflow:visible}
+td.pathcell{font-size:13.5px;line-height:1.6;min-width:360px}
 .scrollhint{display:none;font-size:12px;color:var(--muted);margin-top:8px}
 @media(max-width:860px){
   #flowDiagram svg{min-width:820px}
   #thirdSuspect svg{min-width:780px}
   #judgeFlow svg{min-width:800px}
+  #branchTree svg{min-width:900px}
   .scrollhint{display:block}
 }
 h1,h2,h3,h4{margin:0;line-height:1.3;font-weight:600;letter-spacing:-.012em}
@@ -365,6 +378,8 @@ footer{border-top:1px solid var(--line);padding:22px 0 50px;color:var(--muted);f
     <nav id="nav" aria-label="Primary">
       <button data-v="home" aria-current="page" data-t="nav.home">개요</button>
       <button data-v="flow" data-t="nav.flow">공정 흐름</button>
+      <button data-v="branch" data-t="nav.branch">판정 분기</button>
+      <button data-v="hitl" data-t="nav.hitl">사람의 판단</button>
       <button data-v="lots" data-t="nav.lots">로트 판정</button>
       <button data-v="trends" data-t="nav.trends">추이와 감시</button>
       <button data-v="valid" data-t="nav.valid">검증 결과</button>
@@ -440,6 +455,47 @@ footer{border-top:1px solid var(--line);padding:22px 0 50px;color:var(--muted);f
       <span class="sub" data-t="f.judgesub">되돌릴 수 있는 것을 먼저, 계측을 공정보다 먼저 확인합니다</span></header>
     <div id="judgeFlow"></div>
     <p class="scrollhint" data-t="f.scroll">← 옆으로 밀어서 전체를 볼 수 있습니다 →</p>
+  </div>
+</section>
+
+<!-- 판정 분기 -->
+<section class="view" id="v-branch" hidden>
+  <div class="panel">
+    <header><h2 data-t="b.title">판정은 어디서 갈라지는가</h2>
+      <span class="sub" data-t="b.sub">고정 순서가 아니라 지표 값에 따라 다음 확인이 달라진다</span></header>
+    <p class="lede" data-t="b.lead">성분 분해 결과에 따라 조회할 설비 이력이 달라진다 · 모든 경로는 Verification Gate로 수렴</p>
+    <div id="branchTree"></div>
+    <p class="scrollhint" data-t="f.scroll">← 옆으로 밀어서 전체를 볼 수 있습니다 →</p>
+  </div>
+  <div class="panel">
+    <header><h2 data-t="b.paths">320 Lot이 실제로 밟은 경로</h2>
+      <span class="sub" data-t="b.pathssub">trace 기록에서 직접 집계 · 설계상의 분기가 실제로 갈라지는지 확인</span></header>
+    <div class="tw"><table id="pathTable"></table></div>
+    <p class="sub" id="pathNote" style="margin-top:14px"></p>
+  </div>
+</section>
+
+<!-- 사람의 판단 -->
+<section class="view" id="v-hitl" hidden>
+  <div class="panel">
+    <header><h2 data-t="hi.title">사람은 어디서 판단하는가</h2>
+      <span class="sub" data-t="hi.sub">Agent는 제안까지 · 설비 상태를 바꾸는 행위는 승인 뒤에</span></header>
+    <div class="kpi" id="hitlKpi"></div>
+  </div>
+  <div class="panel">
+    <header><h2 data-t="hi.table">세 개의 경계</h2></header>
+    <div class="tw"><table id="hitlTable"></table></div>
+  </div>
+  <div class="panel">
+    <header><h2 data-t="hi.why">이렇게 나눈 이유</h2></header>
+    <ul class="bullets" id="hitlWhy"></ul>
+  </div>
+  <div class="panel">
+    <header><h2 data-t="rt.title">막혔을 때 무엇을 다시 해보는가</h2>
+      <span class="sub" data-t="rt.sub">조회 범위만 넓힌다 · 판정 기준은 건드리지 않는다</span></header>
+    <div class="kpi" id="retryKpi" style="margin-bottom:22px"></div>
+    <div class="tw"><table id="retryTable"></table></div>
+    <p class="sub" id="retryNote" style="margin-top:16px"></p>
   </div>
 </section>
 

@@ -6,4 +6,7 @@ __pycache__/
 .gstack/
 .pytest_cache/
 .DS_Store
+
+# DB 산출물
+db/*.sqlite
 validation/planner_eval_progress.jsonl
