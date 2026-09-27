@@ -16,6 +16,7 @@ STEPS = [
     "engine/analyze.py",
     "validation/evaluate.py",
     "generator/export_investigations.py",
+    "db/build_db.py",
 ]
 
 for step in STEPS:

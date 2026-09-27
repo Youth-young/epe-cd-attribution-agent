@@ -9,9 +9,11 @@ from __future__ import annotations
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 
 from domain.models import HealthResponse, InvestigationResult, LotSummary, VerificationResult
 from engine.query_service import AttributionQueryService, LotNotFoundError
+from repositories.review_repository import ReviewRepository
 from agent.orchestrator import investigate_lot
 from agent.tools import tool_catalog
 
@@ -109,6 +111,43 @@ def equipment_events(
     return service.equipment_events(
         tool_id=tool_id, event_type=event_type, day=day, window=window, limit=limit
     )
+
+
+# ── 검토 이력 ────────────────────────────────────────────────────────────────
+# 판정 조회는 읽기 전용 스냅샷에서, 사람의 결정은 DB에 쓴다. 두 경로를 섞지 않는다.
+_reviews = ReviewRepository()
+
+
+class ReviewIn(BaseModel):
+    gate: str = Field(description="G1 / G2 / G3")
+    decision: str = Field(description="approve / reject / more / accept / signoff")
+    reviewer: str = Field(description="결정한 사람. 익명은 받지 않는다.")
+    comment: str | None = None
+
+
+@app.post("/lots/{lot_id}/review", tags=["review"])
+def add_review(lot_id: str, body: ReviewIn):
+    """사람의 결정을 기록한다. Agent가 아니라 사람만 호출하는 경로다."""
+    try:
+        verdict = service.verify(lot_id)["verdict"]
+    except LotNotFoundError as exc:
+        raise not_found(exc)
+    try:
+        return _reviews.add(lot_id=lot_id, gate=body.gate, decision=body.decision,
+                            reviewer=body.reviewer, comment=body.comment,
+                            verdict_at_review=verdict)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+
+
+@app.get("/lots/{lot_id}/reviews", tags=["review"])
+def lot_reviews(lot_id: str):
+    return {"lot": lot_id, "reviews": _reviews.history(lot_id)}
+
+
+@app.get("/reviews/summary", tags=["review"])
+def review_summary():
+    return _reviews.summary()
 
 
 @app.get("/agent/tools", tags=["agent"])

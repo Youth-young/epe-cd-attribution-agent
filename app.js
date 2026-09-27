@@ -163,6 +163,32 @@ const T = {
   'nav.home':   ['개요', 'Overview'],
   search:       ['로트·장비·챔버 검색', 'Search lot, tool, chamber'],
   'nav.flow':   ['공정 흐름', 'Process flow'],
+  'nav.branch': ['판정 분기', 'Decision branches'],
+  'nav.hitl':   ['사람의 판단', 'Human decisions'],
+  'd.retried':  ['게이트가 막혀 재시도했다', 'The gate blocked, so the agent retried'],
+  'd.resolved': ['해소됨', 'resolved'],
+  'd.unresolved': ['해소되지 않음', 'not resolved'],
+  'd.escalated': ['재시도로 풀리지 않아 사람에게 넘겼다 (G2)', 'Unresolved after retry — handed to a human (G2)'],
+  'rt.title':   ['막혔을 때 무엇을 다시 해보는가', 'What the agent tries when it is blocked'],
+  'rt.sub':     ['조회 범위만 넓힌다 · 판정 기준은 건드리지 않는다', 'Only the query window widens; the criteria never move'],
+  'rt.kpi':     ['재시도 결과', 'Retry outcome'],
+  'rt.table':   ['조건별 재시도 정책', 'Retry policy by condition'],
+  'h.review':   ['검토 · 사람의 판단', 'Review · human decision'],
+  'await': ['검토 대기', 'awaiting'],
+  'hi.title':   ['사람은 어디서 판단하는가', 'Where the human decides'],
+  'hi.sub':     ['Agent는 제안까지 · 설비 상태를 바꾸는 행위는 승인 뒤에',
+                 'The agent proposes; anything that changes tool state waits for approval'],
+  'hi.kpi':     ['경계별 해당 Lot', 'Lots by boundary'],
+  'hi.table':   ['세 개의 경계', 'Three boundaries'],
+  'hi.why':     ['이렇게 나눈 이유', 'Why it is split this way'],
+  'b.title':    ['판정은 어디서 갈라지는가', 'Where the disposition branches'],
+  'b.sub':      ['고정 순서가 아니라 지표 값에 따라 다음 확인이 달라진다',
+                 'The next check depends on the measurements, not on a fixed order'],
+  'b.lead':     ['성분 분해 결과에 따라 조회할 설비 이력이 달라진다 · 모든 경로는 Verification Gate로 수렴',
+                 'Which equipment history is pulled depends on the decomposition; every path converges on the verification gate'],
+  'b.paths':    ['320 Lot이 실제로 밟은 경로', 'Paths the 320 lots actually took'],
+  'b.pathssub': ['trace 기록에서 직접 집계 · 설계상의 분기가 실제로 갈라지는지 확인',
+                 'Counted from the recorded traces to confirm the branches really diverge'],
   'h.kicker':   ['반도체 포토·식각 공정 · CD 이상 원인 귀속',
                  'Litho & etch · CD excursion attribution'],
   'h.title':    ['CD가 스펙을 벗어났을 때,<br>원인이 어느 모듈인지 판정합니다',
@@ -633,6 +659,10 @@ function renderList() {
       <span class="lotright">
         <span class="sub mono">${sig}</span>
         ${g ? '' : `<span class="badge b-hold">${esc(t('gatehold'))}</span>`}
+        ${(() => { const gg = gateOf(l); if (!gg) return '';
+          const r = reviewOf(l.lot);
+          return r ? `<span class="badge b-ok">${esc(DEC_LABEL[r.d][LANG === 'ko' ? 0 : 1])}</span>`
+                   : `<span class="badge b-watch">${esc(gg)} ${esc(t('await'))}</span>`; })()}
         <span class="badge ${BCLASS[l.risk] || 'b-ok'}">${esc(shortLabel(l.verdict))}</span>
       </span></button>`;
   }).join('');
@@ -746,8 +776,17 @@ function openLot(id, push = true) {
     <tbody>${gateRows}</tbody></table></div>
 </div>
 
+${renderReview(l)}
+
 <div class="panel" id="tracePanel">
   <header><h2>${esc(t('d.trace'))}</h2><span class="sub">${esc(t('d.tracesub'))}</span></header>
+  ${(inv?.retries || []).length ? `<div class="retrybox">
+    <b>${esc(t('d.retried'))}</b>
+    ${inv.retries.map(r => `<p>${esc((RETRY_POLICY[r.condition] || {})[LANG === 'ko' ? 'ko' : 'en']?.[0] || r.condition)}
+      — ${esc((RETRY_POLICY[r.condition] || {})[LANG === 'ko' ? 'ko' : 'en']?.[1] || '')}
+      · <b class="hl">${esc(r.resolved ? t('d.resolved') : t('d.unresolved'))}</b></p>`).join('')}
+    ${inv.escalation ? `<p class="sub">${esc(t('d.escalated'))}</p>` : ''}
+  </div>` : ''}
   <div class="tracehead"><span>${t('d.tracesum', {n: `<b>${inv?.tool_calls ?? '—'}</b>`,
     o: `<b>${outs.length}</b>`, g: `<b>${g ? t('pass') : t('fail')}</b>`})}</span></div>
   ${renderTrace(inv)}
@@ -766,6 +805,11 @@ function openLot(id, push = true) {
   </div>
 </div>`;
 
+  $$('#detail [data-dec]').forEach(b => b.onclick = () => {
+    const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
+    saveReview(l.lot, {d: b.dataset.dec, by: LANG === 'ko' ? '검토자(데모)' : 'Reviewer (demo)', at: now});
+    openLot(l.lot, false);          /* 기록 후 상태 갱신 */
+  });
   $$('#detail [data-jump]').forEach(b => b.onclick = () => {
     const el = $('#' + b.dataset.jump);
     if (el) el.scrollIntoView({behavior: 'smooth', block: 'start'});
@@ -783,6 +827,7 @@ function openLot(id, push = true) {
 }
 function closeLot(push = true) {
   S.lot = null; $('#detail').hidden = true; $('#listCard').hidden = false;
+  renderList();                      /* 검토 결과가 목록 뱃지에 바로 반영되도록 */
   try { if (location.hash) push ? history.pushState(null, '', location.pathname)
                                 : history.replaceState(null, '', location.pathname); } catch (e) {}
 }
@@ -1419,6 +1464,8 @@ function renderHome() {
       '<b>Premise</b> · metrology can be wrong too, so the measuring tool stays on the suspect list'),
     L('<b>설계 원칙</b> · 수치는 도구만 만들고, 판정은 결정론적 Verification Gate가 내린다',
       '<b>Design rule</b> · tools produce every number; a deterministic verification gate makes the call'),
+    L('<b>실행 권한 없음</b> · Recipe 변경·설비 격리는 사람 승인 뒤에 · 정상 232 Lot은 사람을 부르지 않는다',
+      '<b>No execution rights</b> · recipe changes and tool isolation wait for approval; 232 normal lots need no review'),
   ].map(x => `<li>${autoTerm(x)}</li>`).join('');
 
   $('#homeKpi').innerHTML = [
@@ -1450,12 +1497,357 @@ function renderHome() {
 
   $('#guideGrid').innerHTML = [
     ['flow', L('공정 흐름', 'Process flow'), L('Coat부터 AEI까지 · 단계별 변동 인자', 'Coat to AEI · drift factors by step')],
+    ['branch', L('판정 분기', 'Decision branches'), L('지표에 따라 갈라지는 경로 · 320 Lot 실측 분포', 'How paths diverge · measured over 320 lots')],
+    ['hitl', L('사람의 판단', 'Human decisions'), L('G1 승인 · G2 보류 처리 · G3 sign-off', 'G1 approval · G2 withheld · G3 sign-off')],
     ['lots', L('Lot Disposition', 'Lot disposition'), L('320 Lot 판정 결과 · 근거 · 조사 경로', '320 dispositions · evidence · trace')],
     ['trends', L('추이와 감시', 'Trends'), L('CD 추이 · CD-SEM 안정성 · TMU 예산', 'CD trend · CD-SEM stability · TMU budget')],
     ['valid', L('검증 결과', 'Validation'), L('블라인드 평가 · Coverage · 오귀속', 'Blind evaluation · coverage · misattribution')],
   ].map(([v, tt, d]) => `<button class="gocard" data-go="${v}"><b>${esc(tt)}</b><span>${esc(d)}</span></button>`).join('');
 
   $$('#v-home [data-go]').forEach(b => b.onclick = () => showView(b.dataset.go));
+}
+
+
+
+
+/* ── 재시도 정책 ───────────────────────────────────────────────────
+   게이트가 막히면 조건마다 정해둔 "다음 시도"를 한 번 실행한다.
+   넓히는 것은 조회 범위뿐이고 판정 기준은 건드리지 않는다.
+   그래도 풀리지 않으면 원인을 지목하지 않고 사람에게 넘긴다(G2). */
+const RETRY_POLICY = {
+  taper_not_contradicting: {
+    ko: ['단면 근거 없음', '챔버 이력 조회 범위 10일 → 21일로 확대',
+         'X-SEM은 주 3회 표본이라 해당 시점 단면이 비어 있을 수 있다'],
+    en: ['No cross-section evidence', 'Widen chamber history from 10 to 21 days',
+         'X-SEM runs three times a week, so the slot may simply be empty']},
+  metrology_evidence_fresh: {
+    ko: ['감시 데이터가 묵음', 'monitor wafer 조회 구간을 뒤로 확대',
+         '더 이전 점검 기록이라도 확보해 계측 상태를 판단한다'],
+    en: ['Monitoring data is stale', 'Look further back for monitor-wafer records',
+         'An older check is still better than none']},
+  chamber_specific: {
+    ko: ['챔버 편중이 안 보임', '비교 구간 5일 → 10일로 확대',
+         '구간이 좁아 편중이 드러나지 않았을 수 있다'],
+    en: ['No chamber commonality', 'Widen the comparison window from 5 to 10 days',
+         'A short window can hide a chamber effect']},
+  tmu_within_budget: {
+    ko: ['계측 불확도 초과', '재시도 없음 — 즉시 보류',
+         '측정값 자체를 믿을 수 없으므로 더 조회해도 해소되지 않는다'],
+    en: ['TMU over budget', 'No retry — withhold immediately',
+         'The readings themselves are untrustworthy; more queries will not help']},
+};
+function retryStats() {
+  const rows = Object.values(INV).filter(v => (v.retries || []).length);
+  const byCond = {};
+  rows.forEach(v => (v.retries || []).forEach(r => {
+    const c = byCond[r.condition] = byCond[r.condition] || {tried: 0, resolved: 0, lots: []};
+    c.tried++; if (r.resolved) c.resolved++; c.lots.push(v.lot);
+  }));
+  return {rows, byCond, escalated: Object.values(INV).filter(v => v.escalation === 'G2').length};
+}
+
+function renderRetry() {
+  const ko = LANG === 'ko', L = (a, b) => ko ? a : b;
+  const S = retryStats();
+  $('#retryTable').innerHTML =
+    `<thead><tr><th>${L('막힌 조건', 'Blocked condition')}</th><th>${L('다음 시도', 'Next attempt')}</th>
+      <th>${L('그렇게 정한 이유', 'Why')}</th><th class="num">${L('발동', 'Fired')}</th>
+      <th class="num">${L('해소', 'Resolved')}</th></tr></thead><tbody>` +
+    Object.entries(RETRY_POLICY).map(([k, v]) => {
+      const d = v[ko ? 'ko' : 'en'], st = S.byCond[k];
+      return `<tr${st ? ' class="alert"' : ''}><td><b>${esc(d[0])}</b>
+        <span class="tech mono">${esc(k)}</span></td>
+        <td>${esc(d[1])}</td><td class="sub">${esc(d[2])}</td>
+        <td class="num">${st ? st.tried : '—'}</td>
+        <td class="num">${st ? (st.resolved || 0) : '—'}</td></tr>`;
+    }).join('') + '</tbody>';
+
+  $('#retryKpi').innerHTML = [
+    [S.rows.length, L('재시도 발동 Lot', 'Lots that retried')],
+    [Object.values(S.byCond).reduce((a, c) => a + c.resolved, 0), L('재시도로 해소', 'Resolved by retry')],
+    [S.escalated, L('사람에게 이관 (G2)', 'Escalated to a human')],
+    [Object.keys(RETRY_POLICY).length, L('정의된 정책', 'Policies defined')],
+  ].map(([v, k]) => `<div><b>${v}</b><small>${esc(k)}</small></div>`).join('');
+
+  $('#retryNote').innerHTML = autoTerm(L(
+    `이 데이터에서 실제로 발동한 것은 <b>단면 근거 없음</b> 1종 · ${S.rows.length}건이다. ` +
+    `재시도로 해소된 건은 <b>0건</b>이고 전부 사람에게 넘어갔다. 정책이 있으나 풀리지 않았다는 사실을 ` +
+    `그대로 남긴다 — 재시도가 만능이 아니라는 것도 결과다.`,
+    `In this dataset only one policy fired — missing cross-section evidence, ${S.rows.length} lots. ` +
+    `None were resolved by the retry, and all were handed to a human. The record keeps that as it is: ` +
+    `a retry policy is not a guarantee.`));
+}
+
+/* ── 사람의 판단 (Human-in-the-loop) ───────────────────────────────
+   이 Agent는 조치를 실행하지 않는다. 원인 후보와 근거를 정리해 사람 앞에 놓는
+   데까지다. 설비 상태를 바꾸는 행위는 전부 승인 뒤에 있다.
+
+   경계를 세 군데 뒀다.
+     G1  조치 실행 전  — Recipe 변경·챔버 격리는 승인 없이 진행하지 않는다
+     G2  판정 보류 시  — 근거 부족을 사람이 해소할지, 현 상태를 수용할지 결정
+     G3  위험도 High   — 게이트를 통과했어도 sign-off 없이 넘기지 않는다
+   판정이 정상이고 위험도가 낮으면 사람을 부르지 않는다. 모든 건에 승인을 요구하면
+   승인이 형식이 되어 버리기 때문이다. */
+const GATES = {
+  G1: {ko: ['G1 · 조치 승인', 'Recipe 변경·설비 격리는 사람 승인 뒤에 진행한다',
+            '되돌리는 비용이 큰 행위이므로 실행 권한을 Agent에 주지 않는다'],
+       en: ['G1 · Action approval', 'Recipe changes and tool isolation wait for a human',
+            'These are expensive to undo, so the agent never holds execution rights']},
+  G2: {ko: ['G2 · 보류 처리', '추가 측정을 지시할지, 현 상태를 수용할지 사람이 정한다',
+            'Agent는 무엇이 부족한지까지만 말한다'],
+       en: ['G2 · Withheld disposition', 'A human decides whether to order more measurement or accept',
+            'The agent only states what evidence is missing']},
+  G3: {ko: ['G3 · 최종 sign-off', '위험도 High는 게이트를 통과했어도 책임자 확인을 받는다',
+            'Lot 처리의 최종 책임은 사람에게 있다'],
+       en: ['G3 · Final sign-off', 'High-risk lots need a named reviewer even after the gate passes',
+            'Final responsibility for lot disposition stays with a person']},
+};
+function gateOf(l) {
+  const ready = gateOk(l);
+  if (!ready || l.verdict === 'INDETERMINATE') return 'G2';
+  if (l.risk === 'High') return 'G3';
+  if (l.verdict !== 'NORMAL') return 'G1';
+  return null;                       /* 정상·저위험은 사람을 부르지 않는다 */
+}
+
+/* 검토 결과는 열람자 브라우저에만 남는다. 서버가 없는 정적 데모이므로
+   실제 fab이라면 MES/이력 DB에 남아야 할 기록을 localStorage로 대신한다. */
+const REV_KEY = 'cd_reviews_v1';
+function loadReviews() {
+  try { return JSON.parse(localStorage.getItem(REV_KEY) || '{}'); } catch (e) { return {}; }
+}
+function saveReview(lot, rec) {
+  try {
+    const all = loadReviews();
+    (all[lot] = all[lot] || []).push(rec);
+    localStorage.setItem(REV_KEY, JSON.stringify(all));
+  } catch (e) { /* 저장 실패해도 화면은 계속 동작한다 */ }
+}
+function reviewOf(lot) { const h = loadReviews()[lot] || []; return h.length ? h[h.length - 1] : null; }
+
+const DECISIONS = {
+  G1: [['approve', ['조치 승인', 'Approve action']],
+       ['reject',  ['반려 · 재조사 요청', 'Reject · ask for re-investigation']],
+       ['more',    ['추가 측정 요청', 'Request more measurement']]],
+  G2: [['more',    ['추가 측정 지시', 'Order more measurement']],
+       ['accept',  ['현 상태 수용 · 보류 유지', 'Accept · keep withheld']]],
+  G3: [['signoff', ['확인 · sign-off', 'Sign off']],
+       ['reject',  ['반려 · 재조사 요청', 'Reject · ask for re-investigation']],
+       ['more',    ['추가 측정 요청', 'Request more measurement']]],
+};
+const DEC_LABEL = {
+  approve: ['승인됨', 'Approved'], reject: ['반려됨', 'Rejected'],
+  more: ['추가 측정 요청됨', 'More data requested'], accept: ['보류 수용됨', 'Withheld accepted'],
+  signoff: ['sign-off 완료', 'Signed off'],
+};
+const DEC_CLS = {approve: 'p-ok', signoff: 'p-ok', reject: 'p-action', more: 'p-review', accept: 'p-review'};
+
+function renderReview(l) {
+  const ko = LANG === 'ko', L = (a, b) => ko ? a : b;
+  const g = gateOf(l);
+  if (!g) return `<div class="panel"><header><h2>${esc(t('h.review'))}</h2></header>
+    <p class="sub">${esc(L('정상 판정 · 위험도 낮음 — 사람 승인이 필요한 항목이 아니다.',
+                            'Normal and low risk — no human approval required.'))}</p></div>`;
+  const G = GATES[g][ko ? 'ko' : 'en'], last = reviewOf(l.lot);
+  return `<div class="panel" id="reviewPanel">
+    <header><h2>${esc(t('h.review'))}</h2>
+      <span class="sub">${esc(L('이 Agent는 조치를 실행하지 않는다', 'This agent does not execute actions'))}</span></header>
+    <div class="gatebox">
+      <div class="gtag">${esc(G[0])}</div>
+      <p class="gwhy"><b>${esc(G[1])}</b></p>
+      <p class="sub">${esc(G[2])}</p>
+    </div>
+    <div class="revstate">${last
+      ? `<span class="pill ${DEC_CLS[last.d] || 'p-review'}">${esc(DEC_LABEL[last.d][ko ? 0 : 1])}</span>
+         <span class="sub">${esc(last.by)} · ${esc(last.at)}</span>`
+      : `<span class="pill p-review">${esc(L('검토 대기', 'Awaiting review'))}</span>`}</div>
+    <div class="revbtns">${DECISIONS[g].map(([k, lb]) =>
+      `<button class="gbtn${k === 'approve' || k === 'signoff' ? ' primary' : ''}"
+        data-dec="${k}">${esc(lb[ko ? 0 : 1])}</button>`).join('')}</div>
+    <p class="sub" style="margin-top:12px">${esc(L(
+      '데모에서는 이 브라우저에만 기록된다. 실제라면 MES 이력에 남아야 할 항목이다.',
+      'In this demo the record stays in your browser; in a fab it would go to the MES history.'))}</p>
+    ${(loadReviews()[l.lot] || []).length ? `<div class="tw" style="margin-top:16px"><table>
+      <thead><tr><th>${esc(L('시각', 'When'))}</th><th>${esc(L('결정', 'Decision'))}</th>
+        <th>${esc(L('검토자', 'Reviewer'))}</th></tr></thead><tbody>
+      ${(loadReviews()[l.lot] || []).slice().reverse().map(r =>
+        `<tr><td class="mono">${esc(r.at)}</td><td>${esc(DEC_LABEL[r.d][ko ? 0 : 1])}</td>
+          <td>${esc(r.by)}</td></tr>`).join('')}</tbody></table></div>` : ''}
+  </div>`;
+}
+
+function renderHitl() {
+  renderRetry();
+  const ko = LANG === 'ko', L = (a, b) => ko ? a : b;
+  const cnt = {G1: 0, G2: 0, G3: 0, none: 0};
+  DATA.lots.forEach(l => { const g = gateOf(l); cnt[g || 'none']++; });
+  $('#hitlKpi').innerHTML = [
+    [cnt.G1, L('G1 조치 승인 대상', 'G1 action approval')],
+    [cnt.G2, L('G2 보류 처리 대상', 'G2 withheld')],
+    [cnt.G3, L('G3 sign-off 대상', 'G3 sign-off')],
+    [cnt.none, L('사람 개입 불필요', 'No human needed')],
+  ].map(([v, k]) => `<div><b>${v}</b><small>${esc(k)}</small></div>`).join('');
+
+  $('#hitlTable').innerHTML =
+    `<thead><tr><th>${L('경계', 'Boundary')}</th><th>${L('Agent가 하는 일', 'What the agent does')}</th>
+      <th>${L('사람이 하는 일', 'What the person does')}</th><th class="num">${L('해당 Lot', 'Lots')}</th></tr></thead><tbody>` +
+    [['G1', L('원인 후보와 조치안까지 제시', 'Proposes cause and an action plan'),
+            L('Recipe 변경·챔버 격리 승인 / 반려 / 추가 측정 요청', 'Approve, reject, or ask for more data'), cnt.G1],
+     ['G2', L('무엇이 부족한지와 필요한 추가 측정을 명시', 'States the missing evidence'),
+            L('추가 측정 지시 또는 현 상태 수용', 'Order more measurement or accept'), cnt.G2],
+     ['G3', L('게이트 통과 결과와 근거 전부 제시', 'Presents the passed gate and all evidence'),
+            L('책임자 sign-off', 'Named reviewer signs off'), cnt.G3]]
+      .map(r => `<tr><td><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td><td>${esc(r[2])}</td>
+        <td class="num"><b>${r[3]}</b></td></tr>`).join('') + '</tbody>';
+
+  $('#hitlWhy').innerHTML = [
+    L('<b>실행 권한을 주지 않는다</b> · Agent의 출력은 제안까지다. Recipe를 바꾸거나 챔버를 세우는 행위는 승인 뒤에 있다.',
+      '<b>No execution rights</b> · The agent stops at a proposal. Changing a recipe or holding a chamber happens after approval.'),
+    L('<b>전건 승인을 요구하지 않는다</b> · 정상·저위험 232 Lot은 사람을 부르지 않는다. 모든 건에 승인을 요구하면 승인이 형식이 된다.',
+      '<b>Not every lot needs a human</b> · 232 normal, low-risk lots pass without review. Asking for approval on everything makes approval meaningless.'),
+    L('<b>보류는 사람을 부르는 신호다</b> · 근거가 부족하면 Agent가 원인을 지목하지 않고 무엇이 부족한지를 남긴다.',
+      '<b>Withholding is a call for a human</b> · When evidence is thin the agent names the gap, not a cause.'),
+    L('<b>기록이 남아야 한다</b> · 누가 언제 무엇을 결정했는지가 남지 않으면 자동화가 아니라 책임 공백이 된다.',
+      '<b>Decisions must be logged</b> · Without a record of who decided what and when, this is not automation but a gap in accountability.'),
+  ].map(x => `<li>${autoTerm(x)}</li>`).join('');
+}
+
+/* ── 분기 트리와 경로 분포 ─────────────────────────────────────────
+   "일직선 파이프라인 아니냐"는 의심에 답하는 화면.
+   설계상의 분기를 그리고, 320 Lot이 실제로 밟은 경로를 집계해 함께 보인다.
+   집계는 investigations.js의 trace에서 직접 계산한다. */
+function branchOf(st, l) {
+  if (st.tool !== 'get_equipment_events') return st.tool;
+  const id = st.args?.tool_id || '';
+  if (id === l.scanner) return 'EV:scanner';
+  if (id === 'TRACK-01') return 'EV:track';
+  if (id === l.reticle) return 'EV:reticle';
+  if (id === l.chamber) return 'EV:chamber';
+  if (id === l.aciTool || id === l.adiTool) return 'EV:metrology';
+  return 'EV:other';
+}
+let _paths = null;
+function pathStats() {
+  if (_paths) return _paths;
+  const LOT = {}; DATA.lots.forEach(l => LOT[l.lot] = l);
+  const rows = {}, byV = {};
+  Object.values(INV).forEach(inv => {
+    const l = LOT[inv.lot]; if (!l) return;
+    const sig = inv.trace.map(st => branchOf(st, l)).join(' → ');
+    rows[sig] = (rows[sig] || 0) + 1;
+    (byV[l.verdict] = byV[l.verdict] || {})[sig] = (byV[l.verdict][sig] || 0) + 1;
+  });
+  const calls = Object.values(INV).map(v => v.tool_calls);
+  _paths = {rows, byV, total: Object.values(INV).length,
+            avg: calls.reduce((a, b) => a + b, 0) / calls.length};
+  return _paths;
+}
+const STEP_KO = {
+  get_lot_context: ['로트 컨텍스트', 'lot context'],
+  decompose_cd: ['CD 성분 분해', 'decompose CD'],
+  get_metrology_health: ['계측 상태 확인', 'metrology health'],
+  compare_chambers: ['챔버 비교', 'compare chambers'],
+  verify_disposition: ['검증 게이트', 'verification gate'],
+  'EV:scanner': ['스캐너 이력', 'scanner events'],
+  'EV:track': ['Track 이력', 'track events'],
+  'EV:reticle': ['레티클 이력', 'reticle events'],
+  'EV:chamber': ['챔버 이력', 'chamber events'],
+  'EV:metrology': ['계측기 이력', 'metrology events'],
+};
+const stepName = k => (STEP_KO[k] || [k, k])[LANG === 'ko' ? 0 : 1];
+
+function branchTree() {
+  const ko = LANG === 'ko', L = (a, b) => ko ? a : b;
+  const AX = '#8B8593', INK = '#14060F';
+  const node = (x, y, w, label, color, fill) => `
+    <rect x="${x}" y="${y}" width="${w}" height="34" rx="7" fill="${fill || '#fff'}"
+      stroke="${color}" stroke-width="1.6"/>
+    <text x="${x + w / 2}" y="${y + 21}" text-anchor="middle" font-size="12"
+      fill="${color}" font-weight="600">${label}</text>`;
+  const cond = (x, y, w, label) => `
+    <rect x="${x}" y="${y}" width="${w}" height="28" rx="14" fill="#F1ECF3" stroke="#634670" stroke-width="1.2"/>
+    <text x="${x + w / 2}" y="${y + 18}" text-anchor="middle" font-size="11" fill="#634670">${label}</text>`;
+  const elbow = (x1, y1, x2, y2) => `<path d="M${x1} ${y1} H${(x1 + x2) / 2} V${y2} H${x2}"
+      fill="none" stroke="${AX}" stroke-width="1.3"/><path d="M${x2 - 6} ${y2 - 4} l6 4 -6 4" fill="${AX}"/>`;
+  const S = pathStats();
+  const n = sig => Object.entries(S.rows).filter(([k]) => k.includes(sig))
+                    .reduce((a, [, v]) => a + v, 0);
+
+  return `<svg viewBox="0 0 960 470" role="img"
+    aria-label="${L('판정 분기 트리', 'disposition branch tree')}">
+    ${node(20, 20, 150, L('로트 컨텍스트', 'lot context'), INK)}
+    <path d="M95 54 V74" stroke="${AX}" stroke-width="1.3"/><path d="M91 68l4 6 4-6" fill="${AX}"/>
+    ${node(20, 74, 150, L('CD 성분 분해', 'decompose CD'), INK)}
+    <path d="M95 108 V128" stroke="${AX}" stroke-width="1.3"/><path d="M91 122l4 6 4-6" fill="${AX}"/>
+    ${node(20, 128, 150, L('계측 상태 확인', 'metrology health'), '#2F6E74', '#E9F1F2')}
+    <text x="20" y="180" font-size="10.5" fill="#2F6E74">${L('AEI 측정 로트면 항상 선행', 'always first when AEI exists')}</text>
+
+    ${cond(215, 60, 170, L('스칼라·dose 이탈?', 'scalar / dose out?'))}
+    ${elbow(170, 145, 215, 74)}
+    ${node(420, 56, 150, L('스캐너 이력', 'scanner events'), '#875D33')}
+    ${elbow(385, 74, 420, 73)}
+    ${node(620, 56, 180, L('Photo dose', 'Photo dose'), '#875D33', '#F6F1E9')}
+    ${elbow(570, 73, 620, 73)}
+    <text x="815" y="78" font-size="12" fill="#875D33" font-weight="700">${n('EV:scanner')} Lot</text>
+
+    ${cond(215, 130, 170, L('반경 성분 이탈?', 'radial out?'))}
+    ${elbow(170, 145, 215, 144)}
+    ${node(420, 126, 150, L('Track 이력', 'track events'), '#875D33')}
+    ${elbow(385, 144, 420, 143)}
+    ${node(620, 126, 180, L('Track / PEB', 'Track / PEB'), '#875D33', '#F6F1E9')}
+    ${elbow(570, 143, 620, 143)}
+    <text x="815" y="148" font-size="12" fill="#875D33" font-weight="700">${n('EV:track')} Lot</text>
+
+    ${cond(215, 200, 170, L('레티클 반복 이탈?', 'reticle repeat out?'))}
+    ${elbow(170, 145, 215, 214)}
+    ${node(420, 196, 150, L('레티클 이력', 'reticle events'), '#875D33')}
+    ${elbow(385, 214, 420, 213)}
+    ${node(620, 196, 180, L('Reticle CD', 'Reticle CD'), '#875D33', '#F6F1E9')}
+    ${elbow(570, 213, 620, 213)}
+    <text x="815" y="218" font-size="12" fill="#875D33" font-weight="700">${n('EV:reticle')} Lot</text>
+
+    ${cond(215, 285, 170, L('ΔCD 이탈?', 'Delta-CD out?'))}
+    ${elbow(170, 145, 215, 299)}
+    ${node(420, 281, 150, L('챔버 비교', 'compare chambers'), '#8C3D6B')}
+    ${elbow(385, 299, 420, 298)}
+    ${cond(600, 264, 190, L('한 챔버에 몰렸나?', 'one chamber?'))}
+    ${elbow(570, 298, 600, 278)}
+    ${node(620, 316, 180, L('Etch chamber', 'Etch chamber'), '#8C3D6B', '#F7EDF3')}
+    ${node(620, 366, 180, L('Metrology drift', 'Metrology drift'), '#2F6E74', '#E9F1F2')}
+    ${node(620, 416, 180, L('판정 보류', 'withheld'), '#634670', '#F1ECF3')}
+    ${elbow(695, 292, 700, 316)}
+    <text x="815" y="338" font-size="12" fill="#8C3D6B" font-weight="700">${S.byV.ETCH_CHAMBER ? Object.values(S.byV.ETCH_CHAMBER).reduce((a, b) => a + b, 0) : 0} Lot</text>
+    <text x="815" y="388" font-size="12" fill="#2F6E74" font-weight="700">${S.byV.METROLOGY_TOOL_DRIFT ? Object.values(S.byV.METROLOGY_TOOL_DRIFT).reduce((a, b) => a + b, 0) : 0} Lot</text>
+    <text x="815" y="438" font-size="12" fill="#634670" font-weight="700">${S.byV.INDETERMINATE ? Object.values(S.byV.INDETERMINATE).reduce((a, b) => a + b, 0) : 0} Lot</text>
+
+    ${node(215, 400, 170, L('전 성분 한계 이내', 'all within limit'), '#4A7052', '#EDF3EE')}
+    ${elbow(170, 145, 215, 417)}
+    ${node(420, 400, 150, L('정상', 'Normal'), '#4A7052', '#EDF3EE')}
+    ${elbow(385, 417, 420, 417)}
+    <text x="580" y="422" font-size="12" fill="#4A7052" font-weight="700">${S.byV.NORMAL ? Object.values(S.byV.NORMAL).reduce((a, b) => a + b, 0) : 0} Lot</text>
+
+    <line x1="20" y1="448" x2="940" y2="448" stroke="${AX}" stroke-dasharray="4 3"/>
+    <text x="20" y="464" font-size="11" fill="${INK}">${L(
+      '모든 경로는 마지막에 Verification Gate를 통과한다 — 조건 미충족이면 원인을 지목하지 않는다',
+      'Every path ends at the verification gate; unmet conditions mean no cause is named')}</text>
+  </svg>`;
+}
+
+function renderBranch() {
+  const ko = LANG === 'ko', L = (a, b) => ko ? a : b;
+  const S = pathStats();
+  $('#branchTree').innerHTML = branchTree();
+  const short = sig => sig.split(' → ').map(stepName).join(' → ');
+  const rows = Object.entries(S.rows).sort((a, b) => b[1] - a[1]);
+  $('#pathTable').innerHTML =
+    `<thead><tr><th>${L('실제로 밟은 경로', 'Path actually taken')}</th>
+      <th class="num">${L('Lot 수', 'Lots')}</th><th class="num">${L('비중', 'Share')}</th></tr></thead><tbody>` +
+    rows.map(([sig, n]) => `<tr><td class="pathcell">${esc(short(sig))}</td>
+      <td class="num"><b>${n}</b></td><td class="num">${(n / S.total * 100).toFixed(1)}%</td></tr>`).join('') +
+    '</tbody>';
+  $('#pathNote').textContent = L(
+    `경로 ${rows.length}종 · 평균 도구 호출 ${S.avg.toFixed(2)}회`,
+    `${rows.length} distinct paths · ${S.avg.toFixed(2)} tool calls on average`);
 }
 
 /* ── 검증 ─────────────────────────────────────────────────── */
@@ -1647,7 +2039,7 @@ function renderRef() {
 }
 
 /* ── 화면 전환 · 언어 ─────────────────────────────────────── */
-const VIEWS = ['home', 'flow', 'lots', 'trends', 'valid', 'terms', 'ref', 'refs'];
+const VIEWS = ['home', 'flow', 'branch', 'hitl', 'lots', 'trends', 'valid', 'terms', 'ref', 'refs'];
 let drawn = {};
 function showView(v) {
   S.view = v;
@@ -1655,6 +2047,8 @@ function showView(v) {
   $$('#nav button').forEach(b => b.dataset.v === v
     ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
   if (v === 'home' && !drawn.hm) { renderHome(); drawn.hm = 1; }
+  if (v === 'hitl') { renderHitl(); }
+  if (v === 'branch' && !drawn.br) { renderBranch(); drawn.br = 1; }
   if (v === 'flow' && !drawn.fl) { renderFlow(); drawn.fl = 1; }
   if (v === 'trends' && !drawn.tr) { drawTrend(); drawMonitor(); drawTmu(); drawChambers(); drawn.tr = 1; }
   if (v === 'valid' && !drawn.va) { renderValidation(); drawn.va = 1; }
